@@ -1,0 +1,77 @@
+.role-admin {
+	background: #fee2e2;
+	color: #b91c1c;
+}
+.role-giam-doc {
+	background: #dbeafe;
+	color: #1d4ed8;
+}
+.role-ddt-bv {
+	background: #ede9fe;
+	color: #6d28d9;
+}
+.role-ddt-khoa {
+	background: #ccfbf1;
+	color: #0f766e;
+}
+.role-nhan-vien {
+	background: #f1f5f9;
+	color: #475569;
+}
+
+/* ── Avatar màu theo cấp bậc ── */
+.td-avatar.acc-av-admin {
+	background: linear-gradient(135deg, #b91c1c, #ef4444);
+}
+.td-avatar.acc-av-giam_doc {
+	background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+}
+.td-avatar.acc-av-dieu_duong_truong {
+	background: linear-gradient(135deg, #6d28d9, #a78bfa);
+}
+.td-avatar.acc-av-ddt_khoa {
+	background: linear-gradient(135deg, #0f766e, #2dd4bf);
+}
+.td-avatar.acc-av-nhan_vien {
+	background: linear-gradient(135deg, #475569, #94a3b8);
+}
+
+/* ── Thanh tóm tắt cấp bậc (chip trên toolbar) ── */
+.acc-rank-chip {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: 8px;
+	padding: 5px 11px;
+	font-size: 0.75rem;
+}
+.acc-rank-label {
+	font-weight: 600;
+	color: var(--txt);
+}
+.acc-rank-count {
+	background: #f1f5f9;
+	color: var(--mut);
+	border-radius: 9999px;
+	font-size: 0.68rem;
+	font-weight: 700;
+	padding: 1px 6px;
+}
+
+/* ── Gợi ý vai trò trong modal ── */
+.acc-role-hint {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 0.75rem;
+	color: #475569;
+	background: #f8fafc;
+	border: 1px solid var(--bdr);
+	border-radius: 8px;
+	padding: 8px 12px;
+}
+
+/* Ví dụ: highlight row active theo trạng thái */
+/* .tbl tbody tr:has(.badge-green):hover td { background: #f0faf4; } */

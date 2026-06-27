@@ -1,0 +1,769 @@
+/* ── Layout 2 cột: config + preview ── */
+.report-layout {
+	display: grid;
+	grid-template-columns: 340px 1fr;
+	gap: 16px;
+	align-items: start;
+}
+
+/* ── Card chứa nội dung ── */
+.rep-card {
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: var(--r);
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.rep-card-title {
+	font-size: 0.85rem;
+	font-weight: 700;
+	color: var(--txt);
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--bdr);
+}
+.rep-card-preview {
+	min-height: 360px;
+}
+
+/* ── Khu vực nút xuất ── */
+.rep-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-top: 6px;
+}
+.rep-btn {
+	justify-content: center;
+	width: 100%;
+}
+
+/* ── Placeholder xem trước ── */
+.rep-preview-empty {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 60px 20px;
+	text-align: center;
+	gap: 8px;
+}
+.rep-preview-icon {
+	font-size: 2.8rem;
+}
+.rep-preview-title {
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: var(--txt);
+}
+.rep-preview-sub {
+	font-size: 0.8rem;
+	color: var(--mut);
+	line-height: 1.6;
+}
+
+/* ── Các cột sẽ xuất ── */
+.rep-cols-preview {
+	background: #f8fafc;
+	border: 1px solid var(--bdr);
+	border-radius: 8px;
+	padding: 10px 12px;
+}
+.rep-cols-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.rep-col-chip {
+	font-size: 0.72rem;
+	font-weight: 700;
+	padding: 3px 10px;
+	border-radius: 9999px;
+	background: white;
+	color: var(--cc);
+	border: 1px solid var(--bdr);
+}
+
+/* ── Tóm tắt cấu hình xuất ── */
+.rep-summary {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: 10px;
+	overflow: hidden;
+	margin-bottom: 14px;
+}
+.rep-summary-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 9px 14px;
+	border-bottom: 1px solid #f1f5f9;
+	transition: background 0.12s;
+}
+.rep-summary-row:last-child {
+	border-bottom: none;
+}
+.rep-summary-row:hover {
+	background: #fafafa;
+}
+.rep-summary-icon {
+	font-size: 0.9rem;
+	width: 20px;
+	flex-shrink: 0;
+}
+.rep-summary-label {
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: var(--mut);
+	width: 70px;
+	flex-shrink: 0;
+}
+.rep-summary-val {
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--txt);
+}
+
+/* ── Biểu đồ minh hoạ ── */
+.rep-chart-area {
+	background: #fafafa;
+	border: 1px solid var(--bdr);
+	border-radius: 10px;
+	padding: 12px 16px 10px;
+	margin-bottom: 14px;
+}
+.rep-chart-title {
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: var(--mut);
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	margin-bottom: 12px;
+}
+.rep-bars {
+	display: flex;
+	align-items: flex-end;
+	gap: 10px;
+	height: 80px;
+	padding-bottom: 4px;
+}
+.rep-bar-col {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	flex: 1;
+}
+.rep-bar {
+	width: 100%;
+	max-width: 40px;
+	border-radius: 5px 5px 0 0;
+	opacity: 0.8;
+	transition: opacity 0.15s;
+}
+.rep-bar:hover {
+	opacity: 1;
+}
+.rep-bar-label {
+	font-size: 0.6rem;
+	color: var(--mut);
+	white-space: nowrap;
+	text-align: center;
+}
+
+/* ── Modal "Đang phát triển" ── */
+.rep-dev-modal {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	padding: 12px 0 4px;
+	gap: 10px;
+}
+.rep-dev-icon {
+	font-size: 2.8rem;
+}
+.rep-dev-title {
+	font-size: 1.05rem;
+	font-weight: 800;
+	color: var(--txt);
+}
+.rep-dev-body {
+	font-size: 0.85rem;
+	color: var(--mut);
+	line-height: 1.6;
+}
+.rep-dev-meta {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-bottom: 6px;
+}
+.rep-dev-meta span {
+	font-size: 0.72rem;
+	font-weight: 600;
+	background: #f1f5f9;
+	color: var(--txt);
+	padding: 3px 10px;
+	border-radius: 9999px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ReportPage mới — rp-* (thay thế giao diện cũ rep-*)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Wrapper ── */
+.rp {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	padding-bottom: 32px;
+}
+.rp--modal {
+	padding: 4px 0 16px;
+}
+
+/* ── Layout 2 cột ── */
+.rp-body {
+	display: grid;
+	grid-template-columns: 360px 1fr;
+	gap: 16px;
+	align-items: start;
+	margin-top: 16px;
+}
+@media (max-width: 860px) {
+	.rp-body {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ── Bước (step card) ── */
+.rp-step {
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: var(--r);
+	padding: 16px 18px;
+	margin-bottom: 12px;
+}
+.rp-step-hdr {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 14px;
+}
+.rp-step-num {
+	width: 24px;
+	height: 24px;
+	background: var(--p);
+	color: #fff;
+	border-radius: 50%;
+	font-size: 0.72rem;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	box-shadow: 0 2px 6px rgba(7, 147, 65, 0.2);
+}
+.rp-step-title {
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: var(--txt);
+}
+
+/* ── Tab kỳ (2×2 grid) ── */
+.rp-tabs {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+	margin-bottom: 10px;
+}
+.rp-tab {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 10px;
+	border: 1.5px solid var(--bdr);
+	border-radius: var(--rs);
+	background: #f8fafc;
+	cursor: pointer;
+	transition:
+		background 0.15s,
+		border-color 0.15s,
+		color 0.15s;
+	font-size: 0.78rem;
+	font-family: inherit;
+	color: var(--mut);
+}
+.rp-tab:hover {
+	border-color: var(--p);
+	color: var(--p);
+	background: #f0faf4;
+}
+.rp-tab--active {
+	border-color: var(--p);
+	background: var(--p);
+	color: #fff;
+	box-shadow: 0 3px 8px rgba(7, 147, 65, 0.2);
+}
+.rp-tab-icon {
+	font-size: 1rem;
+	line-height: 1;
+}
+.rp-tab-label {
+	font-weight: 600;
+}
+.rp-tab-hint {
+	font-size: 0.71rem;
+	color: var(--mut);
+	margin: 0 0 12px;
+	padding-left: 2px;
+	font-style: italic;
+}
+
+/* ── Khoảng ngày ── */
+.rp-date-row {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+}
+.rp-date-field {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+.rp-date-sep {
+	font-size: 1rem;
+	color: var(--mut);
+	padding-bottom: 7px;
+	flex-shrink: 0;
+}
+.rp-label {
+	font-size: 0.7rem;
+	font-weight: 600;
+	color: var(--mut);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+.rp-input {
+	padding: 0.44rem 0.65rem;
+	border: 1.5px solid var(--bdr);
+	border-radius: var(--rs);
+	font-size: 0.82rem;
+	font-family: inherit;
+	color: var(--txt);
+	background: #fafafa;
+	width: 100%;
+	box-sizing: border-box;
+	outline: none;
+	transition:
+		border-color 0.18s,
+		box-shadow 0.18s,
+		background 0.18s;
+}
+.rp-input:focus {
+	border-color: var(--p);
+	box-shadow: 0 0 0 3px rgba(7, 147, 65, 0.1);
+	background: #fff;
+}
+.rp-select {
+	appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 10px center;
+	padding-right: 28px;
+	cursor: pointer;
+}
+.rp-date-badge {
+	margin-top: 10px;
+	font-size: 0.74rem;
+	color: var(--pd, #065f2b);
+	background: #f0faf4;
+	border: 1px solid #a7f3d0;
+	border-radius: 6px;
+	padding: 5px 10px;
+	font-weight: 600;
+}
+
+/* ── Scope toggle (Toàn BV / Một khoa) ── */
+.rp-scope-toggle {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+}
+.rp-scope-btn {
+	padding: 9px 10px;
+	border: 1.5px solid var(--bdr);
+	border-radius: var(--rs);
+	background: #f8fafc;
+	font-size: 0.8rem;
+	font-weight: 600;
+	font-family: inherit;
+	color: var(--mut);
+	cursor: pointer;
+	transition:
+		background 0.15s,
+		border-color 0.15s,
+		color 0.15s;
+	text-align: center;
+}
+.rp-scope-btn:hover {
+	border-color: var(--p);
+	color: var(--p);
+}
+.rp-scope-btn--active {
+	border-color: var(--p);
+	background: var(--p);
+	color: #fff;
+	box-shadow: 0 3px 8px rgba(7, 147, 65, 0.2);
+}
+
+/* ── Lỗi ── */
+.rp-error {
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	border-radius: var(--rs);
+	padding: 8px 12px;
+	font-size: 0.8rem;
+	color: var(--red);
+	margin-bottom: 4px;
+}
+
+/* ── Nút xuất ── */
+.rp-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.rp-export-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+	width: 100%;
+	padding: 0.6rem 1rem;
+	border-radius: var(--rs);
+	font-size: 0.84rem;
+	font-weight: 700;
+	font-family: inherit;
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	border: none;
+	background: linear-gradient(135deg, var(--p) 0%, var(--pd) 100%);
+	color: #fff;
+	box-shadow: 0 4px 12px rgba(7, 147, 65, 0.25);
+}
+.rp-export-btn:hover:not(:disabled) {
+	box-shadow: 0 6px 18px rgba(7, 147, 65, 0.35);
+	transform: translateY(-1.5px);
+}
+.rp-export-btn:disabled {
+	opacity: 0.58;
+	cursor: not-allowed;
+	transform: none;
+}
+.rp-export-btn--outline {
+	background: transparent;
+	border: 1.5px solid var(--bdr);
+	color: var(--mut);
+	box-shadow: none;
+}
+.rp-export-btn--outline:hover:not(:disabled) {
+	border-color: var(--p);
+	color: var(--p);
+	background: #f0faf4;
+	box-shadow: none;
+	transform: none;
+}
+.rp-spinner {
+	display: inline-block;
+	width: 13px;
+	height: 13px;
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	border-top-color: #fff;
+	border-radius: 50%;
+	animation: rp-spin 0.7s linear infinite;
+}
+@keyframes rp-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Cột phải — Preview
+   ═══════════════════════════════════════════════════════════ */
+.rp-right {
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: var(--r);
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+/* Tiêu đề preview */
+.rp-preview-title {
+	font-size: 0.84rem;
+	font-weight: 700;
+	color: var(--txt);
+	margin: 0;
+	padding-bottom: 12px;
+	border-bottom: 1px solid var(--bdr);
+}
+
+/* Thẻ meta 3 ô */
+.rp-meta-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 8px;
+}
+@media (max-width: 600px) {
+	.rp-meta-grid {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+.rp-meta-item {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	background: #f8fafc;
+	border: 1px solid var(--bdr);
+	border-radius: var(--rs);
+	padding: 10px 11px;
+}
+.rp-meta-icon {
+	font-size: 1.25rem;
+	line-height: 1;
+	flex-shrink: 0;
+}
+.rp-meta-label {
+	font-size: 0.66rem;
+	color: var(--mut);
+	margin: 0 0 2px;
+	line-height: 1;
+}
+.rp-meta-val {
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: var(--txt);
+	margin: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	line-height: 1.2;
+}
+
+/* Sheet cards */
+.rp-sheets {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.rp-sheet {
+	border: 1px solid var(--bdr);
+	border-radius: var(--rs);
+	padding: 12px 14px;
+	background: #f8fafc;
+}
+.rp-sheet--primary {
+	border-color: #86efac;
+	background: #f0fdf4;
+}
+.rp-sheet-hdr {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+.rp-sheet-badge {
+	font-size: 0.66rem;
+	font-weight: 700;
+	background: var(--p);
+	color: #fff;
+	border-radius: 5px;
+	padding: 2px 7px;
+	flex-shrink: 0;
+	white-space: nowrap;
+}
+.rp-sheet-badge--sec {
+	background: #3b82f6;
+}
+.rp-sheet-name {
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: var(--txt);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.rp-sheet-cols {
+	margin: 0;
+	padding: 0 0 0 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	list-style: disc;
+}
+.rp-sheet-cols li {
+	font-size: 0.76rem;
+	color: var(--txt);
+	line-height: 1.55;
+}
+.rp-sheet-cols em {
+	color: var(--mut);
+	font-style: normal;
+	font-size: 0.7rem;
+}
+.rp-sheet-note {
+	color: var(--mut) !important;
+	font-style: italic;
+	font-size: 0.71rem !important;
+	list-style: none !important;
+	padding-left: 0 !important;
+	margin-top: 2px;
+}
+
+/* Chú giải màu */
+.rp-legend {
+	background: #f8fafc;
+	border: 1px solid var(--bdr);
+	border-radius: var(--rs);
+	padding: 12px 14px;
+}
+.rp-legend-title {
+	font-size: 0.68rem;
+	font-weight: 700;
+	color: var(--mut);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	margin: 0 0 10px;
+}
+.rp-legend-row {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	margin-bottom: 6px;
+	font-size: 0.76rem;
+	color: var(--txt);
+}
+.rp-legend-row:last-child {
+	margin-bottom: 0;
+}
+.rp-legend-dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	flex-shrink: 0;
+}
+
+/* ── Range picker cho tuần/tháng (rp-range-*) ── */
+.rp-range-grid {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.rp-range-block {
+	flex: 1;
+	min-width: 0;
+}
+.rp-range-block-lbl {
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: var(--pd, #065f2b);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin: 0 0 6px;
+}
+.rp-range-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+}
+.rp-range-field {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+}
+.rp-range-arrow {
+	font-size: 1.1rem;
+	color: var(--mut);
+	flex-shrink: 0;
+	padding-top: 22px; /* căn với select */
+}
+
+/* Lỗi range (inline, nhỏ hơn rp-error) */
+.rp-range-err {
+	margin-top: 8px;
+	font-size: 0.74rem;
+	color: var(--red);
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	border-radius: 6px;
+	padding: 5px 10px;
+}
+
+/* ── Mobile Responsive (Xuất Báo Cáo) ── */
+@media (max-width: 500px) {
+	.rp-step {
+		padding: 12px 14px;
+	}
+
+	.rp-tabs {
+		gap: 6px;
+	}
+	
+	.rp-tab {
+		padding: 6px 8px;
+		font-size: 0.74rem;
+	}
+
+	.rp-date-row {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+	}
+	
+	.rp-date-sep {
+		display: none;
+	}
+
+	.rp-scope-toggle {
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+	
+	.rp-scope-btn {
+		padding: 8px 10px;
+		font-size: 0.76rem;
+	}
+
+	.rp-meta-grid {
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	.rp-range-row {
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	.rp-range-arrow {
+		display: none;
+	}
+	
+	.rp-right {
+		padding: 14px;
+	}
+}

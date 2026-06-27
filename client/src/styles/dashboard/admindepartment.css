@@ -1,0 +1,148 @@
+/* ── Thống kê tổng quan đầu trang ── */
+.dept-stat-row {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: 10px;
+}
+.dept-stat-card {
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-top: 3px solid var(--dc, #1e293b);
+	border-radius: var(--r);
+	padding: 14px 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.02);
+}
+.dept-stat-val {
+	font-size: 1.6rem;
+	font-weight: 800;
+	color: var(--dc, #1e293b);
+	line-height: 1;
+	letter-spacing: -0.03em;
+}
+.dept-stat-lbl {
+	font-size: 0.72rem;
+	color: var(--mut);
+	font-weight: 500;
+}
+
+/* ── Icon khoa trong bảng ── */
+.dept-icon {
+	width: 26px;
+	height: 26px;
+	border-radius: 7px;
+	background: var(--pl);
+	border: 1px solid rgba(14, 165, 233, 0.25);
+	color: var(--pd);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.85rem;
+	flex-shrink: 0;
+}
+.dept-icon-off {
+	background: #f8fafc;
+	border-color: var(--bdr);
+	opacity: 0.5;
+}
+
+/* ── Hiển thị hệ số trong bảng ── */
+.dept-hs {
+	font-size: 0.78rem !important;
+	font-weight: 600;
+}
+.dept-hs-c1 {
+	color: #dc2626;
+}
+.dept-hs-c2 {
+	color: #d97706;
+}
+.dept-hs-c3 {
+	color: #2563eb;
+}
+.dept-hs-tong {
+	color: #7c3aed;
+	font-weight: 700 !important;
+}
+
+/* ── Section hệ số trong modal ── */
+.dept-heso-section {
+	background: #fafafa;
+	border: 1px solid var(--bdr);
+	border-radius: 10px;
+	padding: 14px 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.dept-heso-hdr {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+.dept-heso-hint-icon {
+	color: var(--mut);
+	cursor: help;
+	display: flex;
+}
+
+/* ── Hint text nhỏ trong fi-label ── */
+.dept-hs-hint {
+	font-weight: 400;
+	font-style: italic;
+	color: #94a3b8;
+	font-size: 0.65rem;
+}
+
+/* ── Preview kết quả hệ số TT03 ── */
+.dept-heso-preview {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: #f0fdf4;
+	border: 1px solid #bbf7d0;
+	border-radius: 8px;
+	padding: 8px 12px;
+	margin-top: 4px;
+}
+.dept-heso-preview-label {
+	font-size: 0.72rem;
+	color: #64748b;
+}
+.dept-heso-preview-val {
+	font-size: 0.85rem;
+	font-weight: 700;
+	color: #065f2b;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+	.dept-stat-row {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+@media (max-width: 680px) {
+	.dept-stat-row {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+@media (max-width: 480px) {
+	.dept-stat-row {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+	}
+	.dept-stat-card {
+		padding: 10px 14px;
+	}
+	.dept-stat-card:last-child {
+		grid-column: span 2;
+	}
+	.dept-stat-val {
+		font-size: 1.35rem;
+	}
+	.dept-stat-lbl {
+		font-size: 0.68rem;
+	}
+}

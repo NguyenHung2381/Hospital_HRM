@@ -1,0 +1,429 @@
+/* ── Layout & sidebar ── */
+.perm-layout {
+	display: grid;
+	grid-template-columns: 220px 1fr;
+	gap: 16px;
+	align-items: start;
+}
+.perm-sidebar {
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: var(--r);
+	padding: 14px 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.perm-sidebar-label {
+	font-size: 0.63rem;
+	font-weight: 700;
+	color: var(--mut);
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	padding: 0 6px 6px;
+	border-bottom: 1px solid var(--bdr);
+	margin-bottom: 4px;
+}
+.perm-role-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.perm-role-item {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 8px 8px;
+	border: 1px solid transparent;
+	border-radius: 9px;
+	background: transparent;
+	cursor: pointer;
+	font-family: inherit;
+	text-align: left;
+	width: 100%;
+	transition: all 0.15s;
+	position: relative;
+}
+.perm-role-item:hover {
+	background: #f8fafc;
+	border-color: var(--bdr);
+}
+.perm-role-active {
+	background: var(--pl) !important;
+	border-color: rgba(14, 165, 233, 0.35) !important;
+}
+.perm-role-ico {
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	flex-shrink: 0;
+	background: #f1f5f9;
+	font-size: 0.95rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.15s;
+}
+.perm-role-info {
+	flex: 1;
+	min-width: 0;
+}
+.perm-role-name {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--txt);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.perm-role-desc {
+	font-size: 0.65rem;
+	color: var(--mut);
+}
+.perm-sys-badge {
+	font-size: 0.75rem;
+	flex-shrink: 0;
+}
+.perm-active-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--p);
+	flex-shrink: 0;
+}
+
+/* ── Detail panel ── */
+.perm-detail {
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: var(--r);
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	overflow: hidden;
+}
+.perm-detail-hdr {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--bdr);
+	background: #fafafa;
+}
+.perm-detail-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	flex-shrink: 0;
+	font-size: 1.3rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.perm-detail-name {
+	font-size: 0.95rem;
+	font-weight: 800;
+	color: var(--txt);
+}
+.perm-detail-desc {
+	font-size: 0.72rem;
+	color: var(--mut);
+	margin-top: 2px;
+}
+.perm-lock-note {
+	font-size: 0.72rem;
+	color: var(--mut);
+	font-style: italic;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+.perm-two-col {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0;
+	border-top: 1px solid var(--bdr);
+}
+.perm-section {
+	padding: 16px 18px;
+	border-right: 1px solid var(--bdr);
+}
+.perm-section:last-child {
+	border-right: none;
+}
+.perm-section-title {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: var(--mut);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	margin-bottom: 10px;
+}
+
+/* ── Danh sách quyền ── */
+.perm-quyen-list {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+.perm-quyen-row {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 7px 9px;
+	border-radius: 8px;
+	border: 1px solid transparent;
+	cursor: pointer;
+	transition: all 0.15s;
+}
+.pq-on {
+	background: #f0faf4;
+	border-color: #d1fae5;
+}
+.pq-on:hover {
+	background: #d1fae5;
+}
+.pq-off {
+	background: #fafafa;
+}
+.pq-off:hover {
+	background: #fef2f2;
+	border-color: #fecaca;
+}
+.pq-locked {
+	cursor: not-allowed !important;
+	opacity: 0.7;
+}
+.pq-toggle {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.pq-toggle-on {
+	background: #d1fae5;
+	color: #065f2b;
+}
+.pq-toggle-off {
+	background: #f1f5f9;
+	color: #94a3b8;
+}
+.pq-label {
+	font-size: 0.8rem;
+	font-weight: 500;
+	color: var(--txt);
+}
+
+/* ── Danh sách khoa ── */
+.perm-khoa-list {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+.perm-khoa-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 7px 9px;
+	border-radius: 8px;
+	border: 1px solid transparent;
+	cursor: pointer;
+	transition: all 0.15s;
+}
+.pk-on {
+	background: #f0faf4;
+	border-color: #d1fae5;
+}
+.pk-on:hover {
+	background: #d1fae5;
+}
+.pk-off {
+	background: #fafafa;
+}
+.pk-off:hover {
+	background: #f8fafc;
+	border-color: var(--bdr);
+}
+.pk-check {
+	width: 18px;
+	height: 18px;
+	border-radius: 4px;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.65rem;
+}
+.pk-check-on {
+	background: #d1fae5;
+	color: #065f2b;
+	border: 1.5px solid #6ee7b7;
+}
+.pk-check-off {
+	background: transparent;
+	border: 1.5px solid #cbd5e1;
+}
+.pk-num {
+	width: 20px;
+	height: 20px;
+	border-radius: 5px;
+	background: #f1f5f9;
+	font-size: 0.65rem;
+	font-weight: 700;
+	color: var(--mut);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+.pk-name {
+	font-size: 0.8rem;
+	font-weight: 500;
+	color: var(--txt);
+	flex: 1;
+}
+.perm-all-khoa {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 32px 0;
+	text-align: center;
+	background: #f0faf4;
+	border: 1px dashed #86efac;
+	border-radius: 8px;
+	font-size: 0.82rem;
+	color: var(--p);
+	font-weight: 600;
+}
+
+/* ── Color picker (modal thêm vai trò) ── */
+.color-picker {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 4px;
+}
+.color-swatch {
+	padding: 5px 10px;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: transform 0.15s;
+	font-family: inherit;
+}
+.color-swatch:hover {
+	transform: scale(1.08);
+}
+.color-swatch-active {
+	transform: scale(1.08);
+}
+
+/* ── Ghi chú cuối trang ── */
+.perm-note {
+	font-size: 0.72rem;
+	color: var(--mut);
+	font-style: italic;
+	padding: 0 2px;
+}
+
+/* ── Thanh phân cấp trực quan ── */
+.perm-rank-bar {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: var(--r);
+	padding: 10px 16px;
+	flex-wrap: wrap;
+}
+.perm-rank-step {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	background: var(--rb, #f1f5f9);
+	color: var(--rc, #475569);
+	border-radius: 8px;
+	padding: 5px 10px;
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+.perm-rank-num {
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: currentColor;
+	color: white;
+	font-size: 0.62rem;
+	font-weight: 800;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0.85;
+}
+.perm-rank-name {
+	white-space: nowrap;
+}
+.perm-rank-arrow {
+	color: #94a3b8;
+	font-size: 1rem;
+	margin-left: 4px;
+	background: none;
+}
+
+/* ── Số thứ tự cấp trong sidebar ── */
+.perm-rank-badge {
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: #f1f5f9;
+	color: var(--mut);
+	font-size: 0.62rem;
+	font-weight: 800;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+/* ── Nhóm quyền trong cột trái ── */
+.perm-group-label {
+	font-size: 0.68rem;
+	font-weight: 700;
+	color: var(--mut);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	padding: 6px 2px 4px;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+/* ── Mobile Responsive (Phân Quyền) ── */
+@media (max-width: 768px) {
+	.perm-layout {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 560px) {
+	.perm-two-col {
+		grid-template-columns: 1fr;
+	}
+	.perm-section {
+		border-right: none;
+		border-bottom: 1px solid var(--bdr);
+		padding: 14px 12px;
+	}
+	.perm-section:last-child {
+		border-bottom: none;
+	}
+}

@@ -1,0 +1,584 @@
+/* ============================= */
+/* Auth Layout */
+/* ============================= */
+.auth-root {
+	position: relative;
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: radial-gradient(circle at top left, #f0f9ff 0%, #ffffff 40%, #faf5ff 100%);
+	overflow: hidden;
+	padding: 1.5rem;
+}
+
+/* Background blobs */
+.bg-blob {
+	position: absolute;
+	border-radius: 50%;
+	filter: blur(100px);
+	opacity: 0.45;
+	pointer-events: none;
+}
+.bg-blob-1 {
+	width: 600px;
+	height: 600px;
+	background: radial-gradient(circle, rgba(7, 147, 65, 0.2) 0%, rgba(7, 147, 65, 0.05) 70%);
+	top: -200px;
+	left: -200px;
+}
+.bg-blob-2 {
+	width: 500px;
+	height: 500px;
+	background: radial-gradient(circle, rgba(244, 63, 94, 0.15) 0%, rgba(244, 63, 94, 0.02) 70%);
+	bottom: -150px;
+	right: -150px;
+}
+.bg-blob-3 {
+	width: 400px;
+	height: 400px;
+	background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.02) 70%);
+	top: 50%;
+	left: 55%;
+	transform: translate(-50%, -50%);
+}
+
+/* Card */
+.auth-card {
+	position: relative;
+	display: flex;
+	width: 100%;
+	max-width: 960px;
+	min-height: 580px;
+	border-radius: 24px;
+	overflow: hidden;
+	background: rgba(255, 255, 255, 0.85);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border: 1px solid rgba(255, 255, 255, 0.7);
+	box-shadow:
+		0 10px 40px rgba(15, 23, 42, 0.06),
+		0 25px 80px rgba(15, 23, 42, 0.1),
+		0 1px 0 rgba(255, 255, 255, 0.5) inset;
+	animation: cardIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cardIn {
+	from {
+		opacity: 0;
+		transform: translateY(24px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* ============================= */
+/* Left Panel */
+/* ============================= */
+.auth-left {
+	flex: 0 0 45%;
+	background: linear-gradient(135deg, var(--p) 0%, var(--pd) 100%);
+	position: relative;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 3rem 2.5rem;
+}
+
+/* decorative circles */
+.auth-left::before,
+.auth-left::after {
+	content: '';
+	position: absolute;
+	border-radius: 50%;
+	border: 2px solid rgba(255, 255, 255, 0.06);
+}
+.auth-left::before {
+	width: 440px;
+	height: 440px;
+	top: -100px;
+	right: -140px;
+}
+.auth-left::after {
+	width: 300px;
+	height: 300px;
+	bottom: -80px;
+	left: -100px;
+}
+
+.auth-left-inner {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	gap: 1.5rem;
+}
+
+/* Logo */
+.logo-wrapper {
+	position: relative;
+	width: 120px;
+	height: 120px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	animation: logoIn 0.8s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes logoIn {
+	from {
+		opacity: 0;
+		transform: scale(0.7) rotate(-15deg);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) rotate(0deg);
+	}
+}
+
+.logo-img {
+	width: 110px;
+	height: 110px;
+	border-radius: 50%;
+	object-fit: cover;
+	box-shadow:
+		0 0 0 6px rgba(255, 255, 255, 0.18),
+		0 12px 36px rgba(15, 23, 42, 0.25);
+}
+
+.logo-ring {
+	position: absolute;
+	inset: -8px;
+	border-radius: 50%;
+	border: 2px dashed rgba(255, 255, 255, 0.2);
+	animation: spin 25s linear infinite;
+}
+
+/* Hospital info */
+.hospital-info {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	animation: fadeUp 0.6s 0.35s both;
+}
+
+.hospital-name-main {
+	font-size: 1.3rem;
+	font-weight: 800;
+	color: #ffffff;
+	letter-spacing: -0.02em;
+	line-height: 1.25;
+	text-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
+}
+
+.hospital-name-sub {
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: rgba(255, 255, 255, 0.9);
+	line-height: 1.2;
+}
+
+.divider {
+	width: 60px;
+	height: 3px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 255, 255, 0.5),
+		transparent
+	);
+	border-radius: 9999px;
+	margin: 0.25rem 0;
+}
+
+.hospital-subtitle {
+	font-size: 0.8rem;
+	font-weight: 400;
+	color: rgba(255, 255, 255, 0.75);
+	line-height: 1.6;
+	animation: fadeUp 0.6s 0.45s both;
+}
+
+/* Feature list */
+.feature-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.65rem;
+	width: 100%;
+	margin-top: 0.5rem;
+}
+
+.feature-item {
+	display: flex;
+	align-items: center;
+	gap: 0.8rem;
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 12px;
+	padding: 0.6rem 1rem;
+	animation: fadeUp 0.5s both;
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	transition: all 0.2s ease;
+}
+.feature-item:hover {
+	background: rgba(255, 255, 255, 0.14);
+	transform: translateX(4px);
+}
+
+.feature-icon {
+	font-size: 1.1rem;
+	flex-shrink: 0;
+}
+
+.feature-text {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.9);
+}
+
+/* ============================= */
+/* Right Panel */
+/* ============================= */
+.auth-right {
+	flex: 1;
+	background: #ffffff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 3rem;
+}
+
+/* ============================= */
+/* Login Form */
+/* ============================= */
+.login-form-wrapper {
+	width: 100%;
+	max-width: 380px;
+	animation: fadeUp 0.6s 0.15s both;
+}
+
+.login-header {
+	margin-bottom: 2.2rem;
+}
+
+.login-title {
+	font-size: 1.9rem;
+	font-weight: 800;
+	color: var(--txt);
+	letter-spacing: -0.03em;
+	margin-bottom: 0.5rem;
+	position: relative;
+}
+
+.login-title::after {
+	content: '';
+	display: block;
+	width: 44px;
+	height: 4px;
+	background: linear-gradient(90deg, var(--p), var(--pl));
+	border-radius: 9999px;
+	margin-top: 10px;
+}
+
+.login-desc {
+	font-size: 0.88rem;
+	color: #64748b;
+	margin-top: 0.8rem;
+}
+
+/* Form */
+.login-form {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+}
+
+/* Field */
+.field-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.field-label {
+	font-size: 0.82rem;
+	font-weight: 650;
+	color: #334155;
+	letter-spacing: 0.01em;
+}
+
+.field-input-wrap {
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.field-icon {
+	position: absolute;
+	left: 14px;
+	color: #94a3b8;
+	display: flex;
+	align-items: center;
+	transition: color 0.2s;
+}
+
+.field-focused .field-icon {
+	color: var(--p);
+}
+
+.field-input {
+	width: 100%;
+	padding: 0.72rem 1rem 0.72rem 2.85rem;
+	border: 1.5px solid var(--bdr);
+	border-radius: var(--r);
+	font-size: 0.9rem;
+	font-family: inherit;
+	color: var(--txt);
+	background: #f8fafc;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	outline: none;
+}
+
+.field-input::placeholder {
+	color: #cbd5e1;
+}
+
+.field-input::-ms-reveal,
+.field-input::-ms-clear {
+	display: none;
+}
+.field-input::-webkit-contacts-auto-fill-button,
+.field-input::-webkit-credentials-auto-fill-button {
+	display: none;
+	visibility: hidden;
+}
+.field-input[type='password']::-webkit-textfield-decoration-container {
+	display: none;
+}
+
+.field-input:focus {
+	border-color: var(--p);
+	background: #ffffff;
+	box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+}
+
+.toggle-pass {
+	position: absolute;
+	right: 14px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: #94a3b8;
+	display: flex;
+	align-items: center;
+	padding: 4px;
+	transition: color 0.2s;
+}
+
+.toggle-pass:hover {
+	color: var(--p);
+}
+
+/* Options */
+.form-options {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: -0.1rem;
+}
+
+.remember-label {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	cursor: pointer;
+}
+
+.remember-check {
+	display: none;
+}
+
+.remember-custom {
+	width: 18px;
+	height: 18px;
+	border: 1.5px solid var(--bdr);
+	border-radius: 5px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	transition: all 0.2s;
+	background: #f8fafc;
+}
+
+.remember-check:checked + .remember-custom {
+	background: var(--p);
+	border-color: var(--p);
+}
+
+.remember-check:checked + .remember-custom::after {
+	content: '';
+	width: 8px;
+	height: 4px;
+	border-left: 2px solid white;
+	border-bottom: 2px solid white;
+	transform: rotate(-45deg) translateY(-1px);
+	display: block;
+}
+
+.remember-text {
+	font-size: 0.82rem;
+	color: #64748b;
+	user-select: none;
+}
+
+.forgot-link {
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--p);
+	text-decoration: none;
+	transition: color 0.2s;
+}
+
+.forgot-link:hover {
+	color: var(--acc);
+}
+
+/* Submit button */
+.submit-btn {
+	margin-top: 0.6rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.6rem;
+	width: 100%;
+	padding: 0.85rem 1.5rem;
+	background: linear-gradient(135deg, var(--p) 0%, var(--pd) 100%);
+	color: white;
+	border: none;
+	border-radius: var(--r);
+	font-size: 0.95rem;
+	font-weight: 700;
+	font-family: inherit;
+	cursor: pointer;
+	letter-spacing: 0.02em;
+	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	position: relative;
+	overflow: hidden;
+	box-shadow: 0 4px 14px rgba(7, 147, 65, 0.3);
+}
+
+.submit-btn::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+	opacity: 0;
+	transition: opacity 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+	transform: translateY(-1.5px);
+	box-shadow: 0 8px 24px rgba(7, 147, 65, 0.45);
+}
+
+.submit-btn:hover::before {
+	opacity: 1;
+}
+
+.submit-btn:active:not(:disabled) {
+	transform: translateY(0);
+}
+
+.submit-btn:disabled {
+	opacity: 0.65;
+	cursor: not-allowed;
+	transform: none !important;
+	box-shadow: none !important;
+}
+
+/* Spinner */
+.btn-spinner {
+	width: 22px;
+	height: 22px;
+	border: 2.5px solid rgba(255, 255, 255, 0.3);
+	border-top-color: white;
+	border-radius: 50%;
+	animation: spin 0.7s linear infinite;
+}
+
+/* Footer */
+.login-footer {
+	margin-top: 2.2rem;
+	font-size: 0.76rem;
+	color: #94a3b8;
+	text-align: center;
+}
+
+/* ============================= */
+/* Animations */
+/* ============================= */
+@keyframes fadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* ============================= */
+/* Responsive */
+/* ============================= */
+@media (max-width: 768px) {
+	.auth-card {
+		flex-direction: column;
+		min-height: auto;
+		max-width: 440px;
+		border-radius: 20px;
+	}
+
+	.auth-left {
+		flex: none;
+		padding: 2.5rem 2rem;
+	}
+
+	.auth-right {
+		padding: 2.5rem 2rem;
+	}
+
+	.hospital-name-main {
+		font-size: 1.15rem;
+	}
+	.hospital-name-sub {
+		font-size: 0.95rem;
+	}
+}
+
+/* ============================= */
+/* Login Error                   */
+/* ============================= */
+.login-error {
+	font-size: 0.82rem;
+	color: var(--red);
+	background: var(--red-l);
+	border: 1px solid #fee2e2;
+	border-radius: var(--rs);
+	padding: 0.6rem 0.9rem;
+	margin-top: -0.3rem;
+	animation: fi 0.2s ease;
+}
