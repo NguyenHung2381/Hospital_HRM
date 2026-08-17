@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react';
 
 type SSEPayload = {
+<<<<<<< HEAD
 	resource: 'reports' | 'departments' | 'users' | 'roles';
+=======
+	resource: 'reports' | 'departments' | 'users' | 'roles' | 'coordination';
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	action: 'created' | 'updated' | 'deleted';
 	id: number;
 };

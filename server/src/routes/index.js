@@ -10,9 +10,18 @@ const departments = require('../controllers/departments');
 const users = require('../controllers/users');
 const roles = require('../controllers/roles');
 const reports = require('../controllers/reports');
+<<<<<<< HEAD
 const auth = require('../controllers/auth');
 const tt03 = require('../controllers/tt03');
 const { exportToExcel } = require('../controllers/exportReports');
+=======
+const clsRecords = require('../controllers/clsRecords');
+const auth = require('../controllers/auth');
+const tt03 = require('../controllers/tt03');
+const coordination = require('../controllers/coordination');
+const { exportToExcel } = require('../controllers/exportReports');
+const { exportClsToExcel } = require('../controllers/exportCls');
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 
 router.post('/auth/login', auth.login);
 
@@ -97,6 +106,10 @@ router.get('/permissions', roles.getAllPermissions);
 // QUAN TRỌNG: /reports/export và /reports/date/:date phải đứng
 // TRƯỚC /reports/:id để tránh bị Express hiểu nhầm "export"/"date" là :id
 router.get('/reports/export', exportToExcel);
+<<<<<<< HEAD
+=======
+router.get('/reports/cls-export', exportClsToExcel);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 router.get('/reports/date/:date', reports.getByDate);
 router.get('/reports', reports.getAll);
 router.get('/reports/:id', reports.getById);
@@ -106,6 +119,14 @@ router.put('/reports/:id/records/:recordId', reports.updateRecord);
 router.delete('/reports/:id/records/:recordId', reports.removeRecord);
 router.delete('/reports/:id', reports.remove);
 
+<<<<<<< HEAD
+=======
+// ── Báo cáo hệ Cận lâm sàng (CLS) — dùng chung Daily_Reports ────
+router.post('/reports/:id/cls-records', clsRecords.addRecord);
+router.put('/reports/:id/cls-records/:recordId', clsRecords.updateRecord);
+router.delete('/reports/:id/cls-records/:recordId', clsRecords.removeRecord);
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 // ── TT03 / Nhân lực ──────────────────────────────────────────
 // Cấu hình Thông tư 03
 // GET    /api/tt03/config                        – toàn bộ cấu hình TT03
@@ -129,4 +150,13 @@ router.put('/tt03/recommended-config/:deptId', tt03.updateRecommendedConfig);
 router.post('/tt03/calculate', tt03.calculate);
 router.get('/tt03/report/:reportId', tt03.getReportTT03);
 
+<<<<<<< HEAD
+=======
+// ── Điều phối nhân lực giữa các khoa ────────────────────────────
+router.get('/coordination', coordination.getAll);
+router.post('/coordination', coordination.create);
+router.put('/coordination/:id', coordination.update);
+router.delete('/coordination/:id', coordination.remove);
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 module.exports = router;

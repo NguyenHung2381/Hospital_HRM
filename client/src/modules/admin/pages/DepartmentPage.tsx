@@ -88,6 +88,14 @@ const REC_FORMULA_OPTIONS: {
 		label: 'Lượt khám ngoại trú',
 		hint: '= outpatient_cnt × outpatient_ratio + fixed_add',
 	},
+<<<<<<< HEAD
+=======
+	{
+		value: 'fixed',
+		label: 'Số cố định (hệ CLS)',
+		hint: '= fixed_add (không phụ thuộc dữ liệu bản ghi)',
+	},
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 ];
 
 type FormTab = 'info' | 'tt03' | 'rec';
@@ -1034,6 +1042,30 @@ export default function DepartmentPage() {
 									</div>
 								)}
 
+<<<<<<< HEAD
+=======
+								{/* fixed: chỉ cần fixed_add */}
+								{draftRec.formula_type === 'fixed' && (
+									<div className='mrow2'>
+										<FormField
+											label='Nhân lực khuyến cáo'
+											hint='Số cố định, VD: 32'
+										>
+											<input
+												className='fi-input'
+												type='number'
+												step='0.1'
+												min={0}
+												value={draftRec.fixed_add}
+												onChange={(e) =>
+													setRecField('fixed_add', Number(e.target.value))
+												}
+											/>
+										</FormField>
+									</div>
+								)}
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 								<FormField
 									label='Ghi chú'
 									hint='Tuỳ chọn'

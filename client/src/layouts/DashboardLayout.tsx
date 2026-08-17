@@ -2,7 +2,12 @@
 import '@/styles/dashboard.css';
 
 import { useAuth } from '@/context/useAuth';
+<<<<<<< HEAD
 import { useEffect, useState } from 'react';
+=======
+import ChangePasswordModal from '@/modules/home/components/modal/ChangePasswordModal';
+import { useEffect, useRef, useState } from 'react';
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 // ASSETS
@@ -12,10 +17,18 @@ import EditIcon from '@/assets/svg/EditIcon';
 import GuardIcon from '@/assets/svg/GuardIcon';
 import HomeIcon from '@/assets/svg/HomeIcon';
 import LogoutIcon from '@/assets/svg/LogoutIcon';
+<<<<<<< HEAD
 import ReportIcon from '@/assets/svg/ReportIcon';
 import TableIcon from '@/assets/svg/TableIcon';
 import ValiIcon from '@/assets/svg/ValiIcon';
 import MenuIcon from '@/assets/svg/MenuIcon';
+=======
+import MenuIcon from '@/assets/svg/MenuIcon';
+import ReportIcon from '@/assets/svg/ReportIcon';
+import ResetIcon from '@/assets/svg/ResetIcon';
+import TableIcon from '@/assets/svg/TableIcon';
+import ValiIcon from '@/assets/svg/ValiIcon';
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 
 // ── Nav groups ────────────────────────────────────────────
 const NAV_GROUPS = [
@@ -38,6 +51,14 @@ const NAV_GROUPS = [
 				label: 'Báo cáo',
 				icon: <ReportIcon size={18} />,
 			},
+<<<<<<< HEAD
+=======
+			{
+				path: '/dashboard/coordination',
+				label: 'Điều phối nhân lực',
+				icon: <ResetIcon size={18} />,
+			},
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		],
 	},
 	{
@@ -64,6 +85,12 @@ const NAV_GROUPS = [
 
 export default function DashboardLayout() {
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
+<<<<<<< HEAD
+=======
+	const [showPasswordModal, setShowPasswordModal] = useState(false);
+	const userFooterRef = useRef<HTMLDivElement>(null);
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	const [collapsed, setCollapsed] = useState(() => {
 		const saved = localStorage.getItem('dashboard-sidebar-collapsed');
 		if (saved !== null) {
@@ -78,6 +105,31 @@ export default function DashboardLayout() {
 		localStorage.setItem('dashboard-sidebar-collapsed', String(collapsed));
 	}, [collapsed]);
 
+<<<<<<< HEAD
+=======
+	// Auto close dropdown when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				userFooterRef.current &&
+				!userFooterRef.current.contains(event.target as Node)
+			) {
+				setUserMenuOpen(false);
+			}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, []);
+
+	const handleNavItemClick = () => {
+		if (window.innerWidth < 768) {
+			setCollapsed(true);
+		}
+	};
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	const ROLE_LABEL: Record<string, string> = {
 		admin: 'Quản trị viên',
 		giam_doc: 'Giám đốc',
@@ -90,6 +142,16 @@ export default function DashboardLayout() {
 	const displayRole = user?.vaiTro ? (ROLE_LABEL[user.vaiTro] ?? '') : '';
 	const displayBadge = user?.chucVu || displayRole;
 
+<<<<<<< HEAD
+=======
+	const todayDate = new Date().toLocaleDateString('vi-VN', {
+		weekday: 'short',
+		day: '2-digit',
+		month: '2-digit',
+		year: 'numeric',
+	});
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	const handleLogout = () => {
 		setUserMenuOpen(false);
 		logout();
@@ -108,7 +170,11 @@ export default function DashboardLayout() {
 
 			{/* ── Sidebar ── */}
 			<aside className='nav'>
+<<<<<<< HEAD
 				<div className='nav-logo'>
+=======
+				<div className='nav-logo' title={collapsed ? 'BVHN Đa Khoa Nghệ An' : undefined}>
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 					<img
 						src={LOGO}
 						alt='Logo'
@@ -139,6 +205,10 @@ export default function DashboardLayout() {
 									key={n.path}
 									to={n.path}
 									end={n.path === '/dashboard'}
+<<<<<<< HEAD
+=======
+									onClick={handleNavItemClick}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 									className={({ isActive }) =>
 										`nav-item${isActive ? ' nav-item-active' : ''}`
 									}
@@ -158,10 +228,18 @@ export default function DashboardLayout() {
 				</nav>
 
 				{/* User footer */}
+<<<<<<< HEAD
 				<div className='nav-footer'>
 					<div
 						className='nav-user'
 						onClick={() => setUserMenuOpen((o) => !o)}
+=======
+				<div className='nav-footer' ref={userFooterRef}>
+					<div
+						className='nav-user'
+						onClick={() => setUserMenuOpen((o) => !o)}
+						title={collapsed ? `${displayName} (${displayRole})` : undefined}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 					>
 						<div className='nav-user-av'>{avatarLetter}</div>
 						<div className='nav-user-info'>
@@ -192,9 +270,23 @@ export default function DashboardLayout() {
 
 					{userMenuOpen && (
 						<div className='nav-user-dd'>
+<<<<<<< HEAD
 							<button
 								className='nav-user-dd-item'
 								onClick={() => setUserMenuOpen(false)}
+=======
+							<div className='nav-user-dd-header'>
+								<p className='nav-user-dd-name'>{displayName}</p>
+								<p className='nav-user-dd-sub'>@{user?.taiKhoan}</p>
+							</div>
+							<div style={{ height: 1, background: 'var(--bdr)', margin: '4px 0' }} />
+							<button
+								className='nav-user-dd-item'
+								onClick={() => {
+									setUserMenuOpen(false);
+									setShowPasswordModal(true);
+								}}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 							>
 								<EditIcon size={14} />
 								Đổi mật khẩu
@@ -241,6 +333,18 @@ export default function DashboardLayout() {
 						</div>
 					</div>
 					<div className='topbar-r'>
+<<<<<<< HEAD
+=======
+						<div className='topbar-date'>📅 {todayDate}</div>
+						<button
+							className='topbar-home-btn'
+							onClick={() => navigate('/home')}
+							title='Chuyển đến Trang nhập liệu ca trực'
+						>
+							<HomeIcon size={15} />
+							<span className='topbar-home-btn-text'>Trang nhập liệu</span>
+						</button>
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 						<div className='topbar-badge'>{displayBadge}</div>
 					</div>
 				</header>
@@ -249,6 +353,14 @@ export default function DashboardLayout() {
 					<Outlet />
 				</div>
 			</main>
+<<<<<<< HEAD
+=======
+
+			<ChangePasswordModal
+				isOpen={showPasswordModal}
+				onClose={() => setShowPasswordModal(false)}
+			/>
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		</div>
 	);
 }

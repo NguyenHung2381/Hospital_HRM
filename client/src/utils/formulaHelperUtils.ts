@@ -26,6 +26,10 @@ export const REC_FORMULA_LABELS: Record<RecommendedFormulaType, string> = {
 	coef_with_outpatient: 'Hệ theo ca + theo người khám bệnh, phẫu thuật',
 	total_ratio: 'Tỉ lệ tổng NB (Cấp cứu)',
 	outpatient_count: 'Số PT kế hoạch (Gây mê)',
+<<<<<<< HEAD
+=======
+	fixed: 'Số cố định (hệ CLS)',
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 };
 
 export const REC_FORMULA_BADGE_COLOR: Record<
@@ -37,6 +41,10 @@ export const REC_FORMULA_BADGE_COLOR: Record<
 	coef_with_outpatient: { bg: '#eff6ff', color: '#1d4ed8' }, // xanh dương
 	total_ratio: { bg: '#fff7ed', color: '#c2410c' }, // cam
 	outpatient_count: { bg: '#fdf4ff', color: '#7c3aed' }, // tím
+<<<<<<< HEAD
+=======
+	fixed: { bg: '#f1f5f9', color: '#334155' }, // xám
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 };
 
 export interface TT03Block {

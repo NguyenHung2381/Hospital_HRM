@@ -1,5 +1,9 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
 import AccountPage from '@/modules/admin/pages/AccountPage';
+<<<<<<< HEAD
+=======
+import CoordinationPage from '@/modules/admin/pages/CoordinationPage';
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 import DataPage from '@/modules/admin/pages/DataPage';
 import DepartmentPage from '@/modules/admin/pages/DepartmentPage';
 import PermissionPage from '@/modules/admin/pages/PermissionPage';
@@ -43,6 +47,10 @@ export const router = createBrowserRouter([
 					{ path: 'departments', element: <DepartmentPage /> },
 					{ path: 'reports', element: <ReportPage /> },
 					{ path: 'data', element: <DataPage /> },
+<<<<<<< HEAD
+=======
+					{ path: 'coordination', element: <CoordinationPage /> },
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				],
 			},
 		],

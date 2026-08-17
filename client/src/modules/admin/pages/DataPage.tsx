@@ -7,7 +7,11 @@ import { useDeptFilter } from '@/hooks/useDeptFilter';
 import { useDeptPermissions } from '@/hooks/UseDeptPermissionsReturn';
 import usePagination from '@/hooks/usePagination';
 import { useReportData } from '@/hooks/useReportData';
+<<<<<<< HEAD
 import type { ApiRecord } from '@/types/apiType';
+=======
+import type { ApiClsRecord, ApiRecord } from '@/types/apiType';
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 import {
 	fmtUpdatedAt,
 	formatDateToVN,
@@ -15,11 +19,25 @@ import {
 } from '@/utils/dateUtils';
 import { formatNumber } from '@/utils/formatUtils';
 import { aggregateDashboardStats, toKhoaRecord } from '@/utils/staffingCalc';
+<<<<<<< HEAD
 import { buildStripItems } from '@/utils/UIHelperUtils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AddRecordModal from '../components/modal/AddRecordModal';
 import CreateReportModal from '../components/modal/CreateReportModal';
 import EditRecordModal from '../components/modal/EditRecordModal';
+=======
+import {
+	aggregateClsDashboardStats,
+	toKhoaClsRecord,
+} from '@/utils/clsCalc';
+import { buildStripItems } from '@/utils/UIHelperUtils';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import AddRecordModal from '../components/modal/AddRecordModal';
+import AddClsRecordModal from '../components/modal/AddClsRecordModal';
+import CreateReportModal from '../components/modal/CreateReportModal';
+import EditRecordModal from '../components/modal/EditRecordModal';
+import EditClsRecordModal from '../components/modal/EditClsRecordModal';
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 import PageHeader from '../components/PageHeader';
 import SearchInput from '../components/SearchInput';
 import StatCard from '../components/StatCard';
@@ -31,19 +49,42 @@ export default function DataPage() {
 
 	// ── State điều hướng ─────────────────────────────────────────────────
 	const [selDate, setSelDate] = useState(today);
+<<<<<<< HEAD
+=======
+	const [activeTab, setActiveTab] = useState<'ward' | 'cls'>('ward');
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	const [drawerOpen, setDrawer] = useState(false);
 	const [allDepts, setAllDepts] = useState<
+		{ id_department: number; department_name: string }[]
+	>([]);
+<<<<<<< HEAD
+
+	// ── Fetch danh sách tất cả khoa active (1 lần khi mount) ─────────────
+	useEffect(() => {
+		fetch('/api/departments/simple')
+=======
+	const [allClsDepts, setAllClsDepts] = useState<
 		{ id_department: number; department_name: string }[]
 	>([]);
 
 	// ── Fetch danh sách tất cả khoa active (1 lần khi mount) ─────────────
 	useEffect(() => {
-		fetch('/api/departments/simple')
+		fetch('/api/departments/simple?group=ward')
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			.then((r) => r.json())
 			.then((d) => {
 				if (d.success && Array.isArray(d.data)) setAllDepts(d.data);
 			})
 			.catch(() => {});
+<<<<<<< HEAD
+=======
+		fetch('/api/departments/simple?group=cls')
+			.then((r) => r.json())
+			.then((d) => {
+				if (d.success && Array.isArray(d.data)) setAllClsDepts(d.data);
+			})
+			.catch(() => {});
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	}, []);
 
 	// ── Custom hooks ─────────────────────────────────────────────────────
@@ -86,6 +127,33 @@ export default function DataPage() {
 	} | null>(null);
 	const [saving, setSaving] = useState(false);
 
+<<<<<<< HEAD
+=======
+	// ── Modal state — hệ CLS ─────────────────────────────────────────────
+	const [editClsRecord, setEditClsRecord] = useState<ApiClsRecord | null>(
+		null,
+	);
+	const [showAddClsRecord, setShowAddClsRecord] = useState(false);
+	const [delClsRecord, setDelClsRecord] = useState<{
+		id: number;
+		name: string;
+	} | null>(null);
+
+	const clsRows = useMemo(
+		() => (report?.cls_records ?? []).map((r, i) => toKhoaClsRecord(r, i + 1)),
+		[report],
+	);
+	const clsStats = aggregateClsDashboardStats(clsRows);
+	const enteredClsDeptIds = useMemo(
+		() => new Set(report?.cls_records.map((r) => r.id_department) ?? []),
+		[report],
+	);
+	const missingClsDepts = useMemo(
+		() => allClsDepts.filter((d) => !enteredClsDeptIds.has(d.id_department)),
+		[allClsDepts, enteredClsDeptIds],
+	);
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	// ── Filtered rows + stats + pagination ───────────────────────────────
 	const filtered = allRows.filter((r) => selKhoa.has(r.tt));
 	const stats = aggregateDashboardStats(filtered);
@@ -209,6 +277,38 @@ export default function DataPage() {
 		}
 	};
 
+<<<<<<< HEAD
+=======
+	// ── Xóa 1 record khoa CLS ────────────────────────────────────────────
+	const confirmDelClsRecord = async () => {
+		if (!delClsRecord || !report) return;
+		setSaving(true);
+		setApiError('');
+		try {
+			const res = await fetch(
+				`/api/reports/${report.id_report}/cls-records/${delClsRecord.id}`,
+				{ method: 'DELETE' },
+			);
+			const data = (await res.json()) as { success: boolean; message?: string };
+			if (!data.success) {
+				setApiError(data.message ?? 'Lỗi khi xóa');
+				return;
+			}
+			const rRes = await fetch(`/api/reports/date/${selDate}`);
+			const rData = (await rRes.json()) as {
+				success: boolean;
+				data: typeof report;
+			};
+			if (rData.success) setReport(rData.data);
+			setDelClsRecord(null);
+		} catch {
+			setApiError('Lỗi kết nối server.');
+		} finally {
+			setSaving(false);
+		}
+	};
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	// ────────────────────────────────────────────────────────────────────
 	return (
 		<div className='pg dv-pg'>
@@ -223,15 +323,24 @@ export default function DataPage() {
 
 				<div className='dv-cal-wrap'>
 					<Calendar
+<<<<<<< HEAD
 						records={reportMetas.map((d) => ({
 							date: d.report_date.slice(0, 10),
 						}))}
+=======
+						records={reportMetas
+							.filter((d) => d.has_records)
+							.map((d) => ({
+								date: d.report_date.slice(0, 10),
+							}))}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 						activeDate={selDate}
 						onSelect={(d) => setSelDate(d)}
 						onAdd={(d) => setSelDate(d)}
 					/>
 				</div>
 
+<<<<<<< HEAD
 				<div className='dv-khoa-panel'>
 					<div className='dv-khoa-panel-hdr'>
 						<span className='dv-khoa-panel-title'>
@@ -345,6 +454,171 @@ export default function DataPage() {
 							))}
 						</div>
 					</div>
+=======
+				{activeTab === 'ward' && (
+					<>
+						<div className='dv-khoa-panel'>
+							<div className='dv-khoa-panel-hdr'>
+								<span className='dv-khoa-panel-title'>
+									Khoa / Phòng
+									{selKhoa.size > 0 && (
+										<span className='dv-khoa-badge'>{selKhoa.size}</span>
+									)}
+								</span>
+								<div style={{ display: 'flex', gap: 4 }}>
+									<button
+										className='dv-kp-btn'
+										onClick={selectAll}
+									>
+										Tất cả
+									</button>
+									<button
+										className='dv-kp-btn'
+										onClick={clearAll}
+									>
+										Bỏ
+									</button>
+								</div>
+							</div>
+							<div style={{ padding: '0 12px 12px' }}>
+								<SearchInput
+									placeholder='Tìm khoa…'
+									value={sidebarSearch}
+									onChange={setSidebarSearch}
+								/>
+							</div>
+							<div className='dv-khoa-list-scroll'>
+								{allRows
+									.filter(
+										(k) =>
+											sidebarSearch === '' ||
+											k.ten.toLowerCase().includes(sidebarSearch.toLowerCase()),
+									)
+									.map((k) => {
+										const checked = selKhoa.has(k.tt);
+										const dp = k.dieuPhoi;
+										const rowAccent =
+											dp !== null && dp < 0
+												? 'dv-kr-deficit'
+												: dp !== null && dp > 0
+													? 'dv-kr-surplus'
+													: '';
+										return (
+											<button
+												key={k.tt}
+												className={`dv-khoa-row ${checked ? 'dv-kr-on' : 'dv-kr-off'} ${rowAccent}`}
+												onClick={() => toggleKhoa(k.tt)}
+											>
+												<span
+													className={`dv-kr-check ${checked ? 'dv-kr-check-on' : 'dv-kr-check-off'}`}
+												>
+													{checked && <CheckIcon />}
+												</span>
+												<span className='dv-kr-num'>{k.tt}</span>
+												<span className='dv-kr-name'>{k.ten}</span>
+												{dp !== null && dp !== 0 && (
+													<span
+														className={`dv-kr-dp ${dp < 0 ? 'dv-kr-dp-red' : 'dv-kr-dp-green'}`}
+													>
+														{dp > 0 ? `+${dp}` : dp}
+													</span>
+												)}
+											</button>
+										);
+									})}
+							</div>
+						</div>
+
+						{/* ── Khoa chưa nhập dữ liệu ── */}
+						{report && missingDepts.length > 0 && (
+							<div
+								className='dv-khoa-panel'
+								style={{ marginTop: 8 }}
+							>
+								<div className='dv-khoa-panel-hdr'>
+									<span
+										className='dv-khoa-panel-title'
+										style={{ color: '#b45309' }}
+									>
+										⚠ Chưa nhập
+										<span
+											className='dv-khoa-badge'
+											style={{ background: '#fef3c7', color: '#b45309' }}
+										>
+											{missingDepts.length}
+										</span>
+									</span>
+								</div>
+								<div className='dv-khoa-list-scroll'>
+									{missingDepts.map((d, idx) => (
+										<div
+											key={d.id_department}
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: 6,
+												padding: '5px 12px',
+												background: '#fffbeb',
+												borderLeft: '3px solid #f59e0b',
+												color: '#92400e',
+												fontSize: '.78rem',
+											}}
+										>
+											<span className='dv-kr-num'>{idx + 1}</span>
+											<span className='dv-kr-name'>{d.department_name}</span>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+					</>
+				)}
+
+				{activeTab === 'cls' && (
+					<>
+						{report && missingClsDepts.length > 0 && (
+							<div
+								className='dv-khoa-panel'
+								style={{ marginTop: 8 }}
+							>
+								<div className='dv-khoa-panel-hdr'>
+									<span
+										className='dv-khoa-panel-title'
+										style={{ color: '#b45309' }}
+									>
+										⚠ Khoa CLS chưa nhập
+										<span
+											className='dv-khoa-badge'
+											style={{ background: '#fef3c7', color: '#b45309' }}
+										>
+											{missingClsDepts.length}
+										</span>
+									</span>
+								</div>
+								<div className='dv-khoa-list-scroll'>
+									{missingClsDepts.map((d, idx) => (
+										<div
+											key={d.id_department}
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: 6,
+												padding: '5px 12px',
+												background: '#fffbeb',
+												borderLeft: '3px solid #f59e0b',
+												color: '#92400e',
+												fontSize: '.78rem',
+											}}
+										>
+											<span className='dv-kr-num'>{idx + 1}</span>
+											<span className='dv-kr-name'>{d.department_name}</span>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+					</>
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				)}
 			</aside>
 
@@ -358,6 +632,45 @@ export default function DataPage() {
 
 			{/* ── Main ── */}
 			<div className='dv-main'>
+<<<<<<< HEAD
+=======
+				<div
+					className='tab-bar'
+					style={{ marginBottom: 12 }}
+				>
+					<button
+						className={`tab-btn${activeTab === 'ward' ? ' tab-btn--active' : ''}`}
+						onClick={() => setActiveTab('ward')}
+					>
+						🏥 Khối nội trú
+					</button>
+					<button
+						className={`tab-btn${activeTab === 'cls' ? ' tab-btn--active' : ''}`}
+						onClick={() => setActiveTab('cls')}
+					>
+						🧪 Hệ Cận lâm sàng
+					</button>
+				</div>
+
+				{apiError && (
+					<div
+						style={{
+							background: '#fef2f2',
+							border: '1px solid #fecaca',
+							borderRadius: 8,
+							padding: '8px 14px',
+							marginBottom: 12,
+							fontSize: '.82rem',
+							color: '#dc2626',
+						}}
+					>
+						⚠️ {apiError}
+					</div>
+				)}
+
+				{activeTab === 'ward' && (
+				<>
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				<PageHeader
 					title='Dữ liệu nhân lực'
 					subtitle={
@@ -473,6 +786,7 @@ export default function DataPage() {
 					)}
 				</PageHeader>
 
+<<<<<<< HEAD
 				{apiError && (
 					<div
 						style={{
@@ -489,6 +803,8 @@ export default function DataPage() {
 					</div>
 				)}
 
+=======
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				{/* Strip tổng hợp */}
 				<div className='dv-strip'>
 					{buildStripItems(
@@ -922,6 +1238,329 @@ export default function DataPage() {
 						</div>
 					</div>
 				)}
+<<<<<<< HEAD
+=======
+				</>
+				)}
+
+				{activeTab === 'cls' && (
+				<>
+				<PageHeader
+					title='🧪 Hệ Cận lâm sàng'
+					subtitle={
+						report
+							? `${clsRows.length} / ${allClsDepts.length || 10} khoa đã nhập`
+							: undefined
+					}
+				>
+					{report && (
+						<button
+							className='btn-outline'
+							style={{
+								fontSize: '0.82rem',
+								fontWeight: 600,
+								border: '1.5px solid var(--p)',
+								borderRadius: '8px',
+								padding: '6px 12px',
+								display: 'inline-flex',
+								alignItems: 'center',
+								gap: '6px',
+							}}
+							onClick={() => setShowAddClsRecord(true)}
+						>
+							+ Thêm bản ghi khoa CLS
+						</button>
+					)}
+					{report && missingClsDepts.length > 0 && (
+						<span
+							style={{
+								fontSize: '0.82rem',
+								fontWeight: 600,
+								background: '#fffbeb',
+								color: '#b45309',
+								border: '1.5px solid #fcd34d',
+								borderRadius: '8px',
+								padding: '6px 12px',
+								display: 'inline-flex',
+								alignItems: 'center',
+								gap: '6px',
+								cursor: 'default',
+								userSelect: 'none',
+							}}
+							title={missingClsDepts.map((d) => d.department_name).join('\n')}
+						>
+							⚠ {missingClsDepts.length} khoa CLS chưa nhập
+						</span>
+					)}
+				</PageHeader>
+
+				{!report ? (
+					<div
+						style={{
+							textAlign: 'center',
+							padding: '32px',
+							color: 'var(--mut)',
+							fontSize: '.85rem',
+						}}
+					>
+						Chưa có báo cáo cho ngày {formatDateToVN(selDate)}
+					</div>
+				) : (
+					<div
+						className='dv-tbl-wrap'
+						style={{ marginBottom: 24 }}
+					>
+						<div
+							className='dv-tbl-outer'
+							style={{ overflowX: 'auto' }}
+						>
+							<table className='tbl dv-tbl'>
+								<thead>
+									<tr>
+										<th
+											rowSpan={2}
+											className='dv-th dv-th-sticky dv-th-idx'
+										>
+											#
+										</th>
+										<th
+											rowSpan={2}
+											className='dv-th dv-th-sticky dv-th-name-h'
+										>
+											Khoa / Trung tâm
+										</th>
+										<th
+											colSpan={9}
+											className='dv-th dv-th-grp dv-grp-nb'
+										>
+											Khối lượng công việc đã thực hiện
+										</th>
+										<th
+											colSpan={8}
+											className='dv-th dv-th-grp dv-grp-nb2'
+										>
+											Số lượng tồn / chờ
+										</th>
+										<th
+											colSpan={4}
+											className='dv-th dv-th-grp dv-grp-nl'
+										>
+											Nhân lực
+										</th>
+										<th
+											rowSpan={2}
+											className='dv-th dv-th-c dv-grp-kc'
+										>
+											Tỷ lệ
+											<br />
+											đi làm/KLCV
+										</th>
+										<th
+											rowSpan={2}
+											className='dv-th dv-th-c dv-grp-kc'
+										>
+											Khuyến
+											<br />
+											cáo
+										</th>
+										<th
+											rowSpan={2}
+											className='dv-th dv-th-c dv-grp-dp'
+										>
+											Chênh
+											<br />
+											lệch
+										</th>
+										<th
+											rowSpan={2}
+											className='dv-th'
+										>
+											Ghi chú
+										</th>
+										<th
+											rowSpan={2}
+											className='dv-th dv-th-c'
+										>
+											Thao tác
+										</th>
+									</tr>
+									<tr>
+										<th className='dv-th dv-th-c dv-sub-nb'>Mẫu BP</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>X-quang/SA</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>CT/NS</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>MRI/LX</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>Điện tim/CT</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>Đồ vải/TT</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>DC sắt</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>DC nhựa</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>Khoa GS</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>Mẫu BP</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>X-quang/SA</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>CT/NS</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>MRI/LX</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>Điện tim/CT</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>Đồ vải</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>DC sắt</th>
+										<th className='dv-th dv-th-c dv-sub-nb'>DC nhựa</th>
+										<th className='dv-th dv-th-c dv-sub-nl'>Tổng</th>
+										<th className='dv-th dv-th-c dv-sub-nl'>Nghỉ trực</th>
+										<th className='dv-th dv-th-c dv-sub-nl'>Nghỉ &gt;2ng</th>
+										<th className='dv-th dv-th-c dv-sub-nl'>Đi làm</th>
+									</tr>
+								</thead>
+								<tbody>
+									{clsRows.length === 0 ? (
+										<tr>
+											<td
+												colSpan={28}
+												style={{
+													textAlign: 'center',
+													padding: '40px',
+													color: 'var(--mut)',
+													fontSize: '.85rem',
+												}}
+											>
+												Chưa có khoa CLS nào nhập dữ liệu ngày này
+											</td>
+										</tr>
+									) : (
+										clsRows.map((r, i) => {
+											const apiRec = report.cls_records.find(
+												(rec) => rec.id_department === r.id_department,
+											);
+											const perm = apiRec
+												? getPermForDept(apiRec.id_department)
+												: undefined;
+											const canEdit = perm?.can_edit ?? false;
+											const dp = r.chenhLech;
+											const rowClass =
+												dp !== null && dp < 0
+													? 'dv-tr-deficit'
+													: dp !== null && dp > 0
+														? 'dv-tr-surplus'
+														: i % 2 === 1
+															? 'dv-tr-alt'
+															: '';
+											return (
+												<tr
+													key={r.tt}
+													className={rowClass}
+												>
+													<td className='dv-td dv-td-sticky dv-td-idx'>
+														{r.tt}
+													</td>
+													<td className='dv-td dv-td-sticky dv-td-name'>
+														{r.ten}
+													</td>
+													<td className='dv-td dv-td-c'>{n(r.daLam.sampleOrVisit)}</td>
+													<td className='dv-td dv-td-c'>{n(r.daLam.xrayUs)}</td>
+													<td className='dv-td dv-td-c'>{n(r.daLam.ctEndoscopy)}</td>
+													<td className='dv-td dv-td-c'>{n(r.daLam.mriBoneDensity)}</td>
+													<td className='dv-td dv-td-c'>{n(r.daLam.ecgIntervention)}</td>
+													<td className='dv-td dv-td-c'>{n(r.daLam.linenMedia)}</td>
+													<td className='dv-td dv-td-c'>{n(r.daLam.toolMetal)}</td>
+													<td className='dv-td dv-td-c'>{n(r.daLam.toolPlastic)}</td>
+													<td className='dv-td dv-td-c'>{n(r.daLam.supervisedDept)}</td>
+													<td className='dv-td dv-td-c'>{n(r.tonCho.sampleOrVisit)}</td>
+													<td className='dv-td dv-td-c'>{n(r.tonCho.xrayUs)}</td>
+													<td className='dv-td dv-td-c'>{n(r.tonCho.ctEndoscopy)}</td>
+													<td className='dv-td dv-td-c'>{n(r.tonCho.mriBoneDensity)}</td>
+													<td className='dv-td dv-td-c'>{n(r.tonCho.ecgIntervention)}</td>
+													<td className='dv-td dv-td-c'>{n(r.tonCho.linen)}</td>
+													<td className='dv-td dv-td-c'>{n(r.tonCho.toolMetal)}</td>
+													<td className='dv-td dv-td-c'>{n(r.tonCho.toolPlastic)}</td>
+													<td className='dv-td dv-td-c'>{n(r.nlTong)}</td>
+													<td className='dv-td dv-td-c'>{n(r.nghiTruc)}</td>
+													<td className='dv-td dv-td-c'>{n(r.nghiTren2)}</td>
+													<td className='dv-td dv-td-c dv-td-nl dv-td-bold'>
+														{n(r.diLam)}
+													</td>
+													<td className='dv-td dv-td-c dv-td-kc'>
+														{r.tyLe !== null ? `${(r.tyLe * 100).toFixed(1)}%` : '—'}
+													</td>
+													<td className='dv-td dv-td-c dv-td-kc'>
+														{r.khuyenCao ?? '—'}
+													</td>
+													<td
+														className={`dv-td dv-td-c dv-td-bold${dp === null ? '' : dp > 0 ? ' dv-dp-p' : dp < 0 ? ' dv-dp-m' : ' dv-dp-z'}`}
+													>
+														{dp === null ? '—' : dp > 0 ? `+${dp}` : String(dp)}
+													</td>
+													<td className='dv-td dv-td-note'>{r.ghiChu ?? ''}</td>
+													<td className='dv-td dv-td-c'>
+														<div
+															style={{
+																display: 'flex',
+																gap: 4,
+																justifyContent: 'center',
+															}}
+														>
+															{canEdit && apiRec && (
+																<button
+																	className='tbl-btn tbl-btn-edit'
+																	title='Sửa dữ liệu khoa này'
+																	onClick={() => setEditClsRecord(apiRec)}
+																>
+																	✏️
+																</button>
+															)}
+															{(perm?.can_delete ?? false) && apiRec && (
+																<button
+																	className='tbl-btn tbl-btn-del'
+																	title='Xóa bản ghi khoa này'
+																	onClick={() =>
+																		setDelClsRecord({ id: apiRec.id, name: r.ten })
+																	}
+																>
+																	🗑
+																</button>
+															)}
+														</div>
+													</td>
+												</tr>
+											);
+										})
+									)}
+								</tbody>
+								{clsRows.length > 0 && (
+									<tfoot>
+										<tr className='dv-tfoot'>
+											<td
+												colSpan={2}
+												className='dv-tf-label'
+											>
+												∑ Tổng ({clsRows.length} khoa)
+											</td>
+											<td colSpan={17} />
+											<td className='dv-td-c'>{clsStats.totalNL}</td>
+											<td className='dv-td-c'>{clsStats.totalNghiTruc}</td>
+											<td className='dv-td-c'>{clsStats.totalNghiDai}</td>
+											<td className='dv-td-c dv-td-bold dv-td-nl'>
+												{clsStats.totalDiLam}
+											</td>
+											<td className='dv-td-c dv-td-kc'>
+												{clsStats.totalKhoiLuong > 0
+													? `${clsStats.rateDiLam}%`
+													: '—'}
+											</td>
+											<td className='dv-td-c dv-td-kc'>
+												{clsStats.totalKhuyenCao > 0
+													? clsStats.totalKhuyenCao
+													: '—'}
+											</td>
+											<td />
+											<td />
+											<td />
+										</tr>
+									</tfoot>
+								)}
+							</table>
+						</div>
+					</div>
+				)}
+				</>
+				)}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			</div>
 
 			{/* Overlay mobile */}
@@ -948,6 +1587,22 @@ export default function DataPage() {
 				/>
 			)}
 
+<<<<<<< HEAD
+=======
+			{editClsRecord && report && (
+				<EditClsRecordModal
+					record={editClsRecord}
+					report={report}
+					selDate={selDate}
+					onSaved={(updated) => {
+						setReport(updated);
+						setEditClsRecord(null);
+					}}
+					onClose={() => setEditClsRecord(null)}
+				/>
+			)}
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			{showCreate && (
 				<CreateReportModal
 					selDate={selDate}
@@ -977,6 +1632,25 @@ export default function DataPage() {
 				/>
 			)}
 
+<<<<<<< HEAD
+=======
+			{showAddClsRecord && report && (
+				<AddClsRecordModal
+					reportId={report.id_report}
+					selDate={selDate}
+					existingDeptIds={
+						new Set(report.cls_records.map((r) => r.id_department))
+					}
+					userId={user?.id}
+					onAdded={(updatedReport, newDeptId) => {
+						setReport(updatedReport);
+						grantLocalPerm(newDeptId);
+					}}
+					onClose={() => setShowAddClsRecord(false)}
+				/>
+			)}
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			{showDelConfirm && (
 				<ModalForm
 					title='⚠️ Xác nhận xóa báo cáo'
@@ -1044,6 +1718,43 @@ export default function DataPage() {
 					</div>
 				</ModalForm>
 			)}
+<<<<<<< HEAD
+=======
+
+			{delClsRecord && (
+				<ModalForm
+					title='⚠️ Xác nhận xóa bản ghi CLS'
+					onClose={() => setDelClsRecord(null)}
+					size='sm'
+				>
+					{apiError && <p className='login-error'>⚠️ {apiError}</p>}
+					<p className='confirm-txt'>
+						Xóa bản ghi của <strong>{delClsRecord.name}</strong> khỏi báo cáo
+						ngày <strong>{formatDateToVN(selDate)}</strong>?
+						<br />
+						<span style={{ fontSize: '.8rem', color: '#64748b' }}>
+							Chỉ xóa dữ liệu của khoa này, không ảnh hưởng các khoa khác.
+						</span>
+					</p>
+					<div className='mfooter'>
+						<button
+							className='btn-ghost'
+							onClick={() => setDelClsRecord(null)}
+							disabled={saving}
+						>
+							Huỷ
+						</button>
+						<button
+							className='btn-danger'
+							onClick={confirmDelClsRecord}
+							disabled={saving}
+						>
+							{saving ? '⏳...' : '🗑 Xóa bản ghi'}
+						</button>
+					</div>
+				</ModalForm>
+			)}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		</div>
 	);
 }

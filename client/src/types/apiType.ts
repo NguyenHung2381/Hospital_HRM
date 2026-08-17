@@ -91,6 +91,11 @@ export interface ApiDept {
 	rec_outpatient_ratio: number | null;
 	rec_fixed_add: number | null;
 	rec_note: string | null;
+<<<<<<< HEAD
+=======
+	/** 'ward' = khối nội trú (TT03) · 'cls' = hệ Cận lâm sàng */
+	dept_group: 'ward' | 'cls';
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -149,11 +154,19 @@ export interface ApiReport {
 	id_report: number;
 	report_date: string;
 	records: ApiRecord[];
+<<<<<<< HEAD
+=======
+	cls_records: ApiClsRecord[];
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 
 export interface ReportMeta {
 	id_report: number;
 	report_date: string;
+<<<<<<< HEAD
+=======
+	has_records?: boolean;
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 
 export interface ApiRecord {
@@ -292,3 +305,78 @@ export interface ApiTT03CalcResultLegacy {
 	recommended_staff_raw: number | null;
 	recommended_staff: number | null;
 }
+<<<<<<< HEAD
+=======
+
+// ─────────────────────────────────────────────────────────────
+// Report_CLS_Records — báo cáo nhân lực hệ Cận lâm sàng (MỚI)
+// ─────────────────────────────────────────────────────────────
+
+export interface ApiClsRecord {
+	id: number;
+	id_report: number;
+	id_department: number;
+	department_name: string;
+	sort_order: number | null;
+
+	// Khối lượng công việc đã thực hiện
+	sample_or_visit_cnt: number | null;
+	xray_us_cnt: number | null;
+	ct_endoscopy_cnt: number | null;
+	mri_bonedensity_cnt: number | null;
+	ecg_intervention_cnt: number | null;
+	linen_media_cnt: number | null;
+	tool_metal_cnt: number | null;
+	tool_plastic_cnt: number | null;
+	supervised_dept_cnt: number | null;
+
+	// Số lượng tồn / chờ
+	pending_sample_or_visit_cnt: number | null;
+	pending_xray_us_cnt: number | null;
+	pending_ct_endoscopy_cnt: number | null;
+	pending_mri_bonedensity_cnt: number | null;
+	pending_ecg_intervention_cnt: number | null;
+	pending_linen_cnt: number | null;
+	pending_tool_metal_cnt: number | null;
+	pending_tool_plastic_cnt: number | null;
+
+	// Nhân lực
+	total_staff: number | null;
+	staff_on_duty: number | null;
+	staff_long_leave: number | null;
+	staff_working: number | null;
+	work_ratio: number | null;
+	recommended_staff: number | null;
+	coordination: number | null;
+
+	// Cấu hình khuyến nghị của khoa (từ join, fallback tính lại phía client)
+	rec_formula_type: RecommendedFormulaType | null;
+	rec_fixed_add: number | null;
+	rec_note: string | null;
+
+	note: string | null;
+	created_at: string | null;
+	updated_at: string | null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Điều phối nhân lực giữa các khoa (GET/POST/PUT/DELETE /api/coordination)
+// ─────────────────────────────────────────────────────────────
+
+/** Bản ghi điều phối nhân lực — chỉ theo dõi, không đụng số liệu báo cáo gốc */
+export interface ApiCoordination {
+	id: number;
+	id_report: number;
+	report_date: string;
+	id_department_from: number;
+	from_department_name: string;
+	id_department_to: number;
+	to_department_name: string;
+	staff_count: number;
+	note: string | null;
+	created_by: number | null;
+	created_by_name: string | null;
+	created_at: string;
+	updated_at: string | null;
+}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)

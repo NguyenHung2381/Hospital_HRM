@@ -227,6 +227,32 @@
 	overflow: hidden;
 }
 
+<<<<<<< HEAD
+=======
+/* Wrapper cho HomePage khi có tab chuyển nhóm khoa (nội trú / CLS) —
+   giữ .main-layout chỉ có đúng 1 con, tránh phá layout sidebar+content 2 cột */
+.home-tabs-wrap {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+}
+.home-tabs-bar-wrap {
+	padding: 12px 24px 0;
+	flex-shrink: 0;
+}
+.home-tabs-bar-wrap .tab-bar {
+	max-width: 420px;
+}
+.home-tabs-row {
+	flex: 1;
+	display: flex;
+	min-height: 0;
+	overflow: hidden;
+}
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 /* ============================= */
 /* Sidebar                       */
 /* ============================= */

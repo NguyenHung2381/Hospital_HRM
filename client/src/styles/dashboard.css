@@ -16,7 +16,11 @@
 .nav {
 	width: var(--nav-w);
 	flex-shrink: 0;
+<<<<<<< HEAD
 	background: linear-gradient(175deg, #04401d 0%, #065f2b 60%, #079341 100%);
+=======
+	background: linear-gradient(175deg, #043819 0%, #055426 60%, #067c37 100%);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	display: flex;
 	flex-direction: column;
 	position: sticky;
@@ -24,6 +28,10 @@
 	height: 100vh;
 	overflow-y: auto;
 	transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+<<<<<<< HEAD
+=======
+	box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .nav-logo {
 	display: flex;
@@ -36,14 +44,21 @@
 	height: 40px;
 	border-radius: 50%;
 	object-fit: cover;
+<<<<<<< HEAD
 	border: 2px solid rgba(255, 255, 255, 0.15);
 	flex-shrink: 0;
+=======
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	flex-shrink: 0;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .nav-logo-text {
 	display: flex;
 	flex-direction: column;
 }
 .nav-logo-name {
+<<<<<<< HEAD
 	font-size: 0.82rem;
 	font-weight: 800;
 	color: white;
@@ -61,33 +76,80 @@
 	text-transform: uppercase;
 	color: rgba(255, 255, 255, 0.35);
 	padding: 8px 18px 6px;
+=======
+	font-size: 0.84rem;
+	font-weight: 800;
+	color: white;
+	line-height: 1.2;
+	letter-spacing: 0.01em;
+}
+.nav-logo-sub {
+	font-size: 0.68rem;
+	color: rgba(255, 255, 255, 0.7);
+	line-height: 1.2;
+}
+.nav-section-label {
+	font-size: 0.62rem;
+	font-weight: 750;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.6);
+	padding: 10px 18px 6px;
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .nav-list {
 	display: flex;
 	flex-direction: column;
+<<<<<<< HEAD
 	gap: 2px;
 	padding: 0 10px;
 }
+=======
+	gap: 3px;
+	padding: 0 10px;
+}
+.nav-group {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+.nav-group + .nav-group {
+	margin-top: 6px;
+}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 .nav-item {
 	display: flex;
 	align-items: center;
 	gap: 10px;
+<<<<<<< HEAD
 	padding: 9px 10px;
 	border: none;
 	border-radius: 9px;
 	background: transparent;
 	color: rgba(255, 255, 255, 0.65);
+=======
+	padding: 9px 12px;
+	border: none;
+	border-radius: 9px;
+	background: transparent;
+	color: rgba(255, 255, 255, 0.8);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	text-decoration: none;
 	font-family: inherit;
 	font-size: 0.82rem;
 	font-weight: 500;
 	cursor: pointer;
+<<<<<<< HEAD
 	transition: all 0.18s;
+=======
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	position: relative;
 	text-align: left;
 	width: 100%;
 }
 .nav-item:hover {
+<<<<<<< HEAD
 	background: rgba(255, 255, 255, 0.06);
 	color: white;
 }
@@ -95,27 +157,57 @@
 	background: rgba(255, 255, 255, 0.12) !important;
 	color: white !important;
 	font-weight: 700;
+=======
+	background: rgba(255, 255, 255, 0.1);
+	color: white;
+	transform: translateX(2px);
+}
+.nav-item-active {
+	background: rgba(255, 255, 255, 0.16) !important;
+	color: white !important;
+	font-weight: 700;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .nav-icon {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+<<<<<<< HEAD
 	opacity: 0.8;
 }
 .nav-item-active .nav-icon {
 	opacity: 1;
 	color: var(--p);
+=======
+	opacity: 0.85;
+	transition: color 0.18s, opacity 0.18s;
+}
+.nav-item-active .nav-icon {
+	opacity: 1;
+	color: #4ade80 !important;
+	filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.4));
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .nav-label {
 	flex: 1;
 }
 .nav-indicator {
+<<<<<<< HEAD
 	width: 3px;
 	height: 16px;
 	background: var(--p);
 	border-radius: 9999px;
 	flex-shrink: 0;
+=======
+	width: 3.5px;
+	height: 16px;
+	background: #4ade80;
+	border-radius: 9999px;
+	flex-shrink: 0;
+	box-shadow: 0 0 6px rgba(74, 222, 128, 0.8);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .nav-footer {
 	margin-top: auto;
@@ -129,18 +221,33 @@
 	padding: 9px 10px;
 	border-radius: 9px;
 	cursor: pointer;
+<<<<<<< HEAD
 	transition: background 0.18s;
 }
 .nav-user:hover {
 	background: rgba(255, 255, 255, 0.08);
+=======
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	transition: background 0.18s, border-color 0.18s;
+}
+.nav-user:hover {
+	background: rgba(255, 255, 255, 0.12);
+	border-color: rgba(255, 255, 255, 0.2);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .nav-user-av {
 	width: 32px;
 	height: 32px;
 	border-radius: 50%;
 	flex-shrink: 0;
+<<<<<<< HEAD
 	background: rgba(255, 255, 255, 0.15);
 	border: 1.5px solid rgba(255, 255, 255, 0.25);
+=======
+	background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+	border: 1.5px solid rgba(255, 255, 255, 0.35);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	font-size: 0.85rem;
 	font-weight: 700;
 	color: white;
@@ -156,30 +263,70 @@
 }
 .nav-user-role {
 	font-size: 0.65rem;
+<<<<<<< HEAD
 	color: rgba(255, 255, 255, 0.5);
+=======
+	color: rgba(255, 255, 255, 0.65);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	line-height: 1.2;
 }
 .nav-user-info {
 	flex: 1;
+<<<<<<< HEAD
 }
 .nav-user-dd {
 	position: absolute;
 	bottom: calc(100% + 4px);
+=======
+	min-width: 0;
+}
+.nav-user-dd {
+	position: absolute;
+	bottom: calc(100% + 6px);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	left: 10px;
 	right: 10px;
 	background: var(--sur);
 	border: 1px solid var(--bdr);
+<<<<<<< HEAD
 	border-radius: 10px;
 	box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.1);
 	overflow: hidden;
 	animation: su 0.15s ease;
+=======
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+	overflow: hidden;
+	animation: su 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+	z-index: 50;
+	padding: 4px 0;
+}
+.nav-user-dd-header {
+	padding: 10px 14px 6px;
+}
+.nav-user-dd-name {
+	font-size: 0.8rem;
+	font-weight: 750;
+	color: var(--txt);
+	line-height: 1.2;
+}
+.nav-user-dd-sub {
+	font-size: 0.68rem;
+	color: var(--mut);
+	line-height: 1.2;
+	margin-top: 2px;
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .nav-user-dd-item {
 	width: 100%;
 	display: flex;
 	align-items: center;
 	gap: 9px;
+<<<<<<< HEAD
 	padding: 10px 14px;
+=======
+	padding: 9px 14px;
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	border: none;
 	background: transparent;
 	font-family: inherit;
@@ -188,6 +335,10 @@
 	cursor: pointer;
 	transition: background 0.15s;
 	text-align: left;
+<<<<<<< HEAD
+=======
+	font-weight: 500;
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .nav-user-dd-item:hover {
 	background: var(--bg);
@@ -218,6 +369,10 @@
 	position: sticky;
 	top: 0;
 	z-index: 10;
+<<<<<<< HEAD
+=======
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .app .topbar-l {
 	display: flex;
@@ -239,6 +394,44 @@
 	font-weight: 800;
 	color: var(--txt);
 }
+<<<<<<< HEAD
+=======
+.topbar-date {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--mut);
+	background: var(--bg);
+	padding: 5px 12px;
+	border-radius: var(--rs);
+	border: 1.5px solid var(--bdr);
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+.topbar-home-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 13px;
+	background: #f0fdf4;
+	color: #065f2b;
+	border: 1.5px solid #bbf7d0;
+	border-radius: var(--rs);
+	font-family: inherit;
+	font-size: 0.78rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	white-space: nowrap;
+}
+.topbar-home-btn:hover {
+	background: #d1fae5;
+	border-color: #86efac;
+	transform: translateY(-1px);
+	box-shadow: 0 3px 8px rgba(7, 147, 65, 0.12);
+}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 .topbar-badge {
 	font-size: 0.72rem;
 	font-weight: 700;
@@ -246,7 +439,12 @@
 	color: white;
 	padding: 5px 13px;
 	border-radius: 9999px;
+<<<<<<< HEAD
 	box-shadow: 0 2px 8px rgba(7, 147, 65, 0.3);
+=======
+	box-shadow: 0 2px 8px rgba(7, 147, 65, 0.25);
+	white-space: nowrap;
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 .main-inner {
 	flex: 1;
@@ -535,6 +733,14 @@
 	justify-content: center;
 	padding: 10px;
 }
+<<<<<<< HEAD
+=======
+.nav-collapsed .nav-group + .nav-group {
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 .nav-collapsed .nav-user {
 	justify-content: center;
 	padding: 9px;
@@ -673,6 +879,22 @@
 	}
 }
 
+<<<<<<< HEAD
+=======
+@media (max-width: 640px) {
+	.topbar-date {
+		display: none;
+	}
+	.topbar-home-btn-text {
+		display: none;
+	}
+	.topbar-home-btn {
+		padding: 6px;
+		border-radius: 8px;
+	}
+}
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 @media (max-width: 560px) {
 	.pg-hdr {
 		flex-direction: column;

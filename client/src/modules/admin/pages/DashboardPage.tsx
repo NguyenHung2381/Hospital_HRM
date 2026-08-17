@@ -11,6 +11,10 @@ import {
 	getTrendStats,
 	toKhoaRecord,
 } from '@/utils/staffingCalc';
+<<<<<<< HEAD
+=======
+import { aggregateClsDashboardStats, toKhoaClsRecord } from '@/utils/clsCalc';
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 import React, { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader';
 import StatCard from '../components/StatCard';
@@ -122,6 +126,12 @@ export default function DashboardPage() {
 	const selectedReport = allReports[selIdx];
 
 	const rows = selectedReport.records.map((r, i) => toKhoaRecord(r, i + 1));
+<<<<<<< HEAD
+=======
+	const clsRows = selectedReport.cls_records.map((r, i) =>
+		toKhoaClsRecord(r, i + 1),
+	);
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	const selDateStr = selectedReport.report_date.slice(0, 10);
 	const isLatest = selIdx === 0;
 
@@ -144,6 +154,11 @@ export default function DashboardPage() {
 		top5Thieu,
 	} = aggregateDashboardStats(rows);
 
+<<<<<<< HEAD
+=======
+	const clsStats = aggregateClsDashboardStats(clsRows);
+
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	// Trend luôn dùng 7 ngày mới nhất
 	const multiDayData = allReports.map((rep) => ({
 		date: rep.report_date.slice(0, 10),
@@ -744,6 +759,141 @@ export default function DashboardPage() {
 					</div>
 				</section>
 			</div>
+<<<<<<< HEAD
+=======
+
+			{/* ── Row 3: Hệ Cận lâm sàng ── */}
+			<h3
+				className='hcard-title'
+				style={{ margin: '4px 0 -4px' }}
+			>
+				🧪 Hệ Cận lâm sàng
+			</h3>
+			{clsRows.length === 0 ? (
+				<section className='hcard'>
+					<div
+						style={{
+							textAlign: 'center',
+							padding: '20px',
+							color: '#64748b',
+							fontSize: '.82rem',
+						}}
+					>
+						Chưa có khoa CLS nào nhập dữ liệu ngày này
+					</div>
+				</section>
+			) : (
+				<>
+					<div className='ov-kpi-grid'>
+						{[
+							{
+								icon: '🧪',
+								val: clsRows.length,
+								lbl: 'Khoa CLS đã nhập',
+								sub: 'trên 10 khoa',
+								col: '#2563eb',
+								bg: '#eff6ff',
+							},
+							{
+								icon: '📊',
+								val: clsStats.totalKhoiLuong,
+								lbl: 'Tổng khối lượng CV',
+								sub: `${clsStats.totalNL} tổng nhân lực`,
+								col: '#079341',
+								bg: '#f0faf4',
+							},
+							{
+								icon: '✅',
+								val: clsStats.totalDiLam,
+								lbl: 'Nhân lực đi làm',
+								sub: `${clsStats.rateDiLam}% / khối lượng CV`,
+								col: '#7c3aed',
+								bg: '#f5f3ff',
+							},
+							{
+								icon: '⚠️',
+								val: clsStats.khoaThieu.length,
+								lbl: 'Khoa CLS thiếu NL',
+								sub: `thiếu ${clsStats.tongThieu} người so khuyến cáo`,
+								col: '#dc2626',
+								bg: '#fef2f2',
+							},
+						].map((c) => (
+							<StatCard
+								key={c.lbl}
+								className='ov-kpi'
+								label={c.lbl}
+								value={c.val}
+								icon={c.icon}
+								subText={c.sub}
+								textColor={c.col}
+								bgColor={c.bg}
+							/>
+						))}
+					</div>
+
+					{clsStats.khoaThieu.length > 0 && (
+						<section className='hcard ov-card'>
+							<h3 className='hcard-title'>⚠️ Khoa CLS thiếu nhân lực</h3>
+							<div className='hcard-list'>
+								{clsStats.khoaThieu.map((r) => (
+									<div
+										key={r.tt}
+										className='hcard-row ov-thieu-row'
+									>
+										<div className='hcard-info'>
+											<p
+												className='hcard-name'
+												style={{ fontSize: '.8rem' }}
+											>
+												{r.ten}
+											</p>
+											<div
+												style={{
+													display: 'flex',
+													alignItems: 'center',
+													gap: 6,
+													marginTop: 2,
+												}}
+											>
+												<MiniBar
+													val={r.diLam ?? 0}
+													max={r.khuyenCao ?? 1}
+													color='#079341'
+												/>
+												<span
+													style={{
+														fontSize: '.65rem',
+														color: '#64748b',
+														whiteSpace: 'nowrap',
+													}}
+												>
+													{r.diLam}/{r.khuyenCao} khuyến cáo
+												</span>
+											</div>
+										</div>
+										<div style={{ textAlign: 'right', flexShrink: 0 }}>
+											<span
+												style={{
+													fontSize: '.85rem',
+													fontWeight: 800,
+													color: '#dc2626',
+												}}
+											>
+												+{Math.abs(r.chenhLech ?? 0)}
+											</span>
+											<p style={{ fontSize: '.6rem', color: '#94a3b8' }}>
+												cần bổ sung
+											</p>
+										</div>
+									</div>
+								))}
+							</div>
+						</section>
+					)}
+				</>
+			)}
+>>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		</div>
 	);
 }
