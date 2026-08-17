@@ -12,10 +12,6 @@
     "dotenv": "^16.3.1",
     "exceljs": "^4.4.0",
     "express": "^4.18.2",
-<<<<<<< HEAD
-=======
-    "hospital-hrm": "file:..",
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
     "jsonwebtoken": "^9.0.3",
     "mssql": "^10.0.1"
   },
