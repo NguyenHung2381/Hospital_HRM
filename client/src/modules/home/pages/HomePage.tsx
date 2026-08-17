@@ -2,20 +2,13 @@ import { useAppSSE } from '@/hooks/useAppSSE';
 import { useAuth } from '@/context/useAuth';
 import MainLayout from '@/layouts/MainLayout';
 import '@/styles/main.css';
-<<<<<<< HEAD
-import { useCallback, useState } from 'react';
-import DailyStaffingBoard from '../components/DailyStaffingBoard';
-=======
 import { useCallback, useMemo, useState } from 'react';
 import DailyStaffingBoard from '../components/DailyStaffingBoard';
 import CLSStaffingBoard from '../components/CLSStaffingBoard';
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 
 export default function HomePage() {
 	const { user, khoaList, refresh } = useAuth();
 
-<<<<<<< HEAD
-=======
 	const wardKhoa = useMemo(
 		() => khoaList.filter((k) => k.deptGroup !== 'cls'),
 		[khoaList],
@@ -35,7 +28,6 @@ export default function HomePage() {
 	const [manualGroup, setManualGroup] = useState<'ward' | 'cls' | null>(null);
 	const activeGroup = manualGroup ?? (wardKhoa.length > 0 ? 'ward' : 'cls');
 
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	const [deptName, setDeptName] = useState(
 		khoaList.length > 0 ? khoaList[0].ten : '',
 	);
@@ -65,23 +57,6 @@ export default function HomePage() {
 			deptName={deptName}
 			giuongMay={giuongMay}
 			currentUser={user}
-<<<<<<< HEAD
-			onEditDept={() => setShowDeptModal(true)}
-			onReport={() => setShowReportModal(true)}
-			onChangePassword={() => setShowPasswordModal(true)}
-		>
-			<DailyStaffingBoard
-				userKhoa={khoaList}
-				onDeptNameChange={setDeptName}
-				onGiuongMayChange={setGiuongMay}
-				showDeptModal={showDeptModal}
-				onCloseDeptModal={() => setShowDeptModal(false)}
-				showReportModal={showReportModal}
-				onCloseReportModal={() => setShowReportModal(false)}
-				showPasswordModal={showPasswordModal}
-				onClosePasswordModal={() => setShowPasswordModal(false)}
-			/>
-=======
 			onEditDept={
 				activeGroup === 'cls' ? undefined : () => setShowDeptModal(true)
 			}
@@ -133,7 +108,6 @@ export default function HomePage() {
 					)}
 				</div>
 			</div>
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		</MainLayout>
 	);
 }

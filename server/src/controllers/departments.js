@@ -4,22 +4,14 @@ const appEmitter = require('../events/appEmitter');
 // GET /api/departments
 async function getAll(req, res, next) {
 	try {
-<<<<<<< HEAD
-		const { status } = req.query;
-=======
 		const { status, group } = req.query;
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		const pool = await getPool();
 		const request = pool.request();
 
 		let query = `
 			SELECT d.id_department, d.name_department, d.code_department, d.bed_count,
 				d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total,
-<<<<<<< HEAD
-				d.total_staff, d.status, d.created_at, d.updated_at,
-=======
 				d.total_staff, d.status, d.dept_group, d.created_at, d.updated_at,
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				-- Cấu hình TT03 (nếu có)
 				cfg.formula_type, cfg.patient_ratio, cfg.shift_divisor,
 				cfg.shift_multiplier, cfg.fixed_add, cfg.note AS tt03_note,
@@ -35,12 +27,6 @@ async function getAll(req, res, next) {
 			LEFT JOIN Dept_TT03_Config cfg ON cfg.id_department = d.id_department
 			LEFT JOIN Dept_Recommended_Config rec ON rec.id_department = d.id_department
 		`;
-<<<<<<< HEAD
-		if (status) {
-			query += ` WHERE d.status = @status`;
-			request.input('status', sql.NVarChar(10), status);
-		}
-=======
 		const where = [];
 		if (status) {
 			where.push('d.status = @status');
@@ -51,7 +37,6 @@ async function getAll(req, res, next) {
 			request.input('group', sql.NVarChar(10), group);
 		}
 		if (where.length) query += ` WHERE ${where.join(' AND ')}`;
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		query += ` ORDER BY d.id_department ASC`;
 
 		const result = await request.query(query);
@@ -62,17 +47,6 @@ async function getAll(req, res, next) {
 }
 
 // GET /api/departments/simple  — chỉ id + tên, dùng để check khoa chưa nhập dữ liệu
-<<<<<<< HEAD
-async function getSimple(req, res, next) {
-	try {
-		const pool = await getPool();
-		const result = await pool.request().query(`
-			SELECT id_department, name_department AS department_name
-			FROM Departments
-			WHERE status = 'active'
-			ORDER BY id_department ASC
-		`);
-=======
 // Query param "group" (ward | cls) lọc theo dept_group — mặc định 'ward' để không phá
 // logic "khoa chưa nhập" của báo cáo khối nội trú hiện có khi thêm khoa nhóm khác.
 async function getSimple(req, res, next) {
@@ -91,7 +65,6 @@ async function getSimple(req, res, next) {
 		}
 		query += ` ORDER BY id_department ASC`;
 		const result = await request.query(query);
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		res.json({ success: true, data: result.recordset });
 	} catch (err) {
 		next(err);
@@ -214,14 +187,11 @@ async function create(req, res, next) {
 			throw err;
 		}
 	} catch (err) {
-<<<<<<< HEAD
-=======
 		if (err.number === 2627 || err.number === 2601)
 			return res.status(409).json({
 				success: false,
 				message: 'Mã khoa đã tồn tại, vui lòng chọn mã khác',
 			});
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		next(err);
 	}
 }
@@ -271,12 +241,8 @@ async function update(req, res, next) {
 				SET name_department = @name_department, code_department = @code_department,
 					bed_count = @bed_count, coef_level_1 = @coef_level_1,
 					coef_level_2 = @coef_level_2, coef_level_3 = @coef_level_3,
-<<<<<<< HEAD
-					coef_total = @coef_total, total_staff = @total_staff, status = @status
-=======
 					coef_total = @coef_total, total_staff = @total_staff, status = @status,
 					updated_at = SYSDATETIMEOFFSET()
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				OUTPUT INSERTED.id_department INTO @out
 				WHERE id_department = @id_department;
 
@@ -294,14 +260,11 @@ async function update(req, res, next) {
 		});
 		res.json({ success: true, data: result.recordset[0] });
 	} catch (err) {
-<<<<<<< HEAD
-=======
 		if (err.number === 2627 || err.number === 2601)
 			return res.status(409).json({
 				success: false,
 				message: 'Mã khoa đã tồn tại, vui lòng chọn mã khác',
 			});
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		next(err);
 	}
 }
@@ -329,15 +292,12 @@ async function remove(req, res, next) {
 		});
 		res.json({ success: true, message: 'Đã xoá khoa thành công' });
 	} catch (err) {
-<<<<<<< HEAD
-=======
 		if (err.number === 547)
 			return res.status(409).json({
 				success: false,
 				message:
 					'Không thể xoá khoa này vì đã có dữ liệu báo cáo/ cấu hình liên quan. Vui lòng chuyển trạng thái sang "Ngừng hoạt động" thay vì xoá.',
 			});
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		next(err);
 	}
 }

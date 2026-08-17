@@ -11,10 +11,7 @@ import {
 	getTrendStats,
 	toKhoaRecord,
 } from '@/utils/staffingCalc';
-<<<<<<< HEAD
-=======
 import { aggregateClsDashboardStats, toKhoaClsRecord } from '@/utils/clsCalc';
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 import React, { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader';
 import StatCard from '../components/StatCard';
@@ -126,12 +123,9 @@ export default function DashboardPage() {
 	const selectedReport = allReports[selIdx];
 
 	const rows = selectedReport.records.map((r, i) => toKhoaRecord(r, i + 1));
-<<<<<<< HEAD
-=======
 	const clsRows = selectedReport.cls_records.map((r, i) =>
 		toKhoaClsRecord(r, i + 1),
 	);
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	const selDateStr = selectedReport.report_date.slice(0, 10);
 	const isLatest = selIdx === 0;
 
@@ -154,11 +148,8 @@ export default function DashboardPage() {
 		top5Thieu,
 	} = aggregateDashboardStats(rows);
 
-<<<<<<< HEAD
-=======
 	const clsStats = aggregateClsDashboardStats(clsRows);
 
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	// Trend luôn dùng 7 ngày mới nhất
 	const multiDayData = allReports.map((rep) => ({
 		date: rep.report_date.slice(0, 10),
@@ -759,8 +750,6 @@ export default function DashboardPage() {
 					</div>
 				</section>
 			</div>
-<<<<<<< HEAD
-=======
 
 			{/* ── Row 3: Hệ Cận lâm sàng ── */}
 			<h3
@@ -893,7 +882,6 @@ export default function DashboardPage() {
 					)}
 				</>
 			)}
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		</div>
 	);
 }

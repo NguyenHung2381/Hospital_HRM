@@ -150,12 +150,8 @@ async function update(req, res, next) {
 				UPDATE Users
 				SET full_name = @full_name, user_code = @user_code,
 					id_department = @id_department, position = @position,
-<<<<<<< HEAD
-					id_role = @id_role, status = @status
-=======
 					id_role = @id_role, status = @status,
 					updated_at = SYSDATETIMEOFFSET()
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				OUTPUT INSERTED.id_user, INSERTED.full_name, INSERTED.username,
 					INSERTED.user_code, INSERTED.id_department, INSERTED.position,
 					INSERTED.id_role, INSERTED.status, INSERTED.updated_at
@@ -237,11 +233,7 @@ async function getDepartments(req, res, next) {
 		if (department_access_type === 'all') {
 			const r = await pool.request().query(`
 				SELECT d.id_department, d.name_department, d.bed_count,
-<<<<<<< HEAD
-					d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total, d.total_staff,
-=======
 					d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total, d.total_staff, d.dept_group,
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 					${TT03_COLS},
 					${REC_COLS}
 				FROM Departments d ${TT03_JOIN} ${REC_JOIN}
@@ -254,11 +246,7 @@ async function getDepartments(req, res, next) {
 				.input('id', sql.Int, req.params.id)
 				.input('id_department', sql.Int, id_department ?? null).query(`
 					SELECT DISTINCT d.id_department, d.name_department, d.bed_count,
-<<<<<<< HEAD
-						d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total, d.total_staff,
-=======
 						d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total, d.total_staff, d.dept_group,
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 						${TT03_COLS},
 						${REC_COLS}
 					FROM Departments d ${TT03_JOIN} ${REC_JOIN}
@@ -279,11 +267,7 @@ async function getDepartments(req, res, next) {
 					.request()
 					.input('id_department', sql.Int, id_department).query(`
 						SELECT d.id_department, d.name_department, d.bed_count,
-<<<<<<< HEAD
-							d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total, d.total_staff,
-=======
 							d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total, d.total_staff, d.dept_group,
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 							${TT03_COLS},
 							${REC_COLS}
 						FROM Departments d ${TT03_JOIN} ${REC_JOIN}
@@ -501,13 +485,9 @@ async function resetPassword(req, res, next) {
 			.request()
 			.input('id', sql.Int, req.params.id)
 			.input('password', sql.NVarChar(255), username)
-<<<<<<< HEAD
-			.query(`UPDATE Users SET password = @password WHERE id_user = @id`);
-=======
 			.query(
 				`UPDATE Users SET password = @password, updated_at = SYSDATETIMEOFFSET() WHERE id_user = @id`,
 			);
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		res.json({
 			success: true,
 			message: `Đã đặt lại mật khẩu về mặc định cho tài khoản ${username}`,
@@ -554,13 +534,9 @@ async function changePassword(req, res, next) {
 			.request()
 			.input('id', sql.Int, req.params.id)
 			.input('new_password', sql.NVarChar(255), new_password)
-<<<<<<< HEAD
-			.query(`UPDATE Users SET password = @new_password WHERE id_user = @id`);
-=======
 			.query(
 				`UPDATE Users SET password = @new_password, updated_at = SYSDATETIMEOFFSET() WHERE id_user = @id`,
 			);
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 
 		res.json({ success: true, message: 'Đổi mật khẩu thành công' });
 	} catch (err) {

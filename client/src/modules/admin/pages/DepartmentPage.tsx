@@ -88,14 +88,11 @@ const REC_FORMULA_OPTIONS: {
 		label: 'Lượt khám ngoại trú',
 		hint: '= outpatient_cnt × outpatient_ratio + fixed_add',
 	},
-<<<<<<< HEAD
-=======
 	{
 		value: 'fixed',
 		label: 'Số cố định (hệ CLS)',
 		hint: '= fixed_add (không phụ thuộc dữ liệu bản ghi)',
 	},
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 ];
 
 type FormTab = 'info' | 'tt03' | 'rec';
@@ -1042,8 +1039,6 @@ export default function DepartmentPage() {
 									</div>
 								)}
 
-<<<<<<< HEAD
-=======
 								{/* fixed: chỉ cần fixed_add */}
 								{draftRec.formula_type === 'fixed' && (
 									<div className='mrow2'>
@@ -1065,7 +1060,6 @@ export default function DepartmentPage() {
 									</div>
 								)}
 
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 								<FormField
 									label='Ghi chú'
 									hint='Tuỳ chọn'

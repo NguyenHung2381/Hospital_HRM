@@ -66,12 +66,9 @@ function calcRecommended(record, cfg) {
 				(record.outpatient_cnt ?? 0) * parseFloat(cfg.outpatient_ratio ?? 0) +
 				fixed
 			);
-<<<<<<< HEAD
-=======
 		case 'fixed':
 			// Số khuyến cáo cố định, không phụ thuộc dữ liệu bản ghi (dùng cho hệ CLS)
 			return fixed;
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		default:
 			return null;
 	}

@@ -20,10 +20,6 @@ export type RecommendedFormulaType =
 	| 'coef_with_total'
 	| 'coef_with_outpatient'
 	| 'total_ratio'
-<<<<<<< HEAD
-	| 'outpatient_count';
-=======
 	| 'outpatient_count'
 	/** Số khuyến cáo cố định, không phụ thuộc dữ liệu bản ghi (dùng cho hệ CLS) */
 	| 'fixed';
->>>>>>> df09166 (feat: implement user management API with CRUD operations)

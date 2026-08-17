@@ -911,8 +911,6 @@
 		max-height: 180px;
 	}
 }
-<<<<<<< HEAD
-=======
 
 /* =========================================================
    Create Coordination Modal Styles
@@ -1370,4 +1368,3 @@
 	color: white;
 	border-color: var(--red);
 }
->>>>>>> df09166 (feat: implement user management API with CRUD operations)

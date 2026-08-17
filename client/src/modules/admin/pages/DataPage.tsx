@@ -7,11 +7,7 @@ import { useDeptFilter } from '@/hooks/useDeptFilter';
 import { useDeptPermissions } from '@/hooks/UseDeptPermissionsReturn';
 import usePagination from '@/hooks/usePagination';
 import { useReportData } from '@/hooks/useReportData';
-<<<<<<< HEAD
-import type { ApiRecord } from '@/types/apiType';
-=======
 import type { ApiClsRecord, ApiRecord } from '@/types/apiType';
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 import {
 	fmtUpdatedAt,
 	formatDateToVN,
@@ -19,13 +15,6 @@ import {
 } from '@/utils/dateUtils';
 import { formatNumber } from '@/utils/formatUtils';
 import { aggregateDashboardStats, toKhoaRecord } from '@/utils/staffingCalc';
-<<<<<<< HEAD
-import { buildStripItems } from '@/utils/UIHelperUtils';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import AddRecordModal from '../components/modal/AddRecordModal';
-import CreateReportModal from '../components/modal/CreateReportModal';
-import EditRecordModal from '../components/modal/EditRecordModal';
-=======
 import {
 	aggregateClsDashboardStats,
 	toKhoaClsRecord,
@@ -37,7 +26,6 @@ import AddClsRecordModal from '../components/modal/AddClsRecordModal';
 import CreateReportModal from '../components/modal/CreateReportModal';
 import EditRecordModal from '../components/modal/EditRecordModal';
 import EditClsRecordModal from '../components/modal/EditClsRecordModal';
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 import PageHeader from '../components/PageHeader';
 import SearchInput from '../components/SearchInput';
 import StatCard from '../components/StatCard';
@@ -49,20 +37,11 @@ export default function DataPage() {
 
 	// ── State điều hướng ─────────────────────────────────────────────────
 	const [selDate, setSelDate] = useState(today);
-<<<<<<< HEAD
-=======
 	const [activeTab, setActiveTab] = useState<'ward' | 'cls'>('ward');
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	const [drawerOpen, setDrawer] = useState(false);
 	const [allDepts, setAllDepts] = useState<
 		{ id_department: number; department_name: string }[]
 	>([]);
-<<<<<<< HEAD
-
-	// ── Fetch danh sách tất cả khoa active (1 lần khi mount) ─────────────
-	useEffect(() => {
-		fetch('/api/departments/simple')
-=======
 	const [allClsDepts, setAllClsDepts] = useState<
 		{ id_department: number; department_name: string }[]
 	>([]);
@@ -70,21 +49,17 @@ export default function DataPage() {
 	// ── Fetch danh sách tất cả khoa active (1 lần khi mount) ─────────────
 	useEffect(() => {
 		fetch('/api/departments/simple?group=ward')
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			.then((r) => r.json())
 			.then((d) => {
 				if (d.success && Array.isArray(d.data)) setAllDepts(d.data);
 			})
 			.catch(() => {});
-<<<<<<< HEAD
-=======
 		fetch('/api/departments/simple?group=cls')
 			.then((r) => r.json())
 			.then((d) => {
 				if (d.success && Array.isArray(d.data)) setAllClsDepts(d.data);
 			})
 			.catch(() => {});
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	}, []);
 
 	// ── Custom hooks ─────────────────────────────────────────────────────
@@ -127,8 +102,6 @@ export default function DataPage() {
 	} | null>(null);
 	const [saving, setSaving] = useState(false);
 
-<<<<<<< HEAD
-=======
 	// ── Modal state — hệ CLS ─────────────────────────────────────────────
 	const [editClsRecord, setEditClsRecord] = useState<ApiClsRecord | null>(
 		null,
@@ -153,7 +126,6 @@ export default function DataPage() {
 		[allClsDepts, enteredClsDeptIds],
 	);
 
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	// ── Filtered rows + stats + pagination ───────────────────────────────
 	const filtered = allRows.filter((r) => selKhoa.has(r.tt));
 	const stats = aggregateDashboardStats(filtered);
@@ -277,8 +249,6 @@ export default function DataPage() {
 		}
 	};
 
-<<<<<<< HEAD
-=======
 	// ── Xóa 1 record khoa CLS ────────────────────────────────────────────
 	const confirmDelClsRecord = async () => {
 		if (!delClsRecord || !report) return;
@@ -308,7 +278,6 @@ export default function DataPage() {
 		}
 	};
 
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	// ────────────────────────────────────────────────────────────────────
 	return (
 		<div className='pg dv-pg'>
@@ -323,138 +292,17 @@ export default function DataPage() {
 
 				<div className='dv-cal-wrap'>
 					<Calendar
-<<<<<<< HEAD
-						records={reportMetas.map((d) => ({
-							date: d.report_date.slice(0, 10),
-						}))}
-=======
 						records={reportMetas
 							.filter((d) => d.has_records)
 							.map((d) => ({
 								date: d.report_date.slice(0, 10),
 							}))}
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 						activeDate={selDate}
 						onSelect={(d) => setSelDate(d)}
 						onAdd={(d) => setSelDate(d)}
 					/>
 				</div>
 
-<<<<<<< HEAD
-				<div className='dv-khoa-panel'>
-					<div className='dv-khoa-panel-hdr'>
-						<span className='dv-khoa-panel-title'>
-							Khoa / Phòng
-							{selKhoa.size > 0 && (
-								<span className='dv-khoa-badge'>{selKhoa.size}</span>
-							)}
-						</span>
-						<div style={{ display: 'flex', gap: 4 }}>
-							<button
-								className='dv-kp-btn'
-								onClick={selectAll}
-							>
-								Tất cả
-							</button>
-							<button
-								className='dv-kp-btn'
-								onClick={clearAll}
-							>
-								Bỏ
-							</button>
-						</div>
-					</div>
-					<div style={{ padding: '0 12px 12px' }}>
-						<SearchInput
-							placeholder='Tìm khoa…'
-							value={sidebarSearch}
-							onChange={setSidebarSearch}
-						/>
-					</div>
-					<div className='dv-khoa-list-scroll'>
-						{allRows
-							.filter(
-								(k) =>
-									sidebarSearch === '' ||
-									k.ten.toLowerCase().includes(sidebarSearch.toLowerCase()),
-							)
-							.map((k) => {
-								const checked = selKhoa.has(k.tt);
-								const dp = k.dieuPhoi;
-								const rowAccent =
-									dp !== null && dp < 0
-										? 'dv-kr-deficit'
-										: dp !== null && dp > 0
-											? 'dv-kr-surplus'
-											: '';
-								return (
-									<button
-										key={k.tt}
-										className={`dv-khoa-row ${checked ? 'dv-kr-on' : 'dv-kr-off'} ${rowAccent}`}
-										onClick={() => toggleKhoa(k.tt)}
-									>
-										<span
-											className={`dv-kr-check ${checked ? 'dv-kr-check-on' : 'dv-kr-check-off'}`}
-										>
-											{checked && <CheckIcon />}
-										</span>
-										<span className='dv-kr-num'>{k.tt}</span>
-										<span className='dv-kr-name'>{k.ten}</span>
-										{dp !== null && dp !== 0 && (
-											<span
-												className={`dv-kr-dp ${dp < 0 ? 'dv-kr-dp-red' : 'dv-kr-dp-green'}`}
-											>
-												{dp > 0 ? `+${dp}` : dp}
-											</span>
-										)}
-									</button>
-								);
-							})}
-					</div>
-				</div>
-
-				{/* ── Khoa chưa nhập dữ liệu ── */}
-				{report && missingDepts.length > 0 && (
-					<div
-						className='dv-khoa-panel'
-						style={{ marginTop: 8 }}
-					>
-						<div className='dv-khoa-panel-hdr'>
-							<span
-								className='dv-khoa-panel-title'
-								style={{ color: '#b45309' }}
-							>
-								⚠ Chưa nhập
-								<span
-									className='dv-khoa-badge'
-									style={{ background: '#fef3c7', color: '#b45309' }}
-								>
-									{missingDepts.length}
-								</span>
-							</span>
-						</div>
-						<div className='dv-khoa-list-scroll'>
-							{missingDepts.map((d, idx) => (
-								<div
-									key={d.id_department}
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										gap: 6,
-										padding: '5px 12px',
-										background: '#fffbeb',
-										borderLeft: '3px solid #f59e0b',
-										color: '#92400e',
-										fontSize: '.78rem',
-									}}
-								>
-									<span className='dv-kr-num'>{idx + 1}</span>
-									<span className='dv-kr-name'>{d.department_name}</span>
-								</div>
-							))}
-						</div>
-					</div>
-=======
 				{activeTab === 'ward' && (
 					<>
 						<div className='dv-khoa-panel'>
@@ -618,7 +466,6 @@ export default function DataPage() {
 							</div>
 						)}
 					</>
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				)}
 			</aside>
 
@@ -632,8 +479,6 @@ export default function DataPage() {
 
 			{/* ── Main ── */}
 			<div className='dv-main'>
-<<<<<<< HEAD
-=======
 				<div
 					className='tab-bar'
 					style={{ marginBottom: 12 }}
@@ -670,7 +515,6 @@ export default function DataPage() {
 
 				{activeTab === 'ward' && (
 				<>
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				<PageHeader
 					title='Dữ liệu nhân lực'
 					subtitle={
@@ -786,25 +630,6 @@ export default function DataPage() {
 					)}
 				</PageHeader>
 
-<<<<<<< HEAD
-				{apiError && (
-					<div
-						style={{
-							background: '#fef2f2',
-							border: '1px solid #fecaca',
-							borderRadius: 8,
-							padding: '8px 14px',
-							marginBottom: 12,
-							fontSize: '.82rem',
-							color: '#dc2626',
-						}}
-					>
-						⚠️ {apiError}
-					</div>
-				)}
-
-=======
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				{/* Strip tổng hợp */}
 				<div className='dv-strip'>
 					{buildStripItems(
@@ -1238,8 +1063,6 @@ export default function DataPage() {
 						</div>
 					</div>
 				)}
-<<<<<<< HEAD
-=======
 				</>
 				)}
 
@@ -1560,7 +1383,6 @@ export default function DataPage() {
 				)}
 				</>
 				)}
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			</div>
 
 			{/* Overlay mobile */}
@@ -1587,8 +1409,6 @@ export default function DataPage() {
 				/>
 			)}
 
-<<<<<<< HEAD
-=======
 			{editClsRecord && report && (
 				<EditClsRecordModal
 					record={editClsRecord}
@@ -1602,7 +1422,6 @@ export default function DataPage() {
 				/>
 			)}
 
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			{showCreate && (
 				<CreateReportModal
 					selDate={selDate}
@@ -1632,8 +1451,6 @@ export default function DataPage() {
 				/>
 			)}
 
-<<<<<<< HEAD
-=======
 			{showAddClsRecord && report && (
 				<AddClsRecordModal
 					reportId={report.id_report}
@@ -1650,7 +1467,6 @@ export default function DataPage() {
 				/>
 			)}
 
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			{showDelConfirm && (
 				<ModalForm
 					title='⚠️ Xác nhận xóa báo cáo'
@@ -1718,8 +1534,6 @@ export default function DataPage() {
 					</div>
 				</ModalForm>
 			)}
-<<<<<<< HEAD
-=======
 
 			{delClsRecord && (
 				<ModalForm
@@ -1754,7 +1568,6 @@ export default function DataPage() {
 					</div>
 				</ModalForm>
 			)}
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		</div>
 	);
 }

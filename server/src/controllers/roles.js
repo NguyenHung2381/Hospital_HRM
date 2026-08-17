@@ -122,12 +122,8 @@ async function update(req, res, next) {
 			).query(`
 				UPDATE Roles
 				SET name_role = @name_role, description = @description, icon = @icon,
-<<<<<<< HEAD
-					color = @color, department_access_type = @department_access_type
-=======
 					color = @color, department_access_type = @department_access_type,
 					updated_at = SYSDATETIMEOFFSET()
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				OUTPUT INSERTED.*
 				WHERE id_role = @id_role
 			`);

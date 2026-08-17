@@ -39,10 +39,7 @@ function mapApiDept(d: ApiDept): KhoaItem {
 		id: d.id_department,
 		ten: d.name_department,
 		giuong: d.bed_count,
-<<<<<<< HEAD
-=======
 		deptGroup: d.dept_group ?? 'ward',
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		formulaType: d.formula_type ?? 'standard',
 		tt03Note: d.tt03_note,
 		heSo: {

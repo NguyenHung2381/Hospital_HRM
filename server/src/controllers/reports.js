@@ -5,10 +5,7 @@ const {
 	fetchTT03Config,
 	fetchRecommendedConfig,
 } = require('./tt03');
-<<<<<<< HEAD
-=======
 const { getRecordsForReport: getClsRecordsForReport } = require('./clsRecords');
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 const appEmitter = require('../events/appEmitter');
 
 // ── Helper: lấy cấu hình TT03 cho 1 khoa ────────────────────────────────
@@ -75,15 +72,11 @@ async function getAll(req, res, next) {
 
 		const result = await request.query(`
 			SELECT dr.id_report, dr.report_code, dr.report_date, dr.created_at, dr.updated_at,
-<<<<<<< HEAD
-				u.full_name AS created_by_name
-=======
 				u.full_name AS created_by_name,
 				CASE WHEN EXISTS (
 					SELECT 1 FROM [Report_Department_Records ] rdr
 					WHERE rdr.id_report = dr.id_report
 				) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS has_records
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			FROM Daily_Reports dr
 			LEFT JOIN Users u ON u.id_user = dr.created_by
 			${whereClause}
@@ -99,11 +92,7 @@ async function getAll(req, res, next) {
 async function getById(req, res, next) {
 	try {
 		const pool = await getPool();
-<<<<<<< HEAD
-		const [reportResult, recordsResult] = await Promise.all([
-=======
 		const [reportResult, recordsResult, clsRecords] = await Promise.all([
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 			pool.request().input('id_report', sql.Int, req.params.id).query(`
 				SELECT dr.id_report, dr.report_code, dr.report_date, dr.created_at, dr.updated_at,
 					u.full_name AS created_by_name
@@ -151,10 +140,7 @@ async function getById(req, res, next) {
 				WHERE rdr.id_report = @id_report
 				ORDER BY rdr.sort_order
 			`),
-<<<<<<< HEAD
-=======
 			getClsRecordsForReport(pool, req.params.id),
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		]);
 
 		if (!reportResult.recordset.length)
@@ -164,15 +150,11 @@ async function getById(req, res, next) {
 
 		res.json({
 			success: true,
-<<<<<<< HEAD
-			data: { ...reportResult.recordset[0], records: recordsResult.recordset },
-=======
 			data: {
 				...reportResult.recordset[0],
 				records: recordsResult.recordset,
 				cls_records: clsRecords,
 			},
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		});
 	} catch (err) {
 		next(err);
@@ -341,10 +323,6 @@ async function updateRecord(req, res, next) {
 			.input('recommended_staff_calc', sql.Decimal(10, 4), recommendedCalc)
 			.input('coordination', sql.Decimal(10, 4), r.coordination ?? null)
 			.input('note', sql.NVarChar(sql.MAX), r.note ?? null).query(`
-<<<<<<< HEAD
-				-- Bảng có trigger nên OUTPUT phải dùng INTO, không trả thẳng về client được
-=======
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				DECLARE @out TABLE (Id INT);
 				UPDATE [Report_Department_Records ]
 				SET patient_level_1        = @patient_level_1,
@@ -360,17 +338,10 @@ async function updateRecord(req, res, next) {
 					recommended_staff      = @recommended_staff,
 					recommended_staff_calc = @recommended_staff_calc,
 					coordination           = @coordination,
-<<<<<<< HEAD
-					note                   = @note
-				OUTPUT INSERTED.Id INTO @out
-				WHERE Id = @id AND id_report = @id_report;
-				-- SELECT lại từ bảng thật để lấy updated_at sau khi trigger chạy
-=======
 					note                   = @note,
 					updated_at             = SYSDATETIMEOFFSET()
 				OUTPUT INSERTED.Id INTO @out
 				WHERE Id = @id AND id_report = @id_report;
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				SELECT rdr.*
 				FROM [Report_Department_Records ] rdr
 				INNER JOIN @out o ON o.Id = rdr.Id;

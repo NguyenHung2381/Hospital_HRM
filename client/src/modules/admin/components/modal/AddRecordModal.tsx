@@ -63,11 +63,7 @@ export default function AddRecordModal({
 	useEffect(() => {
 		async function load() {
 			try {
-<<<<<<< HEAD
-				const res = await fetch(`/api/departments?status=active`);
-=======
 				const res = await fetch(`/api/departments?status=active&group=ward`);
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 				const data = (await res.json()) as {
 					success: boolean;
 					data: ApiDept[];

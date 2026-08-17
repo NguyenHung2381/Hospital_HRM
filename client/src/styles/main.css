@@ -227,8 +227,6 @@
 	overflow: hidden;
 }
 
-<<<<<<< HEAD
-=======
 /* Wrapper cho HomePage khi có tab chuyển nhóm khoa (nội trú / CLS) —
    giữ .main-layout chỉ có đúng 1 con, tránh phá layout sidebar+content 2 cột */
 .home-tabs-wrap {
@@ -252,7 +250,6 @@
 	overflow: hidden;
 }
 
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 /* ============================= */
 /* Sidebar                       */
 /* ============================= */

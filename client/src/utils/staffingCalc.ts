@@ -118,12 +118,9 @@ export const compute = (r: DailyRecord, cfg: DeptConfig): ComputedStats => {
 				khuyenNghi =
 					(r.nbKhamPT ?? 0) * (rec.outpatientRatio ?? 0) + (rec.fixedAdd ?? 0);
 				break;
-<<<<<<< HEAD
-=======
 			case 'fixed':
 				khuyenNghi = rec.fixedAdd ?? 0;
 				break;
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		}
 	}
 
@@ -228,12 +225,9 @@ export const toKhoaRecord = (r: ApiRecord, tt: number): KhoaRecord => {
 				khuyenNghi =
 					(r.outpatient_cnt ?? 0) * (r.rec_outpatient_ratio ?? 0) + recFixedAdd;
 				break;
-<<<<<<< HEAD
-=======
 			case 'fixed':
 				khuyenNghi = recFixedAdd;
 				break;
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 		}
 	}
 

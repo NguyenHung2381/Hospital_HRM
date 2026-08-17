@@ -91,11 +91,8 @@ export interface ApiDept {
 	rec_outpatient_ratio: number | null;
 	rec_fixed_add: number | null;
 	rec_note: string | null;
-<<<<<<< HEAD
-=======
 	/** 'ward' = khối nội trú (TT03) · 'cls' = hệ Cận lâm sàng */
 	dept_group: 'ward' | 'cls';
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -154,19 +151,13 @@ export interface ApiReport {
 	id_report: number;
 	report_date: string;
 	records: ApiRecord[];
-<<<<<<< HEAD
-=======
 	cls_records: ApiClsRecord[];
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 
 export interface ReportMeta {
 	id_report: number;
 	report_date: string;
-<<<<<<< HEAD
-=======
 	has_records?: boolean;
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 }
 
 export interface ApiRecord {
@@ -305,8 +296,6 @@ export interface ApiTT03CalcResultLegacy {
 	recommended_staff_raw: number | null;
 	recommended_staff: number | null;
 }
-<<<<<<< HEAD
-=======
 
 // ─────────────────────────────────────────────────────────────
 // Report_CLS_Records — báo cáo nhân lực hệ Cận lâm sàng (MỚI)
@@ -379,4 +368,3 @@ export interface ApiCoordination {
 	created_at: string;
 	updated_at: string | null;
 }
->>>>>>> df09166 (feat: implement user management API with CRUD operations)

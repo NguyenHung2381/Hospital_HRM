@@ -58,11 +58,8 @@ export interface KhoaItem {
 	id: number;
 	ten: string;
 	giuong: number | null;
-<<<<<<< HEAD
-=======
 	/** 'ward' = khối nội trú (TT03) · 'cls' = hệ Cận lâm sàng */
 	deptGroup: 'ward' | 'cls';
->>>>>>> df09166 (feat: implement user management API with CRUD operations)
 	/** Hệ số TT03 (cột M) */
 	heSo: HeSoTT03;
 	formulaType: FormulaType;
