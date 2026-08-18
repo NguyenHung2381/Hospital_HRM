@@ -6,7 +6,7 @@ export default function GuardIcon({ size = 15, color = 'currentColor' }) {
 			viewBox='0 0 24 24'
 			fill='none'
 			stroke={color}
-			strokeWidth='2.5'
+			strokeWidth='2'
 			strokeLinecap='round'
 			strokeLinejoin='round'
 		>

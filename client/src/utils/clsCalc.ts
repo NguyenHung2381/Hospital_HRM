@@ -165,6 +165,7 @@ export const toKhoaClsRecord = (
 	return {
 		tt,
 		id_department: r.id_department,
+		code: r.code_department ?? null,
 		ten: r.department_name,
 		daLam,
 		tonCho,

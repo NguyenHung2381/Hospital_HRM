@@ -1,38 +1,28 @@
-import CheckIcon from '@/assets/svg/CheckIcon';
-import XIcon from '@/assets/svg/XIcon';
-import ModalForm from '@/components/common/ModalForm';
-import Calendar from '@/components/ui/Calendar';
 import { useAuth } from '@/context/useAuth';
 import { useDeptFilter } from '@/hooks/useDeptFilter';
 import { useDeptPermissions } from '@/hooks/UseDeptPermissionsReturn';
 import usePagination from '@/hooks/usePagination';
 import { useReportData } from '@/hooks/useReportData';
+import { useDualScrollSync } from '@/hooks/useDualScrollSync';
+import { useDataPageDeletions } from '@/hooks/useDataPageDeletions';
 import type { ApiClsRecord, ApiRecord } from '@/types/apiType';
-import {
-	fmtUpdatedAt,
-	formatDateToVN,
-	getTodayDateString,
-} from '@/utils/dateUtils';
-import { formatNumber } from '@/utils/formatUtils';
+import { formatDateToVN, getTodayDateString } from '@/utils/dateUtils';
 import { aggregateDashboardStats, toKhoaRecord } from '@/utils/staffingCalc';
 import {
 	aggregateClsDashboardStats,
 	toKhoaClsRecord,
 } from '@/utils/clsCalc';
-import { buildStripItems } from '@/utils/UIHelperUtils';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import AddRecordModal from '../components/modal/AddRecordModal';
-import AddClsRecordModal from '../components/modal/AddClsRecordModal';
-import CreateReportModal from '../components/modal/CreateReportModal';
-import EditRecordModal from '../components/modal/EditRecordModal';
-import EditClsRecordModal from '../components/modal/EditClsRecordModal';
+import { useEffect, useMemo, useState } from 'react';
 import PageHeader from '../components/PageHeader';
-import SearchInput from '../components/SearchInput';
-import StatCard from '../components/StatCard';
+import WardTabActions from './WardTabActions';
+import ClsTabActions from './ClsTabActions';
+import ClsTabPanel from './ClsTabPanel';
+import DataPageModals from './DataPageModals';
+import DataPageSidebar from './DataPageSidebar';
+import WardTabPanel from './WardTabPanel';
 
 export default function DataPage() {
 	const today = getTodayDateString();
-	const n = formatNumber;
 	const { deptPermissions, user } = useAuth();
 
 	// ── State điều hướng ─────────────────────────────────────────────────
@@ -93,24 +83,27 @@ export default function DataPage() {
 
 	// ── Modal state ──────────────────────────────────────────────────────
 	const [editRecord, setEditRecord] = useState<ApiRecord | null>(null);
-	const [showDelConfirm, setShowDelConfirm] = useState(false);
 	const [showAddRecord, setShowAddRecord] = useState(false);
 	const [showCreate, setShowCreate] = useState(false);
-	const [delRecord, setDelRecord] = useState<{
-		id: number;
-		name: string;
-	} | null>(null);
-	const [saving, setSaving] = useState(false);
 
 	// ── Modal state — hệ CLS ─────────────────────────────────────────────
 	const [editClsRecord, setEditClsRecord] = useState<ApiClsRecord | null>(
 		null,
 	);
 	const [showAddClsRecord, setShowAddClsRecord] = useState(false);
-	const [delClsRecord, setDelClsRecord] = useState<{
-		id: number;
-		name: string;
-	} | null>(null);
+
+	const {
+		saving,
+		showDelConfirm,
+		setShowDelConfirm,
+		delRecord,
+		setDelRecord,
+		delClsRecord,
+		setDelClsRecord,
+		delReport,
+		confirmDelRecord,
+		confirmDelClsRecord,
+	} = useDataPageDeletions({ report, setReport, setReportMetas, setApiError, selDate });
 
 	const clsRows = useMemo(
 		() => (report?.cls_records ?? []).map((r, i) => toKhoaClsRecord(r, i + 1)),
@@ -150,324 +143,29 @@ export default function DataPage() {
 	} = usePagination(filtered, 15);
 
 	// ── Dual scroll sync ─────────────────────────────────────────────────
-	const tblOuterRef = useRef<HTMLDivElement>(null);
-	const scrollTopRef = useRef<HTMLDivElement>(null);
-	const scrollInnerRef = useRef<HTMLDivElement>(null);
-
-	const syncScrollWidth = useCallback(() => {
-		const outer = tblOuterRef.current;
-		const inner = scrollInnerRef.current;
-		if (outer && inner) inner.style.width = outer.scrollWidth + 'px';
-	}, []);
-
-	useEffect(() => {
-		const outer = tblOuterRef.current;
-		const topBar = scrollTopRef.current;
-		if (!outer || !topBar) return;
-		syncScrollWidth();
-		const ro = new ResizeObserver(syncScrollWidth);
-		ro.observe(outer);
-		let fromOuter = false,
-			fromTop = false;
-		const onOuter = () => {
-			if (fromTop) {
-				fromTop = false;
-				return;
-			}
-			fromOuter = true;
-			topBar.scrollLeft = outer.scrollLeft;
-		};
-		const onTop = () => {
-			if (fromOuter) {
-				fromOuter = false;
-				return;
-			}
-			fromTop = true;
-			outer.scrollLeft = topBar.scrollLeft;
-		};
-		outer.addEventListener('scroll', onOuter, { passive: true });
-		topBar.addEventListener('scroll', onTop, { passive: true });
-		return () => {
-			ro.disconnect();
-			outer.removeEventListener('scroll', onOuter);
-			topBar.removeEventListener('scroll', onTop);
-		};
-	}, [report, syncScrollWidth]);
-
-	// ── Xóa toàn bộ báo cáo ngày ────────────────────────────────────────
-	const delReport = async () => {
-		if (!report) return;
-		setSaving(true);
-		setApiError('');
-		try {
-			const res = await fetch(`/api/reports/${report.id_report}`, {
-				method: 'DELETE',
-			});
-			const data = (await res.json()) as { success: boolean; message?: string };
-			if (!data.success) {
-				setApiError(data.message ?? 'Lỗi khi xóa');
-				return;
-			}
-			setReportMetas((prev) =>
-				prev.filter((m) => m.id_report !== report.id_report),
-			);
-			setReport(null);
-			setShowDelConfirm(false);
-		} catch {
-			setApiError('Lỗi kết nối server.');
-		} finally {
-			setSaving(false);
-		}
-	};
-
-	// ── Xóa 1 record khoa ────────────────────────────────────────────────
-	const confirmDelRecord = async () => {
-		if (!delRecord || !report) return;
-		setSaving(true);
-		setApiError('');
-		try {
-			const res = await fetch(
-				`/api/reports/${report.id_report}/records/${delRecord.id}`,
-				{ method: 'DELETE' },
-			);
-			const data = (await res.json()) as { success: boolean; message?: string };
-			if (!data.success) {
-				setApiError(data.message ?? 'Lỗi khi xóa');
-				return;
-			}
-			const rRes = await fetch(`/api/reports/date/${selDate}`);
-			const rData = (await rRes.json()) as {
-				success: boolean;
-				data: typeof report;
-			};
-			if (rData.success) setReport(rData.data);
-			setDelRecord(null);
-		} catch {
-			setApiError('Lỗi kết nối server.');
-		} finally {
-			setSaving(false);
-		}
-	};
-
-	// ── Xóa 1 record khoa CLS ────────────────────────────────────────────
-	const confirmDelClsRecord = async () => {
-		if (!delClsRecord || !report) return;
-		setSaving(true);
-		setApiError('');
-		try {
-			const res = await fetch(
-				`/api/reports/${report.id_report}/cls-records/${delClsRecord.id}`,
-				{ method: 'DELETE' },
-			);
-			const data = (await res.json()) as { success: boolean; message?: string };
-			if (!data.success) {
-				setApiError(data.message ?? 'Lỗi khi xóa');
-				return;
-			}
-			const rRes = await fetch(`/api/reports/date/${selDate}`);
-			const rData = (await rRes.json()) as {
-				success: boolean;
-				data: typeof report;
-			};
-			if (rData.success) setReport(rData.data);
-			setDelClsRecord(null);
-		} catch {
-			setApiError('Lỗi kết nối server.');
-		} finally {
-			setSaving(false);
-		}
-	};
+	const { tblOuterRef, scrollTopRef, scrollInnerRef } = useDualScrollSync(report);
 
 	// ────────────────────────────────────────────────────────────────────
 	return (
 		<div className='pg dv-pg'>
-			{/* ── Sidebar ── */}
-			<aside className={`dv-aside${drawerOpen ? ' dv-aside-open' : ''}`}>
-				<button
-					className='dv-aside-close'
-					onClick={() => setDrawer(false)}
-				>
-					✕
-				</button>
-
-				<div className='dv-cal-wrap'>
-					<Calendar
-						records={reportMetas
-							.filter((d) => d.has_records)
-							.map((d) => ({
-								date: d.report_date.slice(0, 10),
-							}))}
-						activeDate={selDate}
-						onSelect={(d) => setSelDate(d)}
-						onAdd={(d) => setSelDate(d)}
-					/>
-				</div>
-
-				{activeTab === 'ward' && (
-					<>
-						<div className='dv-khoa-panel'>
-							<div className='dv-khoa-panel-hdr'>
-								<span className='dv-khoa-panel-title'>
-									Khoa / Phòng
-									{selKhoa.size > 0 && (
-										<span className='dv-khoa-badge'>{selKhoa.size}</span>
-									)}
-								</span>
-								<div style={{ display: 'flex', gap: 4 }}>
-									<button
-										className='dv-kp-btn'
-										onClick={selectAll}
-									>
-										Tất cả
-									</button>
-									<button
-										className='dv-kp-btn'
-										onClick={clearAll}
-									>
-										Bỏ
-									</button>
-								</div>
-							</div>
-							<div style={{ padding: '0 12px 12px' }}>
-								<SearchInput
-									placeholder='Tìm khoa…'
-									value={sidebarSearch}
-									onChange={setSidebarSearch}
-								/>
-							</div>
-							<div className='dv-khoa-list-scroll'>
-								{allRows
-									.filter(
-										(k) =>
-											sidebarSearch === '' ||
-											k.ten.toLowerCase().includes(sidebarSearch.toLowerCase()),
-									)
-									.map((k) => {
-										const checked = selKhoa.has(k.tt);
-										const dp = k.dieuPhoi;
-										const rowAccent =
-											dp !== null && dp < 0
-												? 'dv-kr-deficit'
-												: dp !== null && dp > 0
-													? 'dv-kr-surplus'
-													: '';
-										return (
-											<button
-												key={k.tt}
-												className={`dv-khoa-row ${checked ? 'dv-kr-on' : 'dv-kr-off'} ${rowAccent}`}
-												onClick={() => toggleKhoa(k.tt)}
-											>
-												<span
-													className={`dv-kr-check ${checked ? 'dv-kr-check-on' : 'dv-kr-check-off'}`}
-												>
-													{checked && <CheckIcon />}
-												</span>
-												<span className='dv-kr-num'>{k.tt}</span>
-												<span className='dv-kr-name'>{k.ten}</span>
-												{dp !== null && dp !== 0 && (
-													<span
-														className={`dv-kr-dp ${dp < 0 ? 'dv-kr-dp-red' : 'dv-kr-dp-green'}`}
-													>
-														{dp > 0 ? `+${dp}` : dp}
-													</span>
-												)}
-											</button>
-										);
-									})}
-							</div>
-						</div>
-
-						{/* ── Khoa chưa nhập dữ liệu ── */}
-						{report && missingDepts.length > 0 && (
-							<div
-								className='dv-khoa-panel'
-								style={{ marginTop: 8 }}
-							>
-								<div className='dv-khoa-panel-hdr'>
-									<span
-										className='dv-khoa-panel-title'
-										style={{ color: '#b45309' }}
-									>
-										⚠ Chưa nhập
-										<span
-											className='dv-khoa-badge'
-											style={{ background: '#fef3c7', color: '#b45309' }}
-										>
-											{missingDepts.length}
-										</span>
-									</span>
-								</div>
-								<div className='dv-khoa-list-scroll'>
-									{missingDepts.map((d, idx) => (
-										<div
-											key={d.id_department}
-											style={{
-												display: 'flex',
-												alignItems: 'center',
-												gap: 6,
-												padding: '5px 12px',
-												background: '#fffbeb',
-												borderLeft: '3px solid #f59e0b',
-												color: '#92400e',
-												fontSize: '.78rem',
-											}}
-										>
-											<span className='dv-kr-num'>{idx + 1}</span>
-											<span className='dv-kr-name'>{d.department_name}</span>
-										</div>
-									))}
-								</div>
-							</div>
-						)}
-					</>
-				)}
-
-				{activeTab === 'cls' && (
-					<>
-						{report && missingClsDepts.length > 0 && (
-							<div
-								className='dv-khoa-panel'
-								style={{ marginTop: 8 }}
-							>
-								<div className='dv-khoa-panel-hdr'>
-									<span
-										className='dv-khoa-panel-title'
-										style={{ color: '#b45309' }}
-									>
-										⚠ Khoa CLS chưa nhập
-										<span
-											className='dv-khoa-badge'
-											style={{ background: '#fef3c7', color: '#b45309' }}
-										>
-											{missingClsDepts.length}
-										</span>
-									</span>
-								</div>
-								<div className='dv-khoa-list-scroll'>
-									{missingClsDepts.map((d, idx) => (
-										<div
-											key={d.id_department}
-											style={{
-												display: 'flex',
-												alignItems: 'center',
-												gap: 6,
-												padding: '5px 12px',
-												background: '#fffbeb',
-												borderLeft: '3px solid #f59e0b',
-												color: '#92400e',
-												fontSize: '.78rem',
-											}}
-										>
-											<span className='dv-kr-num'>{idx + 1}</span>
-											<span className='dv-kr-name'>{d.department_name}</span>
-										</div>
-									))}
-								</div>
-							</div>
-						)}
-					</>
-				)}
-			</aside>
+			<DataPageSidebar
+				drawerOpen={drawerOpen}
+				onCloseDrawer={() => setDrawer(false)}
+				reportMetas={reportMetas}
+				selDate={selDate}
+				onSelectDate={setSelDate}
+				activeTab={activeTab}
+				allRows={allRows}
+				selKhoa={selKhoa}
+				toggleKhoa={toggleKhoa}
+				selectAll={selectAll}
+				clearAll={clearAll}
+				sidebarSearch={sidebarSearch}
+				setSidebarSearch={setSidebarSearch}
+				report={report}
+				missingDepts={missingDepts}
+				missingClsDepts={missingClsDepts}
+			/>
 
 			{/* ── Mobile Filter Drawer Overlay ── */}
 			{drawerOpen && (
@@ -479,22 +177,100 @@ export default function DataPage() {
 
 			{/* ── Main ── */}
 			<div className='dv-main'>
-				<div
-					className='tab-bar'
-					style={{ marginBottom: 12 }}
-				>
-					<button
-						className={`tab-btn${activeTab === 'ward' ? ' tab-btn--active' : ''}`}
-						onClick={() => setActiveTab('ward')}
+				<div className='dv-hero-card'>
+					<PageHeader
+						icon={
+							<span
+								className={`pg-hdr-icon${activeTab === 'cls' ? ' pg-hdr-icon--cls' : ''}`}
+							>
+								{activeTab === 'ward' ? '🏥' : '🧪'}
+							</span>
+						}
+						title={activeTab === 'ward' ? 'Khoa nội trú' : 'Hệ Cận lâm sàng'}
+						subtitle={
+							<>
+								<span className='dv-hero-sub-label'>
+									{activeTab === 'ward'
+										? 'BẢNG THEO DÕI NHÂN LỰC ĐĐ - HỘ SINH - KTV'
+										: 'BẢNG THEO DÕI DỮ LIỆU HỆ CẬN LÂM SÀNG'}
+								</span>
+								<span className='dv-progress-pill'>
+									<span className='dv-progress-track'>
+										<span
+											className='dv-progress-fill'
+											style={{
+												width: `${Math.min(
+													100,
+													Math.round(
+														(activeTab === 'ward'
+															? allRows.length / (allDepts.length || 37)
+															: clsRows.length / (allClsDepts.length || 10)) * 100,
+													),
+												)}%`,
+											}}
+										/>
+									</span>
+									{activeTab === 'ward'
+										? `${allRows.length} / ${allDepts.length || 37} khoa đã nhập`
+										: `${clsRows.length} / ${allClsDepts.length || 10} khoa đã nhập`}
+								</span>
+								<span className='dv-date-badge'>
+									📅 Ngày xem: {formatDateToVN(selDate)}
+								</span>
+							</>
+						}
 					>
-						🏥 Khối nội trú
-					</button>
-					<button
-						className={`tab-btn${activeTab === 'cls' ? ' tab-btn--active' : ''}`}
-						onClick={() => setActiveTab('cls')}
-					>
-						🧪 Hệ Cận lâm sàng
-					</button>
+						{activeTab === 'ward' ? (
+							<WardTabActions
+								report={report}
+								loadingReport={loadingReport}
+								missingDepts={missingDepts}
+								selKhoa={selKhoa}
+								allRows={allRows}
+								canDeleteReport={canDeleteReport}
+								onToggleDrawer={() => setDrawer((o) => !o)}
+								onOpenAddRecord={() => setShowAddRecord(true)}
+								onClearFilter={() => setSelKhoa(new Set(allRows.map((k) => k.tt)))}
+								onOpenDeleteReport={() => {
+									setApiError('');
+									setShowDelConfirm(true);
+								}}
+								onOpenCreateReport={() => setShowCreate(true)}
+							/>
+						) : (
+							<ClsTabActions
+								report={report}
+								loadingReport={loadingReport}
+								missingClsDepts={missingClsDepts}
+								canDeleteReport={canDeleteReport}
+								onOpenAddClsRecord={() => setShowAddClsRecord(true)}
+								onOpenDeleteReport={() => {
+									setApiError('');
+									setShowDelConfirm(true);
+								}}
+								onOpenCreateReport={() => setShowCreate(true)}
+							/>
+						)}
+					</PageHeader>
+
+					<div className='dv-hero-divider' />
+
+					<div className='tab-bar-wrap'>
+						<div className='tab-bar'>
+							<button
+								className={`tab-btn${activeTab === 'ward' ? ' tab-btn--active' : ''}`}
+								onClick={() => setActiveTab('ward')}
+							>
+								🏥 Khoa nội trú
+							</button>
+							<button
+								className={`tab-btn${activeTab === 'cls' ? ' tab-btn--active' : ''}`}
+								onClick={() => setActiveTab('cls')}
+							>
+								🧪 Hệ Cận lâm sàng
+							</button>
+						</div>
+					</div>
 				</div>
 
 				{apiError && (
@@ -514,874 +290,41 @@ export default function DataPage() {
 				)}
 
 				{activeTab === 'ward' && (
-				<>
-				<PageHeader
-					title='Dữ liệu nhân lực'
-					subtitle={
-						<>
-							BẢNG THEO DÕI NHÂN LỰC ĐD - HỘ SINH - KTV
-							<span
-								className='dv-date-badge'
-								style={{ marginLeft: '8px' }}
-							>
-								{formatDateToVN(selDate)}
-							</span>
-						</>
-					}
-				>
-					<button
-						className='dv-drawer-toggle'
-						onClick={() => setDrawer((o) => !o)}
-					>
-						<XIcon size={16} /> Bộ lọc
-					</button>
-					{report && (
-						<button
-							className='btn-outline'
-							style={{
-								fontSize: '0.82rem',
-								fontWeight: 600,
-								border: '1.5px solid var(--p)',
-								borderRadius: '8px',
-								padding: '6px 12px',
-								display: 'inline-flex',
-								alignItems: 'center',
-								gap: '6px',
-							}}
-							onClick={() => setShowAddRecord(true)}
-						>
-							+ Thêm báo cáo khoa
-						</button>
-					)}
-					{selKhoa.size > 0 && selKhoa.size < allRows.length && (
-						<button
-							className='btn-ghost'
-							style={{
-								fontSize: '0.82rem',
-								fontWeight: 600,
-								color: 'var(--red)',
-								border: '1.5px solid #fecaca',
-								backgroundColor: '#fff5f5',
-								borderRadius: '8px',
-								padding: '6px 12px',
-								display: 'inline-flex',
-								alignItems: 'center',
-								gap: '6px',
-								cursor: 'pointer',
-							}}
-							onClick={() => setSelKhoa(new Set(allRows.map((k) => k.tt)))}
-						>
-							✕ Bỏ lọc ({selKhoa.size} khoa)
-						</button>
-					)}
-					{report && missingDepts.length > 0 && (
-						<span
-							style={{
-								fontSize: '0.82rem',
-								fontWeight: 600,
-								background: '#fffbeb',
-								color: '#b45309',
-								border: '1.5px solid #fcd34d',
-								borderRadius: '8px',
-								padding: '6px 12px',
-								display: 'inline-flex',
-								alignItems: 'center',
-								gap: '6px',
-								cursor: 'default',
-								userSelect: 'none',
-							}}
-							title={missingDepts.map((d) => d.department_name).join('\n')}
-						>
-							⚠ {missingDepts.length} khoa chưa nhập
-						</span>
-					)}
-					{report && canDeleteReport && (
-						<button
-							className='btn-ghost'
-							style={{
-								fontSize: '0.82rem',
-								fontWeight: 600,
-								color: 'var(--red)',
-								border: '1.5px solid #fecaca',
-								backgroundColor: '#fff5f5',
-								borderRadius: '8px',
-								padding: '6px 12px',
-								display: 'inline-flex',
-								alignItems: 'center',
-								gap: '6px',
-								cursor: 'pointer',
-							}}
-							onClick={() => {
-								setApiError('');
-								setShowDelConfirm(true);
-							}}
-						>
-							🗑 Xóa báo cáo
-						</button>
-					)}
-					{!report && !loadingReport && (
-						<button
-							className='btn-primary'
-							style={{ fontSize: '.78rem' }}
-							onClick={() => setShowCreate(true)}
-						>
-							＋ Tạo báo cáo
-						</button>
-					)}
-				</PageHeader>
-
-				{/* Strip tổng hợp */}
-				<div className='dv-strip'>
-					{buildStripItems(
-						stats.totalNB,
-						stats.totalNL,
-						stats.totalDiLam,
-						stats.totalTT03,
-						Number(stats.totalKhuyenNghi.toFixed(2)),
-						stats.totalKC,
-						filtered.length,
-						37,
-						missingDepts.length,
-					).map((s) => (
-						<StatCard
-							key={s.label}
-							className='dv-strip-card'
-							label={s.label}
-							value={s.val}
-							textColor={s.color}
-							bgColor={s.bg}
-						/>
-					))}
-				</div>
-
-				{/* Bảng dữ liệu */}
-				<div className='dv-tbl-wrap'>
-					<div
-						className='dv-scroll-top'
-						ref={scrollTopRef}
-					>
-						<div
-							className='dv-scroll-top-inner'
-							ref={scrollInnerRef}
-						/>
-					</div>
-					<div
-						className='dv-tbl-outer'
-						ref={tblOuterRef}
-					>
-						{loadingReport ? (
-							<div
-								style={{
-									textAlign: 'center',
-									padding: '60px',
-									color: 'var(--mut)',
-									fontSize: '.85rem',
-								}}
-							>
-								Đang tải dữ liệu...
-							</div>
-						) : !report ? (
-							<div style={{ textAlign: 'center', padding: '60px' }}>
-								<p style={{ fontSize: '2rem', marginBottom: 8 }}>📋</p>
-								<p
-									style={{
-										color: 'var(--mut)',
-										fontSize: '.85rem',
-										marginBottom: 16,
-									}}
-								>
-									Chưa có báo cáo cho ngày {formatDateToVN(selDate)}
-								</p>
-								<button
-									className='btn-primary'
-									onClick={() => setShowCreate(true)}
-								>
-									＋ Tạo báo cáo ngày này
-								</button>
-							</div>
-						) : (
-							<table className='tbl dv-tbl'>
-								<thead>
-									<tr>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-sticky dv-th-idx'
-										>
-											#
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-sticky dv-th-name-h'
-										>
-											Khoa / Trung tâm
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c'
-										>
-											Giường
-											<br />/ máy
-										</th>
-										<th
-											colSpan={4}
-											className='dv-th dv-th-grp dv-grp-nb'
-										>
-											Số người bệnh
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c dv-grp-nb2'
-										>
-											NB khám/
-											<br />
-											PT KH
-										</th>
-										<th
-											colSpan={4}
-											className='dv-th dv-th-grp dv-grp-nl'
-										>
-											Nhân lực (ĐD - HS - KTV)
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c dv-grp-kc'
-										>
-											KC theo
-											<br />
-											TT 03
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c dv-grp-kc'
-										>
-											Khuyến
-											<br />
-											cáo
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c dv-grp-dp'
-										>
-											Điều
-											<br />
-											phối
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th'
-										>
-											Ghi chú
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c dv-th-upd'
-										>
-											Cập nhật
-											<br />
-											lúc
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c dv-th-upd'
-										>
-											Tạo lúc
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c'
-										>
-											Thao tác
-										</th>
-									</tr>
-									<tr>
-										<th className='dv-th dv-th-c dv-sub-nb'>CSC1</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>CSC2</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>CSC3</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>Tổng</th>
-										<th className='dv-th dv-th-c dv-sub-nl'>Tổng</th>
-										<th className='dv-th dv-th-c dv-sub-nl'>Nghỉ trực</th>
-										<th className='dv-th dv-th-c dv-sub-nl'>Nghỉ &gt;2ng</th>
-										<th className='dv-th dv-th-c dv-sub-nl'>Đi làm</th>
-									</tr>
-								</thead>
-								<tbody>
-									{filtered.length === 0 ? (
-										<tr>
-											<td
-												colSpan={18}
-												style={{
-													textAlign: 'center',
-													padding: '40px',
-													color: 'var(--mut)',
-													fontSize: '.85rem',
-												}}
-											>
-												Không có khoa nào phù hợp
-											</td>
-										</tr>
-									) : (
-										pageRows.map((r, i) => {
-											const dp = r.dieuPhoi;
-											const apiRec = report.records.find(
-												(rec) => rec.id_department === r.id_department,
-											);
-											const perm = apiRec
-												? getPermForDept(apiRec.id_department)
-												: undefined;
-											const canEdit = perm?.can_edit ?? false;
-											const rowClass =
-												dp !== null && dp < 0
-													? 'dv-tr-deficit'
-													: dp !== null && dp > 0
-														? 'dv-tr-surplus'
-														: i % 2 === 1
-															? 'dv-tr-alt'
-															: '';
-											return (
-												<tr
-													key={r.tt}
-													className={rowClass}
-												>
-													<td className='dv-td dv-td-sticky dv-td-idx'>
-														{r.tt}
-													</td>
-													<td className='dv-td dv-td-sticky dv-td-name'>
-														{r.ten}
-													</td>
-													<td className='dv-td dv-td-c'>{n(r.giuong)}</td>
-													<td className='dv-td dv-td-c dv-td-nb'>
-														{n(r.csc1)}
-													</td>
-													<td className='dv-td dv-td-c dv-td-nb'>
-														{n(r.csc2)}
-													</td>
-													<td className='dv-td dv-td-c dv-td-nb'>
-														{n(r.csc3)}
-													</td>
-													<td className='dv-td dv-td-c dv-td-nb dv-td-bold'>
-														{n(r.tongNB)}
-													</td>
-													<td className='dv-td dv-td-c'>{n(r.nbKhamPT)}</td>
-													<td className='dv-td dv-td-c'>{n(r.nlTong)}</td>
-													<td className='dv-td dv-td-c'>{n(r.nghiTruc)}</td>
-													<td className='dv-td dv-td-c'>{n(r.nghiTren2)}</td>
-													<td className='dv-td dv-td-c dv-td-nl dv-td-bold'>
-														{n(r.diLam)}
-													</td>
-													<td className='dv-td dv-td-c dv-td-kc'>
-														{n(r.tt03, 2)}
-													</td>
-													<td className='dv-td dv-td-c dv-td-kc'>
-														{r.khuyenNghi != null ? n(r.khuyenNghi, 2) : '—'}
-													</td>
-													<td
-														className={`dv-td dv-td-c dv-td-bold${dp === null ? '' : dp > 0 ? ' dv-dp-p' : dp < 0 ? ' dv-dp-m' : ' dv-dp-z'}`}
-													>
-														{dp === null ? '—' : dp > 0 ? `+${dp}` : String(dp)}
-													</td>
-													<td className='dv-td dv-td-note'>{r.ghiChu ?? ''}</td>
-													<td
-														className='dv-td dv-td-c dv-td-upd'
-														title={apiRec?.updated_at ?? ''}
-													>
-														{fmtUpdatedAt(apiRec?.updated_at)}
-													</td>
-													<td
-														className='dv-td dv-td-c dv-td-upd'
-														title={apiRec?.created_at ?? ''}
-													>
-														{fmtUpdatedAt(apiRec?.created_at)}
-													</td>
-													<td className='dv-td dv-td-c'>
-														<div
-															style={{
-																display: 'flex',
-																gap: 4,
-																justifyContent: 'center',
-															}}
-														>
-															{canEdit && apiRec && (
-																<button
-																	className='tbl-btn tbl-btn-edit'
-																	title='Sửa dữ liệu khoa này'
-																	onClick={() => setEditRecord(apiRec)}
-																>
-																	✏️
-																</button>
-															)}
-															{(perm?.can_delete ?? false) && apiRec && (
-																<button
-																	className='tbl-btn tbl-btn-del'
-																	title='Xóa bản ghi khoa này'
-																	onClick={() =>
-																		setDelRecord({ id: apiRec.id, name: r.ten })
-																	}
-																>
-																	🗑
-																</button>
-															)}
-														</div>
-													</td>
-												</tr>
-											);
-										})
-									)}
-								</tbody>
-								<tfoot>
-									<tr className='dv-tfoot'>
-										<td
-											colSpan={2}
-											className='dv-tf-label'
-										>
-											∑ Tổng ({filtered.length} khoa)
-										</td>
-										<td className='dv-td-c' />
-										<td className='dv-td-c'>{stats.totalCSC1}</td>
-										<td className='dv-td-c'>{stats.totalCSC2}</td>
-										<td className='dv-td-c'>{stats.totalCSC3}</td>
-										<td className='dv-td-c dv-td-bold'>{stats.totalNB}</td>
-										<td className='dv-td-c'>{stats.totalNBKham}</td>
-										<td className='dv-td-c'>{stats.totalNL}</td>
-										<td className='dv-td-c'>{stats.totalNghiTruc}</td>
-										<td className='dv-td-c'>{stats.totalNghiDai}</td>
-										<td className='dv-td-c dv-td-bold dv-td-nl'>
-											{stats.totalDiLam}
-										</td>
-										<td className='dv-td-c dv-td-kc'>
-											{stats.totalTT03.toFixed(1)}
-										</td>
-										<td className='dv-td-c dv-td-kc'>
-											{stats.totalKhuyenNghi > 0
-												? stats.totalKhuyenNghi.toFixed(1)
-												: '—'}
-										</td>
-										<td />
-										<td />
-										<td />
-										<td />
-										<td />
-									</tr>
-								</tfoot>
-							</table>
-						)}
-					</div>
-				</div>
-
-				{/* Phân trang */}
-				{report && filtered.length > 0 && (
-					<div className='dv-pager'>
-						<div className='dv-pager-info'>
-							Hiển thị{' '}
-							<strong>
-								{Math.min((page - 1) * pageSize + 1, filtered.length)}–
-								{Math.min(page * pageSize, filtered.length)}
-							</strong>{' '}
-							trong <strong>{filtered.length}</strong> khoa
-						</div>
-						<div className='dv-pager-nav'>
-							<button
-								className='dv-pager-btn'
-								onClick={() => setPage(1)}
-								disabled={page === 1}
-								title='Trang đầu'
-							>
-								«
-							</button>
-							<button
-								className='dv-pager-btn'
-								onClick={() => setPage((p) => Math.max(1, p - 1))}
-								disabled={page === 1}
-								title='Trang trước'
-							>
-								‹
-							</button>
-							{Array.from({ length: totalPages }, (_, i) => i + 1)
-								.filter(
-									(p) =>
-										totalPages <= 7 ||
-										p === 1 ||
-										p === totalPages ||
-										Math.abs(p - page) <= 1,
-								)
-								.reduce<(number | '...')[]>((acc, p, idx, arr) => {
-									if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1)
-										acc.push('...');
-									acc.push(p);
-									return acc;
-								}, [])
-								.map((p, idx) =>
-									p === '...' ? (
-										<span
-											key={`dot-${idx}`}
-											className='dv-pager-dots'
-										>
-											…
-										</span>
-									) : (
-										<button
-											key={p}
-											className={`dv-pager-btn${p === page ? ' dv-pager-btn-active' : ''}`}
-											onClick={() => setPage(p as number)}
-										>
-											{p}
-										</button>
-									),
-								)}
-							<button
-								className='dv-pager-btn'
-								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-								disabled={page === totalPages}
-								title='Trang sau'
-							>
-								›
-							</button>
-							<button
-								className='dv-pager-btn'
-								onClick={() => setPage(totalPages)}
-								disabled={page === totalPages}
-								title='Trang cuối'
-							>
-								»
-							</button>
-						</div>
-						<div className='dv-pager-size'>
-							<span>Hiển thị</span>
-							<select
-								className='dv-pager-select'
-								value={pageSize}
-								onChange={(e) => setPageSize(Number(e.target.value))}
-							>
-								{[10, 15, 20, 36].map((s) => (
-									<option
-										key={s}
-										value={s}
-									>
-										{s} khoa/trang
-									</option>
-								))}
-							</select>
-						</div>
-					</div>
-				)}
-				</>
+					<WardTabPanel
+						selDate={selDate}
+						report={report}
+						loadingReport={loadingReport}
+						missingDepts={missingDepts}
+						onOpenCreateReport={() => setShowCreate(true)}
+						stats={stats}
+						filtered={filtered}
+						pageRows={pageRows}
+						getPermForDept={getPermForDept}
+						onEdit={setEditRecord}
+						onDelete={setDelRecord}
+						scrollTopRef={scrollTopRef}
+						scrollInnerRef={scrollInnerRef}
+						tblOuterRef={tblOuterRef}
+						page={page}
+						setPage={setPage}
+						pageSize={pageSize}
+						setPageSize={setPageSize}
+						totalPages={totalPages}
+					/>
 				)}
 
 				{activeTab === 'cls' && (
-				<>
-				<PageHeader
-					title='🧪 Hệ Cận lâm sàng'
-					subtitle={
-						report
-							? `${clsRows.length} / ${allClsDepts.length || 10} khoa đã nhập`
-							: undefined
-					}
-				>
-					{report && (
-						<button
-							className='btn-outline'
-							style={{
-								fontSize: '0.82rem',
-								fontWeight: 600,
-								border: '1.5px solid var(--p)',
-								borderRadius: '8px',
-								padding: '6px 12px',
-								display: 'inline-flex',
-								alignItems: 'center',
-								gap: '6px',
-							}}
-							onClick={() => setShowAddClsRecord(true)}
-						>
-							+ Thêm bản ghi khoa CLS
-						</button>
-					)}
-					{report && missingClsDepts.length > 0 && (
-						<span
-							style={{
-								fontSize: '0.82rem',
-								fontWeight: 600,
-								background: '#fffbeb',
-								color: '#b45309',
-								border: '1.5px solid #fcd34d',
-								borderRadius: '8px',
-								padding: '6px 12px',
-								display: 'inline-flex',
-								alignItems: 'center',
-								gap: '6px',
-								cursor: 'default',
-								userSelect: 'none',
-							}}
-							title={missingClsDepts.map((d) => d.department_name).join('\n')}
-						>
-							⚠ {missingClsDepts.length} khoa CLS chưa nhập
-						</span>
-					)}
-				</PageHeader>
-
-				{!report ? (
-					<div
-						style={{
-							textAlign: 'center',
-							padding: '32px',
-							color: 'var(--mut)',
-							fontSize: '.85rem',
-						}}
-					>
-						Chưa có báo cáo cho ngày {formatDateToVN(selDate)}
-					</div>
-				) : (
-					<div
-						className='dv-tbl-wrap'
-						style={{ marginBottom: 24 }}
-					>
-						<div
-							className='dv-tbl-outer'
-							style={{ overflowX: 'auto' }}
-						>
-							<table className='tbl dv-tbl'>
-								<thead>
-									<tr>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-sticky dv-th-idx'
-										>
-											#
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-sticky dv-th-name-h'
-										>
-											Khoa / Trung tâm
-										</th>
-										<th
-											colSpan={9}
-											className='dv-th dv-th-grp dv-grp-nb'
-										>
-											Khối lượng công việc đã thực hiện
-										</th>
-										<th
-											colSpan={8}
-											className='dv-th dv-th-grp dv-grp-nb2'
-										>
-											Số lượng tồn / chờ
-										</th>
-										<th
-											colSpan={4}
-											className='dv-th dv-th-grp dv-grp-nl'
-										>
-											Nhân lực
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c dv-grp-kc'
-										>
-											Tỷ lệ
-											<br />
-											đi làm/KLCV
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c dv-grp-kc'
-										>
-											Khuyến
-											<br />
-											cáo
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c dv-grp-dp'
-										>
-											Chênh
-											<br />
-											lệch
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th'
-										>
-											Ghi chú
-										</th>
-										<th
-											rowSpan={2}
-											className='dv-th dv-th-c'
-										>
-											Thao tác
-										</th>
-									</tr>
-									<tr>
-										<th className='dv-th dv-th-c dv-sub-nb'>Mẫu BP</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>X-quang/SA</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>CT/NS</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>MRI/LX</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>Điện tim/CT</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>Đồ vải/TT</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>DC sắt</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>DC nhựa</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>Khoa GS</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>Mẫu BP</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>X-quang/SA</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>CT/NS</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>MRI/LX</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>Điện tim/CT</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>Đồ vải</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>DC sắt</th>
-										<th className='dv-th dv-th-c dv-sub-nb'>DC nhựa</th>
-										<th className='dv-th dv-th-c dv-sub-nl'>Tổng</th>
-										<th className='dv-th dv-th-c dv-sub-nl'>Nghỉ trực</th>
-										<th className='dv-th dv-th-c dv-sub-nl'>Nghỉ &gt;2ng</th>
-										<th className='dv-th dv-th-c dv-sub-nl'>Đi làm</th>
-									</tr>
-								</thead>
-								<tbody>
-									{clsRows.length === 0 ? (
-										<tr>
-											<td
-												colSpan={28}
-												style={{
-													textAlign: 'center',
-													padding: '40px',
-													color: 'var(--mut)',
-													fontSize: '.85rem',
-												}}
-											>
-												Chưa có khoa CLS nào nhập dữ liệu ngày này
-											</td>
-										</tr>
-									) : (
-										clsRows.map((r, i) => {
-											const apiRec = report.cls_records.find(
-												(rec) => rec.id_department === r.id_department,
-											);
-											const perm = apiRec
-												? getPermForDept(apiRec.id_department)
-												: undefined;
-											const canEdit = perm?.can_edit ?? false;
-											const dp = r.chenhLech;
-											const rowClass =
-												dp !== null && dp < 0
-													? 'dv-tr-deficit'
-													: dp !== null && dp > 0
-														? 'dv-tr-surplus'
-														: i % 2 === 1
-															? 'dv-tr-alt'
-															: '';
-											return (
-												<tr
-													key={r.tt}
-													className={rowClass}
-												>
-													<td className='dv-td dv-td-sticky dv-td-idx'>
-														{r.tt}
-													</td>
-													<td className='dv-td dv-td-sticky dv-td-name'>
-														{r.ten}
-													</td>
-													<td className='dv-td dv-td-c'>{n(r.daLam.sampleOrVisit)}</td>
-													<td className='dv-td dv-td-c'>{n(r.daLam.xrayUs)}</td>
-													<td className='dv-td dv-td-c'>{n(r.daLam.ctEndoscopy)}</td>
-													<td className='dv-td dv-td-c'>{n(r.daLam.mriBoneDensity)}</td>
-													<td className='dv-td dv-td-c'>{n(r.daLam.ecgIntervention)}</td>
-													<td className='dv-td dv-td-c'>{n(r.daLam.linenMedia)}</td>
-													<td className='dv-td dv-td-c'>{n(r.daLam.toolMetal)}</td>
-													<td className='dv-td dv-td-c'>{n(r.daLam.toolPlastic)}</td>
-													<td className='dv-td dv-td-c'>{n(r.daLam.supervisedDept)}</td>
-													<td className='dv-td dv-td-c'>{n(r.tonCho.sampleOrVisit)}</td>
-													<td className='dv-td dv-td-c'>{n(r.tonCho.xrayUs)}</td>
-													<td className='dv-td dv-td-c'>{n(r.tonCho.ctEndoscopy)}</td>
-													<td className='dv-td dv-td-c'>{n(r.tonCho.mriBoneDensity)}</td>
-													<td className='dv-td dv-td-c'>{n(r.tonCho.ecgIntervention)}</td>
-													<td className='dv-td dv-td-c'>{n(r.tonCho.linen)}</td>
-													<td className='dv-td dv-td-c'>{n(r.tonCho.toolMetal)}</td>
-													<td className='dv-td dv-td-c'>{n(r.tonCho.toolPlastic)}</td>
-													<td className='dv-td dv-td-c'>{n(r.nlTong)}</td>
-													<td className='dv-td dv-td-c'>{n(r.nghiTruc)}</td>
-													<td className='dv-td dv-td-c'>{n(r.nghiTren2)}</td>
-													<td className='dv-td dv-td-c dv-td-nl dv-td-bold'>
-														{n(r.diLam)}
-													</td>
-													<td className='dv-td dv-td-c dv-td-kc'>
-														{r.tyLe !== null ? `${(r.tyLe * 100).toFixed(1)}%` : '—'}
-													</td>
-													<td className='dv-td dv-td-c dv-td-kc'>
-														{r.khuyenCao ?? '—'}
-													</td>
-													<td
-														className={`dv-td dv-td-c dv-td-bold${dp === null ? '' : dp > 0 ? ' dv-dp-p' : dp < 0 ? ' dv-dp-m' : ' dv-dp-z'}`}
-													>
-														{dp === null ? '—' : dp > 0 ? `+${dp}` : String(dp)}
-													</td>
-													<td className='dv-td dv-td-note'>{r.ghiChu ?? ''}</td>
-													<td className='dv-td dv-td-c'>
-														<div
-															style={{
-																display: 'flex',
-																gap: 4,
-																justifyContent: 'center',
-															}}
-														>
-															{canEdit && apiRec && (
-																<button
-																	className='tbl-btn tbl-btn-edit'
-																	title='Sửa dữ liệu khoa này'
-																	onClick={() => setEditClsRecord(apiRec)}
-																>
-																	✏️
-																</button>
-															)}
-															{(perm?.can_delete ?? false) && apiRec && (
-																<button
-																	className='tbl-btn tbl-btn-del'
-																	title='Xóa bản ghi khoa này'
-																	onClick={() =>
-																		setDelClsRecord({ id: apiRec.id, name: r.ten })
-																	}
-																>
-																	🗑
-																</button>
-															)}
-														</div>
-													</td>
-												</tr>
-											);
-										})
-									)}
-								</tbody>
-								{clsRows.length > 0 && (
-									<tfoot>
-										<tr className='dv-tfoot'>
-											<td
-												colSpan={2}
-												className='dv-tf-label'
-											>
-												∑ Tổng ({clsRows.length} khoa)
-											</td>
-											<td colSpan={17} />
-											<td className='dv-td-c'>{clsStats.totalNL}</td>
-											<td className='dv-td-c'>{clsStats.totalNghiTruc}</td>
-											<td className='dv-td-c'>{clsStats.totalNghiDai}</td>
-											<td className='dv-td-c dv-td-bold dv-td-nl'>
-												{clsStats.totalDiLam}
-											</td>
-											<td className='dv-td-c dv-td-kc'>
-												{clsStats.totalKhoiLuong > 0
-													? `${clsStats.rateDiLam}%`
-													: '—'}
-											</td>
-											<td className='dv-td-c dv-td-kc'>
-												{clsStats.totalKhuyenCao > 0
-													? clsStats.totalKhuyenCao
-													: '—'}
-											</td>
-											<td />
-											<td />
-											<td />
-										</tr>
-									</tfoot>
-								)}
-							</table>
-						</div>
-					</div>
-				)}
-				</>
+					<ClsTabPanel
+						selDate={selDate}
+						report={report}
+						loadingReport={loadingReport}
+						onOpenCreateReport={() => setShowCreate(true)}
+						clsRows={clsRows}
+						clsStats={clsStats}
+						getPermForDept={getPermForDept}
+						onEdit={setEditClsRecord}
+						onDelete={setDelClsRecord}
+					/>
 				)}
 			</div>
 
@@ -1394,180 +337,35 @@ export default function DataPage() {
 			)}
 
 			{/* ── Modals ── */}
-
-			{editRecord && report && (
-				<EditRecordModal
-					record={editRecord}
-					report={report}
-					selDate={selDate}
-					userId={user?.id}
-					onSaved={(updated) => {
-						setReport(updated);
-						setEditRecord(null);
-					}}
-					onClose={() => setEditRecord(null)}
-				/>
-			)}
-
-			{editClsRecord && report && (
-				<EditClsRecordModal
-					record={editClsRecord}
-					report={report}
-					selDate={selDate}
-					onSaved={(updated) => {
-						setReport(updated);
-						setEditClsRecord(null);
-					}}
-					onClose={() => setEditClsRecord(null)}
-				/>
-			)}
-
-			{showCreate && (
-				<CreateReportModal
-					selDate={selDate}
-					userId={user?.id}
-					onCreated={(newReport) => {
-						setReport(newReport);
-						setReportMetas((prev) => [
-							...prev,
-							{ id_report: newReport.id_report, report_date: selDate },
-						]);
-					}}
-					onClose={() => setShowCreate(false)}
-				/>
-			)}
-
-			{showAddRecord && report && (
-				<AddRecordModal
-					reportId={report.id_report}
-					selDate={selDate}
-					existingDeptIds={new Set(report.records.map((r) => r.id_department))}
-					userId={user?.id}
-					onAdded={(updatedReport, newDeptId) => {
-						setReport(updatedReport);
-						grantLocalPerm(newDeptId);
-					}}
-					onClose={() => setShowAddRecord(false)}
-				/>
-			)}
-
-			{showAddClsRecord && report && (
-				<AddClsRecordModal
-					reportId={report.id_report}
-					selDate={selDate}
-					existingDeptIds={
-						new Set(report.cls_records.map((r) => r.id_department))
-					}
-					userId={user?.id}
-					onAdded={(updatedReport, newDeptId) => {
-						setReport(updatedReport);
-						grantLocalPerm(newDeptId);
-					}}
-					onClose={() => setShowAddClsRecord(false)}
-				/>
-			)}
-
-			{showDelConfirm && (
-				<ModalForm
-					title='⚠️ Xác nhận xóa báo cáo'
-					onClose={() => setShowDelConfirm(false)}
-					size='sm'
-				>
-					{apiError && <p className='login-error'>⚠️ {apiError}</p>}
-					<p className='confirm-txt'>
-						Xóa toàn bộ báo cáo ngày <strong>{formatDateToVN(selDate)}</strong>?
-						<br />
-						<span style={{ fontSize: '.8rem', color: '#64748b' }}>
-							Dữ liệu tất cả {report?.records.length ?? 0} khoa trong ngày này
-							sẽ bị xóa vĩnh viễn.
-						</span>
-					</p>
-					<div className='mfooter'>
-						<button
-							className='btn-ghost'
-							onClick={() => setShowDelConfirm(false)}
-							disabled={saving}
-						>
-							Huỷ
-						</button>
-						<button
-							className='btn-danger'
-							onClick={delReport}
-							disabled={saving}
-						>
-							{saving ? '⏳ Đang xóa...' : '🗑 Xóa báo cáo'}
-						</button>
-					</div>
-				</ModalForm>
-			)}
-
-			{delRecord && (
-				<ModalForm
-					title='⚠️ Xác nhận xóa bản ghi'
-					onClose={() => setDelRecord(null)}
-					size='sm'
-				>
-					{apiError && <p className='login-error'>⚠️ {apiError}</p>}
-					<p className='confirm-txt'>
-						Xóa bản ghi của <strong>{delRecord.name}</strong> khỏi báo cáo ngày{' '}
-						<strong>{formatDateToVN(selDate)}</strong>?
-						<br />
-						<span style={{ fontSize: '.8rem', color: '#64748b' }}>
-							Chỉ xóa dữ liệu của khoa này, không ảnh hưởng các khoa khác.
-						</span>
-					</p>
-					<div className='mfooter'>
-						<button
-							className='btn-ghost'
-							onClick={() => setDelRecord(null)}
-							disabled={saving}
-						>
-							Huỷ
-						</button>
-						<button
-							className='btn-danger'
-							onClick={confirmDelRecord}
-							disabled={saving}
-						>
-							{saving ? '⏳...' : '🗑 Xóa bản ghi'}
-						</button>
-					</div>
-				</ModalForm>
-			)}
-
-			{delClsRecord && (
-				<ModalForm
-					title='⚠️ Xác nhận xóa bản ghi CLS'
-					onClose={() => setDelClsRecord(null)}
-					size='sm'
-				>
-					{apiError && <p className='login-error'>⚠️ {apiError}</p>}
-					<p className='confirm-txt'>
-						Xóa bản ghi của <strong>{delClsRecord.name}</strong> khỏi báo cáo
-						ngày <strong>{formatDateToVN(selDate)}</strong>?
-						<br />
-						<span style={{ fontSize: '.8rem', color: '#64748b' }}>
-							Chỉ xóa dữ liệu của khoa này, không ảnh hưởng các khoa khác.
-						</span>
-					</p>
-					<div className='mfooter'>
-						<button
-							className='btn-ghost'
-							onClick={() => setDelClsRecord(null)}
-							disabled={saving}
-						>
-							Huỷ
-						</button>
-						<button
-							className='btn-danger'
-							onClick={confirmDelClsRecord}
-							disabled={saving}
-						>
-							{saving ? '⏳...' : '🗑 Xóa bản ghi'}
-						</button>
-					</div>
-				</ModalForm>
-			)}
+			<DataPageModals
+				report={report}
+				setReport={setReport}
+				setReportMetas={setReportMetas}
+				selDate={selDate}
+				userId={user?.id}
+				apiError={apiError}
+				saving={saving}
+				editRecord={editRecord}
+				setEditRecord={setEditRecord}
+				editClsRecord={editClsRecord}
+				setEditClsRecord={setEditClsRecord}
+				showCreate={showCreate}
+				setShowCreate={setShowCreate}
+				showAddRecord={showAddRecord}
+				setShowAddRecord={setShowAddRecord}
+				showAddClsRecord={showAddClsRecord}
+				setShowAddClsRecord={setShowAddClsRecord}
+				grantLocalPerm={grantLocalPerm}
+				showDelConfirm={showDelConfirm}
+				setShowDelConfirm={setShowDelConfirm}
+				delReport={delReport}
+				delRecord={delRecord}
+				setDelRecord={setDelRecord}
+				confirmDelRecord={confirmDelRecord}
+				delClsRecord={delClsRecord}
+				setDelClsRecord={setDelClsRecord}
+				confirmDelClsRecord={confirmDelClsRecord}
+			/>
 		</div>
 	);
 }

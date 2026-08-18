@@ -3,7 +3,17 @@ import ModalForm from '@/components/common/ModalForm';
 import NumberInput from '@/components/ui/NumberInput';
 import type { DailyClsRecord } from '@/types/clsType';
 import { computeCls } from '@/utils/clsCalc';
-import { getTodayDateString } from '@/utils/dateUtils';
+import { getClsFields } from '@/utils/clsFieldConfig';
+import { useDateValidation } from '@/hooks/useDateValidation';
+import DateField from './form/DateField';
+import FormErrorBanner from './form/FormErrorBanner';
+import NumberGrid, { type NumberGridField } from './form/NumberGrid';
+
+const chunk3 = (fields: NumberGridField[]): NumberGridField[][] => {
+	const rows: NumberGridField[][] = [];
+	for (let i = 0; i < fields.length; i += 3) rows.push(fields.slice(i, i + 3));
+	return rows;
+};
 
 export interface CLSStaffingFormProps {
 	mode: 'add' | 'edit';
@@ -15,6 +25,8 @@ export interface CLSStaffingFormProps {
 	error?: string;
 	/** Nhân lực khuyến cáo cố định của khoa (Dept_Recommended_Config, formula_type='fixed') */
 	recommendedStaff: number | null;
+	/** code_department (vd. CLS01..CLS10) — quyết định trường nhập liệu áp dụng cho khoa */
+	deptCode?: string | null;
 	existingDates?: string[];
 }
 
@@ -27,22 +39,13 @@ export default function CLSStaffingForm({
 	saving = false,
 	error = '',
 	recommendedStaff,
+	deptCode = null,
 	existingDates = [],
 }: CLSStaffingFormProps) {
 	const [draft, setDraft] = useState<DailyClsRecord>(initialDraft);
-	const [dateError, setDateError] = useState('');
-
-	const existingDateSet = new Set(existingDates);
-	const todayStr = getTodayDateString();
-
-	const validateDate = (dateStr: string): string => {
-		if (!dateStr) return 'Vui lòng chọn ngày';
-		if (dateStr < todayStr)
-			return 'Không thể thêm bản ghi cho ngày trong quá khứ';
-		if (existingDateSet.has(dateStr))
-			return 'Ngày này đã có bản ghi, vui lòng chọn ngày khác';
-		return '';
-	};
+	const { dateError, setDateError, validateDate, todayStr } =
+		useDateValidation(existingDates);
+	const clsFields = useMemo(() => getClsFields(deptCode), [deptCode]);
 
 	const title =
 		mode === 'add'
@@ -54,6 +57,11 @@ export default function CLSStaffingForm({
 		[draft, recommendedStaff],
 	);
 
+	const setDaLam = (key: keyof DailyClsRecord['daLam']) => (v: number | null) =>
+		setDraft((p) => ({ ...p, daLam: { ...p.daLam, [key]: v } }));
+	const setTonCho = (key: keyof DailyClsRecord['tonCho']) => (v: number | null) =>
+		setDraft((p) => ({ ...p, tonCho: { ...p.tonCho, [key]: v } }));
+
 	return (
 		<ModalForm
 			title={title}
@@ -61,201 +69,47 @@ export default function CLSStaffingForm({
 			size='lg'
 		>
 			<div className='mform'>
-				{error && (
-					<p
-						style={{
-							color: '#dc2626',
-							fontSize: '.82rem',
-							marginBottom: 8,
-							background: '#fef2f2',
-							borderRadius: 6,
-							padding: '6px 10px',
-						}}
-					>
-						⚠️ {error}
-					</p>
-				)}
+				<FormErrorBanner error={error} />
 
-				{/* Ngày */}
-				<div className='msec'>
-					<p className='msec-title'>📅 Ngày</p>
-					<label className='fi'>
-						<span className='fi-label'>Chọn ngày</span>
-						<input
-							type='date'
-							className={`fi-input${dateError ? ' fi-input-error' : ''}`}
-							value={draft.date}
-							disabled={mode === 'edit'}
-							min={mode === 'add' ? todayStr : undefined}
-							onChange={(e) => {
-								const val = e.target.value;
-								setDraft((p) => ({ ...p, date: val }));
-								if (mode === 'add') setDateError(validateDate(val));
-							}}
-						/>
-						{mode === 'add' && dateError && (
-							<span className='fi-error'>{dateError}</span>
-						)}
-						{mode === 'add' && !dateError && draft.date && (
-							<span className='fi-hint'>✅ Ngày hợp lệ — chưa có bản ghi</span>
-						)}
-					</label>
-				</div>
+				<DateField
+					mode={mode}
+					value={draft.date}
+					dateError={dateError}
+					todayStr={todayStr}
+					onChange={(val) => {
+						setDraft((p) => ({ ...p, date: val }));
+						if (mode === 'add') setDateError(validateDate(val));
+					}}
+				/>
 
 				{/* Khối lượng công việc đã thực hiện */}
 				<div className='msec'>
 					<p className='msec-title'>📊 Khối lượng công việc đã thực hiện</p>
-					<div className='mrow3'>
-						<NumberInput
-							label='Mẫu BP / Tiêu bản / NB khám / tư vấn'
-							value={draft.daLam.sampleOrVisit}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, daLam: { ...p.daLam, sampleOrVisit: v } }))
-							}
-						/>
-						<NumberInput
-							label='X-quang hoặc siêu âm'
-							value={draft.daLam.xrayUs}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, daLam: { ...p.daLam, xrayUs: v } }))
-							}
-						/>
-						<NumberInput
-							label='CT / Nội soi'
-							value={draft.daLam.ctEndoscopy}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, daLam: { ...p.daLam, ctEndoscopy: v } }))
-							}
-						/>
-					</div>
-					<div className='mrow3'>
-						<NumberInput
-							label='MRI / Loãng xương'
-							value={draft.daLam.mriBoneDensity}
-							onChange={(v) =>
-								setDraft((p) => ({
-									...p,
-									daLam: { ...p.daLam, mriBoneDensity: v },
-								}))
-							}
-						/>
-						<NumberInput
-							label='Điện tim hoặc can thiệp'
-							value={draft.daLam.ecgIntervention}
-							onChange={(v) =>
-								setDraft((p) => ({
-									...p,
-									daLam: { ...p.daLam, ecgIntervention: v },
-								}))
-							}
-						/>
-						<NumberInput
-							label='Đồ vải (Kg) / Truyền thông'
-							value={draft.daLam.linenMedia}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, daLam: { ...p.daLam, linenMedia: v } }))
-							}
-						/>
-					</div>
-					<div className='mrow3'>
-						<NumberInput
-							label='Xử lý dụng cụ sắt (Bộ)'
-							value={draft.daLam.toolMetal}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, daLam: { ...p.daLam, toolMetal: v } }))
-							}
-						/>
-						<NumberInput
-							label='Xử lý dụng cụ nhựa (Cái)'
-							value={draft.daLam.toolPlastic}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, daLam: { ...p.daLam, toolPlastic: v } }))
-							}
-						/>
-						<NumberInput
-							label='Khoa giám sát (số khoa)'
-							value={draft.daLam.supervisedDept}
-							onChange={(v) =>
-								setDraft((p) => ({
-									...p,
-									daLam: { ...p.daLam, supervisedDept: v },
-								}))
-							}
-						/>
-					</div>
+					<NumberGrid
+						rows={chunk3(
+							clsFields.map((f) => ({
+								label: f.label,
+								value: draft.daLam[f.daLamKey],
+								onChange: setDaLam(f.daLamKey),
+							})),
+						)}
+					/>
 				</div>
 
 				{/* Số lượng tồn / chờ */}
 				<div className='msec'>
 					<p className='msec-title'>⏳ Số lượng tồn / chờ</p>
-					<div className='mrow3'>
-						<NumberInput
-							label='Mẫu BP / Tiêu bản / NB khám / tư vấn'
-							value={draft.tonCho.sampleOrVisit}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, tonCho: { ...p.tonCho, sampleOrVisit: v } }))
-							}
-						/>
-						<NumberInput
-							label='X-quang hoặc siêu âm'
-							value={draft.tonCho.xrayUs}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, tonCho: { ...p.tonCho, xrayUs: v } }))
-							}
-						/>
-						<NumberInput
-							label='CT / Nội soi'
-							value={draft.tonCho.ctEndoscopy}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, tonCho: { ...p.tonCho, ctEndoscopy: v } }))
-							}
-						/>
-					</div>
-					<div className='mrow3'>
-						<NumberInput
-							label='MRI / Loãng xương'
-							value={draft.tonCho.mriBoneDensity}
-							onChange={(v) =>
-								setDraft((p) => ({
-									...p,
-									tonCho: { ...p.tonCho, mriBoneDensity: v },
-								}))
-							}
-						/>
-						<NumberInput
-							label='Điện tim hoặc Can thiệp'
-							value={draft.tonCho.ecgIntervention}
-							onChange={(v) =>
-								setDraft((p) => ({
-									...p,
-									tonCho: { ...p.tonCho, ecgIntervention: v },
-								}))
-							}
-						/>
-						<NumberInput
-							label='Đồ vải (Kg)'
-							value={draft.tonCho.linen}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, tonCho: { ...p.tonCho, linen: v } }))
-							}
-						/>
-					</div>
-					<div className='mrow2'>
-						<NumberInput
-							label='Xử lý dụng cụ sắt (Bộ)'
-							value={draft.tonCho.toolMetal}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, tonCho: { ...p.tonCho, toolMetal: v } }))
-							}
-						/>
-						<NumberInput
-							label='Xử lý dụng cụ nhựa (Cái)'
-							value={draft.tonCho.toolPlastic}
-							onChange={(v) =>
-								setDraft((p) => ({ ...p, tonCho: { ...p.tonCho, toolPlastic: v } }))
-							}
-						/>
-					</div>
+					<NumberGrid
+						rows={chunk3(
+							clsFields
+								.filter((f) => f.tonChoKey !== null)
+								.map((f) => ({
+									label: f.label,
+									value: draft.tonCho[f.tonChoKey as keyof typeof draft.tonCho],
+									onChange: setTonCho(f.tonChoKey as keyof typeof draft.tonCho),
+								})),
+						)}
+					/>
 				</div>
 
 				{/* Nhân lực */}

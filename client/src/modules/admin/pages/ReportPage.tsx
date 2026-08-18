@@ -4,152 +4,22 @@ import type { ReportConfig } from '@/types/reportType';
 import { defaultReportConfig } from '@/constants/mockData';
 import { useAuth } from '@/context/useAuth';
 import { useState, useMemo } from 'react';
+import { useExcelExport } from '@/hooks/useExcelExport';
+import RangePicker from './RangePicker';
+import { DEFAULT_DAY, DEFAULT_MONTH, DEFAULT_WEEK, DEFAULT_YEAR, GROUP_TABS } from './reportPageConstants';
+import {
+	isoWeeksInYear,
+	pad,
+	rangeToApiDates,
+	type DayRange,
+	type GroupBy,
+	type MonthRange,
+	type WeekRange,
+	type YearRange,
+} from './reportRangeUtils';
 
-// ── Kiểu kỳ báo cáo ──────────────────────────────────────
-type GroupBy = 'day' | 'week' | 'month' | 'year';
-
-const GROUP_TABS: {
-	value: GroupBy;
-	label: string;
-	icon: string;
-	hint: string;
-}[] = [
-	{ value: 'day', label: 'Theo ngày', icon: '📅', hint: 'Mỗi dòng = 1 ngày' },
-	{
-		value: 'week',
-		label: 'Theo tuần',
-		icon: '📆',
-		hint: 'Mỗi dòng = 1 tuần (Thứ 2 → CN)',
-	},
-	{
-		value: 'month',
-		label: 'Theo tháng',
-		icon: '🗓️',
-		hint: 'Mỗi dòng = 1 tháng',
-	},
-	{ value: 'year', label: 'Theo năm', icon: '📊', hint: 'Mỗi dòng = 1 năm' },
-];
-
-// ── Tiện ích ngày ─────────────────────────────────────────
-const THIS_YEAR = new Date().getFullYear();
-const THIS_MONTH = new Date().getMonth() + 1;
-
-const pad = (n: number) => String(n).padStart(2, '0');
-const fmt = (d: Date) =>
-	`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-function isoWeek(d: Date): number {
-	const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-	const day = tmp.getUTCDay() || 7;
-	tmp.setUTCDate(tmp.getUTCDate() + 4 - day);
-	const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
-	return Math.ceil(
-		((tmp.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7,
-	);
-}
-function isoWeeksInYear(year: number): number {
-	return isoWeek(new Date(year, 11, 28));
-}
-function mondayOfIsoWeek(week: number, year: number): Date {
-	const jan4 = new Date(year, 0, 4);
-	const jan4Day = jan4.getDay() || 7;
-	const monday = new Date(jan4);
-	monday.setDate(jan4.getDate() - jan4Day + 1 + (week - 1) * 7);
-	return monday;
-}
-function lastDayOfMonth(year: number, month: number): string {
-	return fmt(new Date(year, month, 0));
-}
-
-// ── State range riêng từng kỳ ─────────────────────────────
-interface DayRange {
-	from: string;
-	to: string;
-}
-interface WeekRange {
-	fromWeek: number;
-	fromYear: number;
-	toWeek: number;
-	toYear: number;
-}
-interface MonthRange {
-	fromMonth: number;
-	fromYear: number;
-	toMonth: number;
-	toYear: number;
-}
-interface YearRange {
-	fromYear: number;
-	toYear: number;
-}
-
-function rangeToApiDates(
-	groupBy: GroupBy,
-	day: DayRange,
-	week: WeekRange,
-	month: MonthRange,
-	year: YearRange,
-): { from: string; to: string } {
-	switch (groupBy) {
-		case 'day':
-			return { from: day.from, to: day.to };
-		case 'week': {
-			const fromDate = mondayOfIsoWeek(week.fromWeek, week.fromYear);
-			const toMon = mondayOfIsoWeek(week.toWeek, week.toYear);
-			const toSun = new Date(toMon);
-			toSun.setDate(toMon.getDate() + 6);
-			return { from: fmt(fromDate), to: fmt(toSun) };
-		}
-		case 'month':
-			return {
-				from: `${month.fromYear}-${pad(month.fromMonth)}-01`,
-				to: lastDayOfMonth(month.toYear, month.toMonth),
-			};
-		case 'year':
-			return {
-				from: `${year.fromYear}-01-01`,
-				to: `${year.toYear}-12-31`,
-			};
-	}
-}
-
-// ── Constants ────────────────────────────────────────────
-const TODAY = new Date();
-const THIS_WEEK = isoWeek(TODAY);
-const YEAR_OPTS = Array.from({ length: 10 }, (_, i) => THIS_YEAR - 5 + i);
-const MONTHS = [
-	'Tháng 1',
-	'Tháng 2',
-	'Tháng 3',
-	'Tháng 4',
-	'Tháng 5',
-	'Tháng 6',
-	'Tháng 7',
-	'Tháng 8',
-	'Tháng 9',
-	'Tháng 10',
-	'Tháng 11',
-	'Tháng 12',
-];
-
-const DEFAULT_DAY: DayRange = (() => {
-	const f = new Date(TODAY);
-	f.setDate(TODAY.getDate() - 29);
-	return { from: fmt(f), to: fmt(TODAY) };
-})();
-const DEFAULT_WEEK: WeekRange = {
-	fromWeek: 1,
-	fromYear: THIS_YEAR,
-	toWeek: THIS_WEEK,
-	toYear: THIS_YEAR,
-};
-const DEFAULT_MONTH: MonthRange = {
-	fromMonth: 1,
-	fromYear: THIS_YEAR,
-	toMonth: THIS_MONTH,
-	toYear: THIS_YEAR,
-};
-const DEFAULT_YEAR: YearRange = { fromYear: THIS_YEAR - 1, toYear: THIS_YEAR };
+/** Mẫu CLS chỉ hỗ trợ liệt kê theo ngày (1 sheet/ngày) — giới hạn để tránh sinh quá nhiều sheet. */
+const CLS_MAX_DAYS = 31;
 
 // ── Page ──────────────────────────────────────────────────
 export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
@@ -161,17 +31,25 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 	const [weekRange, setWeekRange] = useState<WeekRange>(DEFAULT_WEEK);
 	const [monthRange, setMonthRange] = useState<MonthRange>(DEFAULT_MONTH);
 	const [yearRange, setYearRange] = useState<YearRange>(DEFAULT_YEAR);
-	const [loading, setLoading] = useState(false);
-	const [errorMsg, setErrorMsg] = useState('');
 
 	const setField = <K extends keyof ReportConfig>(k: K, v: ReportConfig[K]) =>
 		setCfg((p) => ({ ...p, [k]: v }));
 
 	const activeTab = GROUP_TABS.find((t) => t.value === groupBy)!;
-	const isAll = cfg.rKhoa === 'all';
-	const khoaName = isAll
-		? 'Toàn bệnh viện'
-		: (khoaList.find((k) => String(k.id) === cfg.rKhoa)?.ten ?? '—');
+	const scope = cfg.rScope;
+	// Cột "Một khoa" chỉ áp dụng cho khối nội trú — mẫu CLS không tách theo từng khoa riêng
+	const wardKhoaList = useMemo(
+		() => khoaList.filter((k) => k.deptGroup !== 'cls'),
+		[khoaList],
+	);
+	const khoaName =
+		scope === 'all'
+			? 'Toàn bệnh viện (2 file)'
+			: scope === 'ward'
+				? 'Khoa nội trú (toàn bộ)'
+				: scope === 'cls'
+					? 'Hệ Cận lâm sàng (toàn bộ)'
+					: (wardKhoaList.find((k) => String(k.id) === cfg.rKhoa)?.ten ?? '—');
 	const weeksInFromYear = isoWeeksInYear(weekRange.fromYear);
 	const weeksInToYear = isoWeeksInYear(weekRange.toYear);
 
@@ -231,338 +109,32 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 		}
 	}, [groupBy, dayRange, weekRange, monthRange, yearRange]);
 
-	// ── Xuất Excel ──────────────────────────────────────────
-	const handleExportExcel = async () => {
-		if (rangeError) {
-			setErrorMsg(rangeError);
-			return;
-		}
-		const dates = rangeToApiDates(
-			groupBy,
-			dayRange,
-			weekRange,
-			monthRange,
-			yearRange,
-		);
-		try {
-			setLoading(true);
-			setErrorMsg('');
-			const params = new URLSearchParams({
-				from: dates.from,
-				to: dates.to,
-				department: cfg.rKhoa ?? 'all',
-				groupBy,
-			});
-			const res = await fetch(`/api/reports/export?${params}`, {
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`,
-				},
-			});
-			if (!res.ok) {
-				const json = await res.json().catch(() => ({}));
-				throw new Error(
-					(json as { message?: string }).message ?? `Lỗi ${res.status}`,
-				);
-			}
-			const disposition = res.headers.get('content-disposition') ?? '';
-			const match = disposition.match(/filename\*?=(?:UTF-8'')?([^;"\n]+)/i);
-			const filename = match
-				? decodeURIComponent(match[1].trim().replace(/"/g, ''))
-				: `BaoCaoNhanLuc_${dates.from}_${dates.to}.xlsx`;
-			const blob = await res.blob();
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = filename;
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
-		} catch (err: unknown) {
-			setErrorMsg(
-				err instanceof Error ? err.message : 'Xuất thất bại, vui lòng thử lại',
-			);
-		} finally {
-			setLoading(false);
-		}
-	};
+	// Số ngày thực tế trong khoảng đã chọn (dùng để giới hạn xuất CLS — 1 sheet/ngày)
+	const rangeDayCount = useMemo(() => {
+		const { from, to } = rangeToApiDates(groupBy, dayRange, weekRange, monthRange, yearRange);
+		if (!from || !to) return 0;
+		const diff =
+			Math.round(
+				(new Date(`${to}T00:00:00`).getTime() - new Date(`${from}T00:00:00`).getTime()) /
+					86_400_000,
+			) + 1;
+		return diff > 0 ? diff : 0;
+	}, [groupBy, dayRange, weekRange, monthRange, yearRange]);
 
-	// ── Picker động theo kỳ ─────────────────────────────────
-	const renderRangePicker = () => {
-		switch (groupBy) {
-			case 'day':
-				return (
-					<div className='rp-date-row'>
-						<div className='rp-date-field'>
-							<label className='rp-label'>Từ ngày</label>
-							<input
-								type='date'
-								className='rp-input'
-								value={dayRange.from}
-								onChange={(e) =>
-									setDayRange((p) => ({ ...p, from: e.target.value }))
-								}
-							/>
-						</div>
-						<span className='rp-date-sep'>→</span>
-						<div className='rp-date-field'>
-							<label className='rp-label'>Đến ngày</label>
-							<input
-								type='date'
-								className='rp-input'
-								value={dayRange.to}
-								min={dayRange.from}
-								onChange={(e) =>
-									setDayRange((p) => ({ ...p, to: e.target.value }))
-								}
-							/>
-						</div>
-					</div>
-				);
+	const clsRangeError =
+		(scope === 'all' || scope === 'cls') && rangeDayCount > CLS_MAX_DAYS
+			? `Báo cáo hệ CLS chỉ hỗ trợ tối đa ${CLS_MAX_DAYS} ngày/lần xuất (đang chọn ${rangeDayCount} ngày)`
+			: '';
 
-			case 'week':
-				return (
-					<div className='rp-range-grid'>
-						<div className='rp-range-block'>
-							<p className='rp-range-block-lbl'>Từ tuần</p>
-							<div className='rp-range-row'>
-								<div className='rp-range-field'>
-									<label className='rp-label'>Tuần</label>
-									<select
-										className='rp-input rp-select'
-										value={weekRange.fromWeek}
-										onChange={(e) =>
-											setWeekRange((p) => ({ ...p, fromWeek: +e.target.value }))
-										}
-									>
-										{Array.from(
-											{ length: weeksInFromYear },
-											(_, i) => i + 1,
-										).map((w) => (
-											<option
-												key={w}
-												value={w}
-											>
-												Tuần {w}
-											</option>
-										))}
-									</select>
-								</div>
-								<div className='rp-range-field'>
-									<label className='rp-label'>Năm</label>
-									<select
-										className='rp-input rp-select'
-										value={weekRange.fromYear}
-										onChange={(e) =>
-											setWeekRange((p) => ({ ...p, fromYear: +e.target.value }))
-										}
-									>
-										{YEAR_OPTS.map((y) => (
-											<option
-												key={y}
-												value={y}
-											>
-												{y}
-											</option>
-										))}
-									</select>
-								</div>
-							</div>
-						</div>
-						<span className='rp-range-arrow'>→</span>
-						<div className='rp-range-block'>
-							<p className='rp-range-block-lbl'>Đến tuần</p>
-							<div className='rp-range-row'>
-								<div className='rp-range-field'>
-									<label className='rp-label'>Tuần</label>
-									<select
-										className='rp-input rp-select'
-										value={weekRange.toWeek}
-										onChange={(e) =>
-											setWeekRange((p) => ({ ...p, toWeek: +e.target.value }))
-										}
-									>
-										{Array.from({ length: weeksInToYear }, (_, i) => i + 1).map(
-											(w) => (
-												<option
-													key={w}
-													value={w}
-												>
-													Tuần {w}
-												</option>
-											),
-										)}
-									</select>
-								</div>
-								<div className='rp-range-field'>
-									<label className='rp-label'>Năm</label>
-									<select
-										className='rp-input rp-select'
-										value={weekRange.toYear}
-										onChange={(e) =>
-											setWeekRange((p) => ({ ...p, toYear: +e.target.value }))
-										}
-									>
-										{YEAR_OPTS.map((y) => (
-											<option
-												key={y}
-												value={y}
-											>
-												{y}
-											</option>
-										))}
-									</select>
-								</div>
-							</div>
-						</div>
-					</div>
-				);
-
-			case 'month':
-				return (
-					<div className='rp-range-grid'>
-						<div className='rp-range-block'>
-							<p className='rp-range-block-lbl'>Từ tháng</p>
-							<div className='rp-range-row'>
-								<div className='rp-range-field'>
-									<label className='rp-label'>Tháng</label>
-									<select
-										className='rp-input rp-select'
-										value={monthRange.fromMonth}
-										onChange={(e) =>
-											setMonthRange((p) => ({
-												...p,
-												fromMonth: +e.target.value,
-											}))
-										}
-									>
-										{MONTHS.map((m, i) => (
-											<option
-												key={i + 1}
-												value={i + 1}
-											>
-												{m}
-											</option>
-										))}
-									</select>
-								</div>
-								<div className='rp-range-field'>
-									<label className='rp-label'>Năm</label>
-									<select
-										className='rp-input rp-select'
-										value={monthRange.fromYear}
-										onChange={(e) =>
-											setMonthRange((p) => ({
-												...p,
-												fromYear: +e.target.value,
-											}))
-										}
-									>
-										{YEAR_OPTS.map((y) => (
-											<option
-												key={y}
-												value={y}
-											>
-												{y}
-											</option>
-										))}
-									</select>
-								</div>
-							</div>
-						</div>
-						<span className='rp-range-arrow'>→</span>
-						<div className='rp-range-block'>
-							<p className='rp-range-block-lbl'>Đến tháng</p>
-							<div className='rp-range-row'>
-								<div className='rp-range-field'>
-									<label className='rp-label'>Tháng</label>
-									<select
-										className='rp-input rp-select'
-										value={monthRange.toMonth}
-										onChange={(e) =>
-											setMonthRange((p) => ({ ...p, toMonth: +e.target.value }))
-										}
-									>
-										{MONTHS.map((m, i) => (
-											<option
-												key={i + 1}
-												value={i + 1}
-											>
-												{m}
-											</option>
-										))}
-									</select>
-								</div>
-								<div className='rp-range-field'>
-									<label className='rp-label'>Năm</label>
-									<select
-										className='rp-input rp-select'
-										value={monthRange.toYear}
-										onChange={(e) =>
-											setMonthRange((p) => ({ ...p, toYear: +e.target.value }))
-										}
-									>
-										{YEAR_OPTS.map((y) => (
-											<option
-												key={y}
-												value={y}
-											>
-												{y}
-											</option>
-										))}
-									</select>
-								</div>
-							</div>
-						</div>
-					</div>
-				);
-
-			case 'year':
-				return (
-					<div className='rp-date-row'>
-						<div className='rp-date-field'>
-							<label className='rp-label'>Từ năm</label>
-							<select
-								className='rp-input rp-select'
-								value={yearRange.fromYear}
-								onChange={(e) =>
-									setYearRange((p) => ({ ...p, fromYear: +e.target.value }))
-								}
-							>
-								{YEAR_OPTS.map((y) => (
-									<option
-										key={y}
-										value={y}
-									>
-										{y}
-									</option>
-								))}
-							</select>
-						</div>
-						<span className='rp-date-sep'>→</span>
-						<div className='rp-date-field'>
-							<label className='rp-label'>Đến năm</label>
-							<select
-								className='rp-input rp-select'
-								value={yearRange.toYear}
-								onChange={(e) =>
-									setYearRange((p) => ({ ...p, toYear: +e.target.value }))
-								}
-							>
-								{YEAR_OPTS.map((y) => (
-									<option
-										key={y}
-										value={y}
-									>
-										{y}
-									</option>
-								))}
-							</select>
-						</div>
-					</div>
-				);
-		}
-	};
+	const { loading, errorMsg, setErrorMsg, handleExportExcel } = useExcelExport(
+		cfg,
+		groupBy,
+		dayRange,
+		weekRange,
+		monthRange,
+		yearRange,
+		rangeError || clsRangeError,
+	);
 
 	return (
 		<div className={inModal ? 'rp rp--modal' : 'rp'}>
@@ -601,12 +173,27 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 
 						<p className='rp-tab-hint'>{activeTab.hint}</p>
 
-						{renderRangePicker()}
+						<RangePicker
+							groupBy={groupBy}
+							dayRange={dayRange}
+							setDayRange={setDayRange}
+							weekRange={weekRange}
+							setWeekRange={setWeekRange}
+							monthRange={monthRange}
+							setMonthRange={setMonthRange}
+							yearRange={yearRange}
+							setYearRange={setYearRange}
+							weeksInFromYear={weeksInFromYear}
+							weeksInToYear={weeksInToYear}
+						/>
 
 						{rangeSummary && !rangeError && (
 							<p className='rp-date-badge'>🗓️ {rangeSummary}</p>
 						)}
 						{rangeError && <p className='rp-range-err'>⚠️ {rangeError}</p>}
+						{!rangeError && clsRangeError && (
+							<p className='rp-range-err'>⚠️ {clsRangeError}</p>
+						)}
 					</div>
 
 					{/* ── Bước 2: Phạm vi ─────────────────────────────── */}
@@ -618,25 +205,41 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 
 						<div className='rp-scope-toggle'>
 							<button
-								className={`rp-scope-btn${isAll ? ' rp-scope-btn--active' : ''}`}
-								onClick={() => setField('rKhoa', 'all')}
+								className={`rp-scope-btn${scope === 'all' ? ' rp-scope-btn--active' : ''}`}
+								onClick={() => setField('rScope', 'all')}
+								title='Sinh 2 file: khoa nội trú + hệ CLS'
 							>
 								🏥 Toàn bệnh viện
 							</button>
 							<button
-								className={`rp-scope-btn${!isAll ? ' rp-scope-btn--active' : ''}`}
-								onClick={() =>
-									setField(
-										'rKhoa',
-										khoaList.length > 0 ? String(khoaList[0].id) : 'all',
-									)
-								}
+								className={`rp-scope-btn${scope === 'ward' ? ' rp-scope-btn--active' : ''}`}
+								onClick={() => setField('rScope', 'ward')}
 							>
-								🏨 Một khoa
+								🛏️ Khoa nội trú
+							</button>
+							<button
+								className={`rp-scope-btn${scope === 'cls' ? ' rp-scope-btn--active' : ''}`}
+								onClick={() => setField('rScope', 'cls')}
+							>
+								🧪 Hệ Cận lâm sàng
+							</button>
+							<button
+								className={`rp-scope-btn${scope === 'one' ? ' rp-scope-btn--active' : ''}`}
+								onClick={() => {
+									setField('rScope', 'one');
+									if (!wardKhoaList.some((k) => String(k.id) === cfg.rKhoa)) {
+										setField(
+											'rKhoa',
+											wardKhoaList.length > 0 ? String(wardKhoaList[0].id) : 'all',
+										);
+									}
+								}}
+							>
+								🏨 Một khoa (nội trú)
 							</button>
 						</div>
 
-						{!isAll && (
+						{scope === 'one' && (
 							<div style={{ marginTop: 10 }}>
 								<label className='rp-label'>Chọn khoa</label>
 								<select
@@ -644,7 +247,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 									value={cfg.rKhoa}
 									onChange={(e) => setField('rKhoa', e.target.value)}
 								>
-									{khoaList.map((k) => (
+									{wardKhoaList.map((k) => (
 										<option
 											key={k.id}
 											value={String(k.id)}
@@ -663,7 +266,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 						<button
 							className='rp-export-btn'
 							onClick={handleExportExcel}
-							disabled={loading || !!rangeError}
+							disabled={loading || !!rangeError || !!clsRangeError}
 						>
 							{loading ? (
 								<>
@@ -671,7 +274,8 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 								</>
 							) : (
 								<>
-									<DownloadIcon /> Xuất Excel (.xlsx)
+									<DownloadIcon />{' '}
+									{scope === 'all' ? 'Xuất Excel (2 file)' : 'Xuất Excel (.xlsx)'}
 								</>
 							)}
 						</button>
@@ -713,12 +317,14 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 						</div>
 					</div>
 
-					{isAll ? (
+					{(scope === 'all' || scope === 'ward') && (
 						<div className='rp-sheets'>
 							<div className='rp-sheet rp-sheet--primary'>
 								<div className='rp-sheet-hdr'>
-									<span className='rp-sheet-badge'>Sheet 1</span>
-									<span className='rp-sheet-name'>Tổng hợp toàn BV</span>
+									<span className='rp-sheet-badge'>
+										{scope === 'all' ? 'File 1 · Sheet 1' : 'Sheet 1'}
+									</span>
+									<span className='rp-sheet-name'>Tổng hợp toàn BV (nội trú)</span>
 								</div>
 								<ul className='rp-sheet-cols'>
 									<li>
@@ -734,9 +340,9 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 							<div className='rp-sheet'>
 								<div className='rp-sheet-hdr'>
 									<span className='rp-sheet-badge rp-sheet-badge--sec'>
-										Sheet 2…N
+										{scope === 'all' ? 'File 1 · Sheet 2…N' : 'Sheet 2…N'}
 									</span>
-									<span className='rp-sheet-name'>Từng khoa riêng</span>
+									<span className='rp-sheet-name'>Từng khoa nội trú riêng</span>
 								</div>
 								<ul className='rp-sheet-cols'>
 									<li>
@@ -751,8 +357,65 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 									</li>
 								</ul>
 							</div>
+							{scope === 'all' && (
+								<div className='rp-sheet'>
+									<div className='rp-sheet-hdr'>
+										<span className='rp-sheet-badge rp-sheet-badge--sec'>
+											File 2
+										</span>
+										<span className='rp-sheet-name'>
+											Hệ Cận lâm sàng — Tổng quan + 1 sheet/ngày
+										</span>
+									</div>
+									<ul className='rp-sheet-cols'>
+										<li>Sheet 1: Tổng quan — 1 dòng/khoa, gộp cả kỳ</li>
+										<li>Sheet 2…N+1: đúng mẫu gốc, 10 khoa CLS/ngày</li>
+										<li>Khối lượng CV đã thực hiện · Số lượng tồn/chờ</li>
+										<li>Tổng NL · Nghỉ trực · Nghỉ &gt;2 ngày · Đi làm</li>
+										<li>Tỷ lệ đi làm/KLCV · NL khuyến cáo · Chênh lệch</li>
+										<li className='rp-sheet-note'>
+											⚠️ Tối đa {CLS_MAX_DAYS} ngày/lần xuất
+										</li>
+									</ul>
+								</div>
+							)}
 						</div>
-					) : (
+					)}
+
+					{scope === 'cls' && (
+						<div className='rp-sheets'>
+							<div className='rp-sheet rp-sheet--primary'>
+								<div className='rp-sheet-hdr'>
+									<span className='rp-sheet-badge'>Sheet 1</span>
+									<span className='rp-sheet-name'>Tổng quan CLS</span>
+								</div>
+								<ul className='rp-sheet-cols'>
+									<li>1 dòng/khoa, gộp cả kỳ đã chọn</li>
+									<li>NL · Nghỉ trực · Nghỉ &gt;2 ngày · Đi làm (trung bình/ngày)</li>
+									<li>Tỷ lệ đi làm/KLCV cả kỳ · NL khuyến cáo · Chênh lệch</li>
+								</ul>
+							</div>
+							<div className='rp-sheet'>
+								<div className='rp-sheet-hdr'>
+									<span className='rp-sheet-badge rp-sheet-badge--sec'>
+										Sheet 2…N+1
+									</span>
+									<span className='rp-sheet-name'>Hệ Cận lâm sàng — 1 sheet/ngày</span>
+								</div>
+								<ul className='rp-sheet-cols'>
+									<li>Đúng mẫu gốc: 10 khoa CLS (Huyết học, Hóa sinh, Vi sinh…)</li>
+									<li>Khối lượng CV đã thực hiện · Số lượng tồn/chờ</li>
+									<li>Tổng NL · Nghỉ trực · Nghỉ &gt;2 ngày · Đi làm</li>
+									<li>Tỷ lệ đi làm/KLCV · NL khuyến cáo · Chênh lệch</li>
+									<li className='rp-sheet-note'>
+										⚠️ Tối đa {CLS_MAX_DAYS} ngày/lần xuất
+									</li>
+								</ul>
+							</div>
+						</div>
+					)}
+
+					{scope === 'one' && (
 						<div className='rp-sheets'>
 							<div className='rp-sheet rp-sheet--primary'>
 								<div className='rp-sheet-hdr'>

@@ -58,6 +58,8 @@ export interface KhoaItem {
 	id: number;
 	ten: string;
 	giuong: number | null;
+	/** code_department (vd. CLS01..CLS10) — dùng để xác định trường nhập liệu áp dụng cho khoa CLS */
+	code: string | null;
 	/** 'ward' = khối nội trú (TT03) · 'cls' = hệ Cận lâm sàng */
 	deptGroup: 'ward' | 'cls';
 	/** Hệ số TT03 (cột M) */

@@ -23,9 +23,11 @@ export default function Pagination({
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'space-between',
-				padding: '10px 4px',
+				padding: '12px 18px',
+				borderTop: '1.5px solid #f1f5f9',
+				background: '#ffffff',
 				flexWrap: 'wrap',
-				gap: 8,
+				gap: 12,
 			}}
 		>
 			<div

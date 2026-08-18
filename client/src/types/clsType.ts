@@ -97,6 +97,8 @@ export interface ComputedClsStats {
 export interface KhoaClsRecord {
 	tt: number;
 	id_department: number;
+	/** code_department (vd. CLS01..CLS10) — dùng để xác định cột nào áp dụng cho khoa này */
+	code: string | null;
 	ten: string;
 	daLam: ClsWorkload;
 	tonCho: ClsPending;

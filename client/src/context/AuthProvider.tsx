@@ -39,6 +39,7 @@ function mapApiDept(d: ApiDept): KhoaItem {
 		id: d.id_department,
 		ten: d.name_department,
 		giuong: d.bed_count,
+		code: d.code_department ?? null,
 		deptGroup: d.dept_group ?? 'ward',
 		formulaType: d.formula_type ?? 'standard',
 		tt03Note: d.tt03_note,

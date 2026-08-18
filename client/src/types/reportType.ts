@@ -3,7 +3,8 @@
 import type { RecommendedFormulaType } from './commonType';
 
 export interface ReportConfig {
-	rType: 'daily' | 'weekly' | 'monthly' | 'custom';
+	/** Phạm vi xuất: toàn viện (2 file) · chỉ khối nội trú · chỉ hệ CLS · 1 khoa nội trú */
+	rScope: 'all' | 'ward' | 'cls' | 'one';
 	rKhoa: string;
 	rFrom: string;
 	rTo: string;

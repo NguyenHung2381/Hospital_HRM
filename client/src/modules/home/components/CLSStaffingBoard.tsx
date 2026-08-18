@@ -1,28 +1,17 @@
 import ModalForm from '@/components/common/ModalForm';
-import Calendar from '@/components/ui/Calendar';
 import StatCard from '@/components/ui/StatCard';
-import { useAuth } from '@/context/useAuth';
-import { useAppSSE } from '@/hooks/useAppSSE';
-import type { ApiClsRecord } from '@/types/apiType';
-import type { DailyClsRecord } from '@/types/clsType';
-import { blankDailyClsRecord } from '@/types/clsType';
 import type { KhoaItem } from '@/types/staffingType';
-import {
-	apiToDailyClsRecord,
-	computeCls,
-	dailyClsToApiBody,
-} from '@/utils/clsCalc';
-import {
-	formatDateToVN,
-	getNextAvailableDate,
-	getTodayDateString,
-} from '@/utils/dateUtils';
-import { isReportLocked } from '@/utils/staffingCalc';
-import { useCallback, useEffect, useState } from 'react';
+import { computeCls } from '@/utils/clsCalc';
+import { getClsFields } from '@/utils/clsFieldConfig';
+import { formatDateToVN } from '@/utils/dateUtils';
+import { useClsStaffingRecords } from '@/hooks/useClsStaffingRecords';
+import { useRecordPermissions } from '@/hooks/useRecordPermissions';
+import { useEffect, useState } from 'react';
 import CLSStaffingForm from './CLSStaffingForm';
-import DeptSelector from './DeptSelector';
+import StaffingBoardSidebar from './StaffingBoardSidebar';
 import ChangePasswordModal from './modal/ChangePasswordModal';
-import ReportPage from '../pages/ReportPage';
+import ConfirmDeleteModal from './modal/ConfirmDeleteModal';
+import ReportPage from '@/modules/admin/pages/ReportPage';
 
 export interface CLSStaffingBoardProps {
 	userKhoa: KhoaItem[];
@@ -41,22 +30,12 @@ export default function CLSStaffingBoard({
 	showPasswordModal,
 	onClosePasswordModal,
 }: CLSStaffingBoardProps) {
-	const { user, deptPermissions } = useAuth();
 	const [activeKhoaId, setActiveKhoaId] = useState<number>(
 		userKhoa.length > 0 ? userKhoa[0].id : 0,
 	);
 	const [recommendedStaff, setRecommendedStaff] = useState<number | null>(
 		userKhoa.length > 0 ? (userKhoa[0].heSoRec?.fixedAdd ?? null) : null,
 	);
-
-	const [records, setRecords] = useState<DailyClsRecord[]>([]);
-	const [recordIds, setRecordIds] = useState<
-		Record<string, { id_report: number; record_id: number }>
-	>({});
-	const [activeDate, setActiveDate] = useState(getTodayDateString());
-	const [loadingRecords, setLoadingRecords] = useState(false);
-	const [saving, setSaving] = useState(false);
-	const [apiError, setApiError] = useState('');
 
 	useEffect(() => {
 		if (userKhoa.length > 0 && activeKhoaId === 0) {
@@ -66,269 +45,38 @@ export default function CLSStaffingBoard({
 		}
 	}, [userKhoa, activeKhoaId, onDeptNameChange]);
 
-	type MMode = 'add' | 'edit' | null;
-	const [mMode, setMMode] = useState<MMode>(null);
-	const [formInitial, setFormInitial] = useState<DailyClsRecord>(
-		blankDailyClsRecord(getTodayDateString()),
-	);
-	const [delDate, setDelDate] = useState<string | null>(null);
+	const {
+		records,
+		activeDate,
+		setActiveDate,
+		loadingRecords,
+		saving,
+		apiError,
+		mMode,
+		setMMode,
+		formInitial,
+		delDate,
+		setDelDate,
+		openAdd,
+		openEdit,
+		saveRecord,
+		confirmDel,
+	} = useClsStaffingRecords(activeKhoaId, setRecommendedStaff);
 
 	const active = records.find((r) => r.date === activeDate) ?? null;
 	const stats = active ? computeCls(active, recommendedStaff) : null;
+	const activeKhoa = userKhoa.find((k) => k.id === activeKhoaId) ?? null;
+	const clsFields = getClsFields(activeKhoa?.code);
 
-	const _perm = deptPermissions.find((p) => p.id_department === activeKhoaId);
-	const _accessType = user?.department_access_type;
-	const hasEditPerm = _perm?.can_edit ?? false;
-	const hasDeletePerm = _perm?.can_delete ?? false;
-
-	const canAddForDate = (date: string) =>
-		hasEditPerm && !isReportLocked(date, _accessType);
-	const lockedActive = isReportLocked(activeDate, _accessType);
-	const canEdit = hasEditPerm && !lockedActive;
-	const canDelete = hasDeletePerm && !lockedActive;
-	const lockReason = lockedActive
-		? `Đã chốt sổ ngày ${formatDateToVN(activeDate)} — chỉ Admin mới có thể chỉnh sửa`
-		: '';
-
-	// ── Fetch records từ API khi đổi khoa ────────────────────
-	const fetchKhoaRecords = useCallback(async () => {
-		if (!activeKhoaId) return;
-		setLoadingRecords(true);
-		try {
-			const from = new Date();
-			from.setDate(from.getDate() - 30);
-			const fromStr = from.toISOString().slice(0, 10);
-			const listRes = await fetch(`/api/reports?from=${fromStr}`);
-			const listData = (await listRes.json()) as {
-				success: boolean;
-				data: { id_report: number; report_date: string }[];
-			};
-			if (!listData.success) return;
-
-			const detailPromises = listData.data.map((rep) =>
-				fetch(`/api/reports/${rep.id_report}`).then(
-					(r) =>
-						r.json() as Promise<{
-							success: boolean;
-							data: {
-								id_report: number;
-								report_date: string;
-								cls_records: ApiClsRecord[];
-							};
-						}>,
-				),
-			);
-			const details = await Promise.all(detailPromises);
-
-			const newRecords: DailyClsRecord[] = [];
-			const newIds: Record<string, { id_report: number; record_id: number }> =
-				{};
-
-			for (const detail of details) {
-				if (!detail.success) continue;
-				const { id_report, report_date, cls_records: recs } = detail.data;
-				const deptRec = recs.find((r) => r.id_department === activeKhoaId);
-				if (!deptRec) continue;
-				const dateKey = report_date.slice(0, 10);
-				newRecords.push(apiToDailyClsRecord(dateKey, deptRec));
-				newIds[dateKey] = { id_report, record_id: deptRec.id };
-				if (deptRec.recommended_staff !== null)
-					setRecommendedStaff(deptRec.recommended_staff);
-			}
-
-			newRecords.sort((a, b) => a.date.localeCompare(b.date));
-			setRecords(newRecords);
-			setRecordIds(newIds);
-			const today = getTodayDateString();
-			const hasToday = newRecords.some((r) => r.date === today);
-			if (!hasToday && newRecords.length)
-				setActiveDate(newRecords[newRecords.length - 1].date);
-		} finally {
-			setLoadingRecords(false);
-		}
-	}, [activeKhoaId]);
-
-	useEffect(() => {
-		fetchKhoaRecords();
-	}, [fetchKhoaRecords]);
-
-	// ── Realtime: tự cập nhật khi có thay đổi từ server ──────
-	useAppSSE(
-		useCallback(
-			(payload) => {
-				if (payload.resource === 'reports') {
-					fetchKhoaRecords();
-				}
-			},
-			[fetchKhoaRecords],
-		),
-	);
-
-	const openAdd = (date?: string) => {
-		setFormInitial(
-			blankDailyClsRecord(
-				date ?? getNextAvailableDate(records.map((r) => r.date)),
-			),
-		);
-		setApiError('');
-		setMMode('add');
-	};
-
-	const openEdit = () => {
-		if (active) {
-			setFormInitial(JSON.parse(JSON.stringify(active)));
-			setApiError('');
-			setMMode('edit');
-		}
-	};
-
-	const saveRecord = async (draft: DailyClsRecord) => {
-		setSaving(true);
-		setApiError('');
-		try {
-			const ids = recordIds[draft.date];
-			if (ids) {
-				const res = await fetch(
-					`/api/reports/${ids.id_report}/cls-records/${ids.record_id}`,
-					{
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify(dailyClsToApiBody(draft)),
-					},
-				);
-				if (!res.ok) {
-					const err = (await res.json().catch(() => ({}))) as {
-						message?: string;
-					};
-					setApiError(err.message ?? 'Lỗi khi cập nhật dữ liệu');
-					return;
-				}
-			} else {
-				const checkRes = await fetch(
-					`/api/reports?from=${draft.date}&to=${draft.date}`,
-				);
-				const checkData = (await checkRes.json().catch(() => ({}))) as {
-					success?: boolean;
-					data?: { id_report: number; report_date: string }[];
-				};
-				const existingReport = checkData.data?.[0];
-				let targetIdReport: number | undefined;
-
-				if (existingReport) {
-					const addRes = await fetch(
-						`/api/reports/${existingReport.id_report}/cls-records`,
-						{
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								id_department: activeKhoaId,
-								created_by: user?.id ?? null,
-								...dailyClsToApiBody(draft),
-							}),
-						},
-					);
-					if (!addRes.ok) {
-						setApiError('Lỗi khi thêm bản ghi vào báo cáo');
-						return;
-					}
-					targetIdReport = existingReport.id_report;
-				} else {
-					const createRes = await fetch(`/api/reports`, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							report_date: draft.date,
-							created_by: user?.id ?? null,
-						}),
-					});
-					if (!createRes.ok) {
-						setApiError('Lỗi khi tạo báo cáo mới');
-						return;
-					}
-					const createData = (await createRes.json()) as {
-						success: boolean;
-						data: { id_report: number };
-					};
-					targetIdReport = createData.data?.id_report;
-
-					if (targetIdReport) {
-						const addRes = await fetch(
-							`/api/reports/${targetIdReport}/cls-records`,
-							{
-								method: 'POST',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify({
-									id_department: activeKhoaId,
-									created_by: user?.id ?? null,
-									...dailyClsToApiBody(draft),
-								}),
-							},
-						);
-						if (!addRes.ok) {
-							setApiError('Lỗi khi thêm bản ghi vào báo cáo');
-							return;
-						}
-					}
-				}
-
-				if (targetIdReport) {
-					setRecordIds((prev) => ({
-						...prev,
-						[draft.date]: {
-							id_report: targetIdReport!,
-							record_id: 0,
-						},
-					}));
-				}
-			}
-
-			setRecords((prev) =>
-				[...prev.filter((r) => r.date !== draft.date), draft].sort((a, b) =>
-					a.date.localeCompare(b.date),
-				),
-			);
-			setActiveDate(draft.date);
-			setMMode(null);
-			fetchKhoaRecords();
-		} finally {
-			setSaving(false);
-		}
-	};
-
-	const confirmDel = async () => {
-		if (!delDate) return;
-		const ids = recordIds[delDate];
-		setSaving(true);
-		setApiError('');
-		try {
-			if (ids?.record_id) {
-				const res = await fetch(
-					`/api/reports/${ids.id_report}/cls-records/${ids.record_id}`,
-					{ method: 'DELETE' },
-				);
-				if (!res.ok) {
-					setApiError('Lỗi khi xoá bản ghi');
-					setDelDate(null);
-					return;
-				}
-				setRecordIds((prev) => {
-					const next = { ...prev };
-					delete next[delDate];
-					return next;
-				});
-			}
-			const remaining = records.filter((r) => r.date !== delDate);
-			setRecords(remaining);
-			setActiveDate(
-				remaining.length
-					? remaining[remaining.length - 1].date
-					: getTodayDateString(),
-			);
-			setDelDate(null);
-		} finally {
-			setSaving(false);
-		}
-	};
+	const {
+		hasEditPerm,
+		hasDeletePerm,
+		canAddForDate,
+		lockedActive,
+		canEdit,
+		canDelete,
+		lockReason,
+	} = useRecordPermissions(activeKhoaId, activeDate);
 
 	const handleKhoaChange = (k: KhoaItem) => {
 		setActiveKhoaId(k.id);
@@ -338,37 +86,17 @@ export default function CLSStaffingBoard({
 
 	return (
 		<>
-			<aside className='sidebar'>
-				<DeptSelector
-					khoaList={userKhoa}
-					activeId={activeKhoaId}
-					onChange={handleKhoaChange}
-				/>
-				<Calendar
-					records={records}
-					activeDate={activeDate}
-					onSelect={setActiveDate}
-					onAdd={(date) => {
-						if (canAddForDate(date ?? getTodayDateString())) openAdd(date);
-					}}
-				/>
-				<div className='cal-legend'>
-					<div className='legend-item'>
-						<span className='cal-dot' /> Đã có dữ liệu
-					</div>
-					<div className='legend-item'>
-						<span className='legend-circle' /> Ngày đang chọn
-					</div>
-				</div>
-				{hasEditPerm && (
-					<button
-						className='btn-add-full'
-						onClick={() => openAdd()}
-					>
-						＋ Thêm ngày mới
-					</button>
-				)}
-			</aside>
+			<StaffingBoardSidebar
+				khoaList={userKhoa}
+				activeId={activeKhoaId}
+				onKhoaChange={handleKhoaChange}
+				records={records}
+				activeDate={activeDate}
+				onSelectDate={setActiveDate}
+				canAddForDate={canAddForDate}
+				onAdd={openAdd}
+				showAddButton={hasEditPerm}
+			/>
 
 			<div className='content'>
 				{apiError && <div className='api-error-banner'>⚠️ {apiError}</div>}
@@ -421,7 +149,7 @@ export default function CLSStaffingBoard({
 								{hasEditPerm && (
 									<button
 										className='btn-edit'
-										onClick={canEdit ? openEdit : undefined}
+										onClick={canEdit ? () => openEdit(active) : undefined}
 										disabled={!canEdit}
 										title={lockedActive ? lockReason : 'Sửa bản ghi'}
 									>
@@ -498,23 +226,13 @@ export default function CLSStaffingBoard({
 							<section className='dcard'>
 								<h2 className='dcard-title'>📊 Khối lượng công việc đã thực hiện</h2>
 								<div className='cap-row'>
-									{[
-										['Mẫu BP / Tiêu bản / NB khám / tư vấn', active.daLam.sampleOrVisit],
-										['X-quang hoặc siêu âm', active.daLam.xrayUs],
-										['CT / Nội soi', active.daLam.ctEndoscopy],
-										['MRI / Loãng xương', active.daLam.mriBoneDensity],
-										['Điện tim hoặc can thiệp', active.daLam.ecgIntervention],
-										['Đồ vải (Kg) / Truyền thông', active.daLam.linenMedia],
-										['Xử lý dụng cụ sắt (Bộ)', active.daLam.toolMetal],
-										['Xử lý dụng cụ nhựa (Cái)', active.daLam.toolPlastic],
-										['Khoa giám sát (số khoa)', active.daLam.supervisedDept],
-									].map(([label, val]) => (
+									{clsFields.map((f) => (
 										<div
-											key={label as string}
+											key={f.id}
 											className='info-row'
 										>
-											<span className='info-lbl'>{label}</span>
-											<span className='info-val'>{val ?? 0}</span>
+											<span className='info-lbl'>{f.label}</span>
+											<span className='info-val'>{active.daLam[f.daLamKey] ?? 0}</span>
 										</div>
 									))}
 								</div>
@@ -523,24 +241,19 @@ export default function CLSStaffingBoard({
 							<section className='dcard'>
 								<h2 className='dcard-title'>⏳ Số lượng tồn / chờ</h2>
 								<div className='cap-row'>
-									{[
-										['Mẫu BP / Tiêu bản / NB khám / tư vấn', active.tonCho.sampleOrVisit],
-										['X-quang hoặc siêu âm', active.tonCho.xrayUs],
-										['CT / Nội soi', active.tonCho.ctEndoscopy],
-										['MRI / Loãng xương', active.tonCho.mriBoneDensity],
-										['Điện tim hoặc Can thiệp', active.tonCho.ecgIntervention],
-										['Đồ vải (Kg)', active.tonCho.linen],
-										['Xử lý dụng cụ sắt (Bộ)', active.tonCho.toolMetal],
-										['Xử lý dụng cụ nhựa (Cái)', active.tonCho.toolPlastic],
-									].map(([label, val]) => (
-										<div
-											key={label as string}
-											className='info-row'
-										>
-											<span className='info-lbl'>{label}</span>
-											<span className='info-val'>{val ?? 0}</span>
-										</div>
-									))}
+									{clsFields
+										.filter((f) => f.tonChoKey !== null)
+										.map((f) => (
+											<div
+												key={f.id}
+												className='info-row'
+											>
+												<span className='info-lbl'>{f.label}</span>
+												<span className='info-val'>
+													{active.tonCho[f.tonChoKey as keyof typeof active.tonCho] ?? 0}
+												</span>
+											</div>
+										))}
 								</div>
 							</section>
 
@@ -625,38 +338,19 @@ export default function CLSStaffingBoard({
 					saving={saving}
 					error={apiError}
 					recommendedStaff={recommendedStaff}
+					deptCode={activeKhoa?.code}
 					existingDates={records.map((r) => r.date)}
 				/>
 			)}
 
 			{delDate && (
-				<ModalForm
-					title='⚠️ Xác nhận xoá'
+				<ConfirmDeleteModal
+					date={delDate}
+					fmtDisplay={formatDateToVN}
+					saving={saving}
 					onClose={() => setDelDate(null)}
-				>
-					<p className='confirm-txt'>
-						Xoá dữ liệu ngày <strong>{formatDateToVN(delDate)}</strong>?<br />
-						<span style={{ fontSize: '.8rem', color: '#64748b' }}>
-							Toàn bộ dữ liệu báo cáo ngày này sẽ bị xoá vĩnh viễn.
-						</span>
-					</p>
-					<div className='mfooter'>
-						<button
-							className='btn-ghost'
-							onClick={() => setDelDate(null)}
-							disabled={saving}
-						>
-							Huỷ
-						</button>
-						<button
-							className='btn-danger'
-							onClick={confirmDel}
-							disabled={saving}
-						>
-							{saving ? '⏳ Đang xoá...' : '🗑 Xoá'}
-						</button>
-					</div>
-				</ModalForm>
+					onConfirm={confirmDel}
+				/>
 			)}
 
 			<ChangePasswordModal

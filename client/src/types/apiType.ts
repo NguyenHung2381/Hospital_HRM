@@ -306,6 +306,7 @@ export interface ApiClsRecord {
 	id_report: number;
 	id_department: number;
 	department_name: string;
+	code_department: string | null;
 	sort_order: number | null;
 
 	// Khối lượng công việc đã thực hiện

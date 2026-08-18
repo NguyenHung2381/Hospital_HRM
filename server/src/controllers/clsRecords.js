@@ -1,5 +1,5 @@
 const { getPool, sql } = require('../config/db');
-const { calcRecommended, fetchRecommendedConfig } = require('./tt03');
+const { calcRecommended, fetchRecommendedConfig } = require('../services/tt03Formulas');
 const appEmitter = require('../events/appEmitter');
 
 // ── Helper: tính recommended_staff (khuyến cáo cố định hệ CLS) ──────────
@@ -21,7 +21,7 @@ async function getRecordsForReport(pool, id_report) {
 	const result = await pool.request().input('id_report', sql.Int, id_report).query(`
 		SELECT
 			rcr.Id AS id, rcr.id_report, rcr.id_department, rcr.sort_order,
-			d.name_department AS department_name,
+			d.name_department AS department_name, d.code_department,
 			rcr.sample_or_visit_cnt, rcr.xray_us_cnt, rcr.ct_endoscopy_cnt,
 			rcr.mri_bonedensity_cnt, rcr.ecg_intervention_cnt, rcr.linen_media_cnt,
 			rcr.tool_metal_cnt, rcr.tool_plastic_cnt, rcr.supervised_dept_cnt,

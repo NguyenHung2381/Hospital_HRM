@@ -7,9 +7,13 @@ router.get('/', (req, res) => {
 });
 
 const departments = require('../controllers/departments');
+const deptRecommendedConfig = require('../controllers/deptRecommendedConfig');
 const users = require('../controllers/users');
+const userDepartmentAccess = require('../controllers/userDepartmentAccess');
+const userPassword = require('../controllers/userPassword');
 const roles = require('../controllers/roles');
-const reports = require('../controllers/reports');
+const reports = require('../controllers/reportsCore');
+const reportDepartmentRecords = require('../controllers/reportDepartmentRecords');
 const clsRecords = require('../controllers/clsRecords');
 const auth = require('../controllers/auth');
 const tt03 = require('../controllers/tt03');
@@ -59,30 +63,42 @@ router.delete('/departments/:id', departments.remove);
 // Cấu hình Khuyến nghị theo khoa
 router.get(
 	'/departments/:id/recommended-config',
-	departments.getRecommendedConfig,
+	deptRecommendedConfig.getRecommendedConfig,
 );
 router.post(
 	'/departments/:id/recommended-config',
-	departments.createRecommendedConfig,
+	deptRecommendedConfig.createRecommendedConfig,
 );
 router.put(
 	'/departments/:id/recommended-config',
-	departments.updateRecommendedConfig,
+	deptRecommendedConfig.updateRecommendedConfig,
 );
 router.delete(
 	'/departments/:id/recommended-config',
-	departments.removeRecommendedConfig,
+	deptRecommendedConfig.removeRecommendedConfig,
 );
 
 // ── Users ─────────────────────────────────────────────────────
 router.get('/users', users.getAll);
-router.get('/users/:id/departments', users.getDepartments);
-router.get('/users/:id/assigned-departments', users.getAssignedDepartments);
-router.put('/users/:id/assigned-departments', users.setAssignedDepartments);
-router.get('/users/:id/dept-permissions', users.getDeptPermissions);
-router.put('/users/:id/dept-permissions', users.setDeptPermissions);
-router.put('/users/:id/reset-password', users.resetPassword);
-router.put('/users/:id/change-password', users.changePassword);
+router.get('/users/:id/departments', userDepartmentAccess.getDepartments);
+router.get(
+	'/users/:id/assigned-departments',
+	userDepartmentAccess.getAssignedDepartments,
+);
+router.put(
+	'/users/:id/assigned-departments',
+	userDepartmentAccess.setAssignedDepartments,
+);
+router.get(
+	'/users/:id/dept-permissions',
+	userDepartmentAccess.getDeptPermissions,
+);
+router.put(
+	'/users/:id/dept-permissions',
+	userDepartmentAccess.setDeptPermissions,
+);
+router.put('/users/:id/reset-password', userPassword.resetPassword);
+router.put('/users/:id/change-password', userPassword.changePassword);
 router.get('/users/:id', users.getById);
 router.post('/users', users.create);
 router.put('/users/:id', users.update);
@@ -105,9 +121,15 @@ router.get('/reports/date/:date', reports.getByDate);
 router.get('/reports', reports.getAll);
 router.get('/reports/:id', reports.getById);
 router.post('/reports', reports.create);
-router.post('/reports/:id/records', reports.addRecord);
-router.put('/reports/:id/records/:recordId', reports.updateRecord);
-router.delete('/reports/:id/records/:recordId', reports.removeRecord);
+router.post('/reports/:id/records', reportDepartmentRecords.addRecord);
+router.put(
+	'/reports/:id/records/:recordId',
+	reportDepartmentRecords.updateRecord,
+);
+router.delete(
+	'/reports/:id/records/:recordId',
+	reportDepartmentRecords.removeRecord,
+);
 router.delete('/reports/:id', reports.remove);
 
 // ── Báo cáo hệ Cận lâm sàng (CLS) — dùng chung Daily_Reports ────

@@ -147,15 +147,15 @@ export default function DashboardLayout() {
 
 			{/* ── Sidebar ── */}
 			<aside className='nav'>
-				<div className='nav-logo' title={collapsed ? 'BVHN Đa Khoa Nghệ An' : undefined}>
+				<div className='nav-logo' title={collapsed ? 'Bệnh viện Hữu nghị Đa khoa Nghệ An' : undefined}>
 					<img
 						src={LOGO}
 						alt='Logo'
 						className='nav-logo-img'
 					/>
-					<div className='nav-logo-text' style={{ flex: 1 }}>
-						<p className='nav-logo-name'>BVHN Đa Khoa</p>
-						<p className='nav-logo-sub'>Nghệ An</p>
+					<div className='nav-logo-text' style={{ flex: 1, minWidth: 0 }}>
+						<p className='nav-logo-name'>Bệnh viện</p>
+						<p className='nav-logo-sub'>Hữu nghị Đa Khoa Nghệ An</p>
 					</div>
 					<button
 						className='mobile-nav-close'

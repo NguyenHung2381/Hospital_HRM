@@ -71,7 +71,7 @@ export default function HomePage() {
 								className={`tab-btn${activeGroup === 'ward' ? ' tab-btn--active' : ''}`}
 								onClick={() => setManualGroup('ward')}
 							>
-								🏥 Khối nội trú
+								🏥 Khoa nội trú
 							</button>
 							<button
 								className={`tab-btn${activeGroup === 'cls' ? ' tab-btn--active' : ''}`}

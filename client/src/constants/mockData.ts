@@ -215,30 +215,13 @@ export const HE_SO_INFO = [
 
 // ── Types ─────────────────────────────────────────────────
 
-// ── Loại báo cáo ──────────────────────────────────────────
-export const REPORT_TYPES: { value: ReportConfig['rType']; label: string }[] = [
-	{ value: 'daily', label: 'Báo cáo theo ngày' },
-	{ value: 'weekly', label: 'Báo cáo theo tuần' },
-	{ value: 'monthly', label: 'Báo cáo theo tháng' },
-	{ value: 'custom', label: 'Khoảng thời gian tùy chọn' },
-];
-
 // ── Config mặc định ───────────────────────────────────────
 export const defaultReportConfig = (): ReportConfig => ({
-	rType: 'daily',
+	rScope: 'all',
 	rKhoa: 'all',
 	rFrom: new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10),
 	rTo: new Date().toISOString().slice(0, 10),
 });
-
-// ── Các cột báo cáo (dùng hiển thị preview) ──────────────
-export const REPORT_COLS = [
-	{ key: 'tongNB', label: 'Tổng NB', color: '#2563eb' },
-	{ key: 'nlTong', label: 'Tổng NL', color: '#7c3aed' },
-	{ key: 'diLam', label: 'Đi làm', color: '#079341' },
-	{ key: 'tt03', label: 'KC TT03', color: '#0d9488' },
-	{ key: 'khuyenCao', label: 'Thiếu (KC)', color: '#dc2626' },
-] as const;
 
 /** Format số: null → '—', có decimal → rút gọn trailing zeros */
 export const n = (v: number | null, dec = 0): string => {
