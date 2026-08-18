@@ -1,20 +1,35 @@
 import DashboardLayout from '@/layouts/DashboardLayout';
-import AccountPage from '@/modules/admin/pages/AccountPage';
-import CoordinationPage from '@/modules/admin/pages/CoordinationPage';
-import DataPage from '@/modules/admin/pages/DataPage';
-import DepartmentPage from '@/modules/admin/pages/DepartmentPage';
-import PermissionPage from '@/modules/admin/pages/PermissionPage';
-import ReportPage from '@/modules/admin/pages/ReportPage';
-import LoginPage from '@/modules/auth/pages/LoginPage';
-import HomePage from '@/modules/home/pages/HomePage';
+import { Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
+import {
+	AccountPage,
+	CoordinationPage,
+	DashboardPage,
+	DataPage,
+	DepartmentPage,
+	HomePage,
+	LoginPage,
+	PermissionPage,
+	ReportPage,
+} from './lazyPages';
 import ProtectedRoute from './ProtectedRoute';
-import DashboardPage from '@/modules/admin/pages/DashboardPage';
+
+const withSuspense = (element: React.ReactNode) => (
+	<Suspense
+		fallback={
+			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+				Đang tải...
+			</div>
+		}
+	>
+		{element}
+	</Suspense>
+);
 
 export const router = createBrowserRouter([
 	{
 		path: '/',
-		element: <LoginPage />,
+		element: withSuspense(<LoginPage />),
 		handle: { title: 'Đăng nhập' },
 	},
 
@@ -24,7 +39,7 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				path: '/home',
-				element: <HomePage />,
+				element: withSuspense(<HomePage />),
 				handle: { title: 'Trang chủ' },
 			},
 		],
@@ -38,13 +53,13 @@ export const router = createBrowserRouter([
 				path: '/dashboard',
 				element: <DashboardLayout />,
 				children: [
-					{ index: true, element: <DashboardPage /> },
-					{ path: 'accounts', element: <AccountPage /> },
-					{ path: 'permissions', element: <PermissionPage /> },
-					{ path: 'departments', element: <DepartmentPage /> },
-					{ path: 'reports', element: <ReportPage /> },
-					{ path: 'data', element: <DataPage /> },
-					{ path: 'coordination', element: <CoordinationPage /> },
+					{ index: true, element: withSuspense(<DashboardPage />) },
+					{ path: 'accounts', element: withSuspense(<AccountPage />) },
+					{ path: 'permissions', element: withSuspense(<PermissionPage />) },
+					{ path: 'departments', element: withSuspense(<DepartmentPage />) },
+					{ path: 'reports', element: withSuspense(<ReportPage />) },
+					{ path: 'data', element: withSuspense(<DataPage />) },
+					{ path: 'coordination', element: withSuspense(<CoordinationPage />) },
 				],
 			},
 		],
