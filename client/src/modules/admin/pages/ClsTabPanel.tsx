@@ -115,10 +115,7 @@ export default function ClsTabPanel({
 					className='dv-tbl-wrap'
 					style={{ marginBottom: 24 }}
 				>
-					<div
-						className='dv-tbl-outer'
-						style={{ overflowX: 'auto' }}
-					>
+					<div className='dv-tbl-scroll'>
 						<ClsTable
 							clsRows={clsRows}
 							report={report}

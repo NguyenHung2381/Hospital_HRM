@@ -10,7 +10,8 @@
 .dv-pg .pg-hdr,
 .dv-pg .toolbar,
 .dv-strip,
-.dv-tbl-outer {
+.dv-tbl-outer,
+.dv-tbl-scroll {
 	padding-left: 0;
 	padding-right: 0;
 }
@@ -656,24 +657,63 @@
 	border-radius: 9999px;
 }
 
-/* ── Table outer container ── */
+/* ── Table outer container ──
+   Chỉ scroll dọc. Việc trộn `scrollbar-width` (chuẩn, áp dụng cho cả 2
+   trục) với `::-webkit-scrollbar:horizontal { height: 0 }` (chỉ webkit,
+   theo trục) khiến các bản Chromium khác nhau (Edge vs Chrome) render
+   khác nhau — Edge vẫn hiện thanh cuộn ngang gốc (nhỏ) trong khi Chrome/
+   Firefox ẩn đúng như ý. Tách hẳn trục ngang ra `.dv-tbl-hscroll` để mỗi
+   container chỉ còn 1 trục scroll, tránh xung đột này. */
 .dv-tbl-outer {
 	flex: 1;
-	overflow: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
 	background: #ffffff;
 	scrollbar-width: thin;
 	scrollbar-color: #cbd5e1 transparent;
 }
-.dv-tbl-outer::-webkit-scrollbar:horizontal {
-	height: 0;
-}
-.dv-tbl-outer::-webkit-scrollbar:vertical {
+.dv-tbl-outer::-webkit-scrollbar {
 	width: 6px;
 }
 .dv-tbl-outer::-webkit-scrollbar-track {
 	background: transparent;
 }
 .dv-tbl-outer::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 9999px;
+}
+
+/* Trục cuộn ngang thật của bảng — ẩn hẳn thanh cuộn của nó vì đã có
+   `.dv-scroll-top` (thanh cuộn ngang giả nổi phía trên) đảm nhiệm phần
+   hiển thị, đồng bộ qua useDualScrollSync. */
+.dv-tbl-hscroll {
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: none;
+}
+.dv-tbl-hscroll::-webkit-scrollbar {
+	display: none;
+}
+
+/* Bảng không có thanh cuộn giả nổi phía trên (vd. tab CLS) — cuộn cả 2
+   trục trên cùng 1 container, thanh cuộn mỏng hiển thị đồng nhất. Set
+   cả width lẫn height cùng lúc (thay vì :horizontal/:vertical riêng lẻ)
+   để tránh khác biệt render giữa Edge và các trình duyệt Chromium khác. */
+.dv-tbl-scroll {
+	flex: 1;
+	overflow: auto;
+	background: #ffffff;
+	scrollbar-width: thin;
+	scrollbar-color: #cbd5e1 transparent;
+}
+.dv-tbl-scroll::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+.dv-tbl-scroll::-webkit-scrollbar-track {
+	background: transparent;
+}
+.dv-tbl-scroll::-webkit-scrollbar-thumb {
 	background: #cbd5e1;
 	border-radius: 9999px;
 }
@@ -1185,6 +1225,7 @@
 	grid-template-columns: 200px 1fr;
 	min-height: 420px;
 	max-height: calc(100dvh - 160px);
+	margin: -20px -24px -24px;
 }
 
 .mcreate-sidebar {

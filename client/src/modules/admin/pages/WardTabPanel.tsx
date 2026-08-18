@@ -94,51 +94,53 @@ export default function WardTabPanel({
 						ref={scrollInnerRef}
 					/>
 				</div>
-				<div
-					className='dv-tbl-outer'
-					ref={tblOuterRef}
-				>
-					{loadingReport ? (
-						<div
-							style={{
-								textAlign: 'center',
-								padding: '60px',
-								color: 'var(--mut)',
-								fontSize: '.85rem',
-							}}
-						>
-							Đang tải dữ liệu...
-						</div>
-					) : !report ? (
-						<div style={{ textAlign: 'center', padding: '60px' }}>
-							<p style={{ fontSize: '2rem', marginBottom: 8 }}>📋</p>
-							<p
+				<div className='dv-tbl-outer'>
+					<div
+						className='dv-tbl-hscroll'
+						ref={tblOuterRef}
+					>
+						{loadingReport ? (
+							<div
 								style={{
+									textAlign: 'center',
+									padding: '60px',
 									color: 'var(--mut)',
 									fontSize: '.85rem',
-									marginBottom: 16,
 								}}
 							>
-								Chưa có báo cáo cho ngày {formatDateToVN(selDate)}
-							</p>
-							<button
-								className='btn-primary'
-								onClick={onOpenCreateReport}
-							>
-								＋ Tạo báo cáo ngày này
-							</button>
-						</div>
-					) : (
-						<WardTable
-							filtered={filtered}
-							pageRows={pageRows}
-							report={report}
-							stats={stats}
-							getPermForDept={getPermForDept}
-							onEdit={onEdit}
-							onDelete={onDelete}
-						/>
-					)}
+								Đang tải dữ liệu...
+							</div>
+						) : !report ? (
+							<div style={{ textAlign: 'center', padding: '60px' }}>
+								<p style={{ fontSize: '2rem', marginBottom: 8 }}>📋</p>
+								<p
+									style={{
+										color: 'var(--mut)',
+										fontSize: '.85rem',
+										marginBottom: 16,
+									}}
+								>
+									Chưa có báo cáo cho ngày {formatDateToVN(selDate)}
+								</p>
+								<button
+									className='btn-primary'
+									onClick={onOpenCreateReport}
+								>
+									＋ Tạo báo cáo ngày này
+								</button>
+							</div>
+						) : (
+							<WardTable
+								filtered={filtered}
+								pageRows={pageRows}
+								report={report}
+								stats={stats}
+								getPermForDept={getPermForDept}
+								onEdit={onEdit}
+								onDelete={onDelete}
+							/>
+						)}
+					</div>
 				</div>
 			</div>
 
