@@ -115,6 +115,8 @@ interface ClsDeptFieldConfig {
 	fieldIds: ClsFieldId[];
 	/** Nhãn riêng cho trường "sampleOrVisit" (mẫu bệnh phẩm/tiêu bản/NB khám/tư vấn) theo khoa */
 	sampleLabel?: string;
+	/** Nhãn riêng cho trường "linen" (Đồ vải (Kg) / Truyền thông) theo khoa */
+	linenLabel?: string;
 }
 
 /** Mã khoa (code_department, seed CLS01..CLS10) → cấu hình trường áp dụng */
@@ -127,7 +129,11 @@ const CONFIG_BY_CODE: Record<string, ClsDeptFieldConfig> = {
 	CLS06: { fieldIds: FIELD_GROUPS.imaging }, // Thăm dò chức năng
 	CLS07: { fieldIds: FIELD_GROUPS.imaging }, // X.Quang
 	CLS08: { fieldIds: FIELD_GROUPS.infection }, // Kiểm soát nhiễm khuẩn
-	CLS09: { fieldIds: FIELD_GROUPS.sample, sampleLabel: 'Người bệnh tư vấn' }, // Dinh dưỡng
+	CLS09: {
+		fieldIds: [...FIELD_GROUPS.sample, 'linen'],
+		sampleLabel: 'Người bệnh tư vấn',
+		linenLabel: 'Truyền thông',
+	}, // Dinh dưỡng
 	CLS10: { fieldIds: FIELD_GROUPS.sample, sampleLabel: 'Người bệnh đến khám' }, // Khám bệnh
 };
 
@@ -141,6 +147,9 @@ export function getClsFields(code?: string | null): ClsFieldDescriptor[] {
 		const base = BASE_DESCRIPTORS[id];
 		if (id === 'sampleOrVisit' && cfg?.sampleLabel) {
 			return { ...base, label: cfg.sampleLabel };
+		}
+		if (id === 'linen' && cfg?.linenLabel) {
+			return { ...base, label: cfg.linenLabel };
 		}
 		return base;
 	});

@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "reset-passwords-to-username": "node scripts/resetAllPasswordsToUsername.js"
+    "set-account-passwords": "node scripts/setAccountPasswords.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

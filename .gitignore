@@ -52,3 +52,6 @@ desktop.ini
 *.local
 .cache/
 .temp/
+
+# Chứa mật khẩu thật dạng plaintext (chạy 1 lần rồi xoá) — không commit
+server/scripts/setAccountPasswords.js

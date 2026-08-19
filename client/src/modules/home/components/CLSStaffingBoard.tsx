@@ -134,18 +134,6 @@ export default function CLSStaffingBoard({
 								<p className='date-hdr-val'>{formatDateToVN(activeDate)}</p>
 							</div>
 							<div className='date-hdr-actions'>
-								<button
-									className='btn-outline'
-									onClick={() =>
-										window.open(
-											`/api/reports/cls-export?date=${activeDate}`,
-											'_blank',
-										)
-									}
-									title='Xuất Excel đúng mẫu báo cáo hệ CLS cho ngày này'
-								>
-									📥 Xuất Excel (mẫu CLS)
-								</button>
 								{hasEditPerm && (
 									<button
 										className='btn-edit'
