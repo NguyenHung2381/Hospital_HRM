@@ -1,8 +1,15 @@
 import ModalForm from '@/components/common/ModalForm';
 import NumberInput from '@/components/ui/NumberInput';
 import type { ApiDept, ApiReport } from '@/types/apiType';
-import { useEffect, useState } from 'react';
+import { getClsFields } from '@/utils/clsFieldConfig';
+import { useEffect, useMemo, useState } from 'react';
 import FormField from '../FormField';
+
+const chunk3 = <T,>(items: T[]): T[][] => {
+	const rows: T[][] = [];
+	for (let i = 0; i < items.length; i += 3) rows.push(items.slice(i, i + 3));
+	return rows;
+};
 
 interface AddClsRecordModalProps {
 	reportId: number;
@@ -99,6 +106,12 @@ export default function AddClsRecordModal({
 	const diLam =
 		(draft.total_staff ?? 0) - (draft.staff_on_duty ?? 0) - (draft.staff_long_leave ?? 0);
 
+	const selectedDept = addDepts.find((d) => d.id_department === draft.id_department);
+	const clsFields = useMemo(
+		() => getClsFields(selectedDept?.code_department),
+		[selectedDept?.code_department],
+	);
+
 	const setField = <K extends keyof AddClsDraft>(key: K, val: AddClsDraft[K]) =>
 		setDraft((p) => ({ ...p, [key]: val }));
 
@@ -166,107 +179,40 @@ export default function AddClsRecordModal({
 
 				<div className='msec'>
 					<p className='msec-title'>📊 Khối lượng công việc đã thực hiện</p>
-					<div className='mrow3'>
-						<NumberInput
-							label='Mẫu BP / Tiêu bản / NB khám / tư vấn'
-							value={draft.sample_or_visit_cnt}
-							onChange={(v) => setField('sample_or_visit_cnt', v)}
-						/>
-						<NumberInput
-							label='X-quang hoặc siêu âm'
-							value={draft.xray_us_cnt}
-							onChange={(v) => setField('xray_us_cnt', v)}
-						/>
-						<NumberInput
-							label='CT / Nội soi'
-							value={draft.ct_endoscopy_cnt}
-							onChange={(v) => setField('ct_endoscopy_cnt', v)}
-						/>
-					</div>
-					<div className='mrow3'>
-						<NumberInput
-							label='MRI / Loãng xương'
-							value={draft.mri_bonedensity_cnt}
-							onChange={(v) => setField('mri_bonedensity_cnt', v)}
-						/>
-						<NumberInput
-							label='Điện tim hoặc can thiệp'
-							value={draft.ecg_intervention_cnt}
-							onChange={(v) => setField('ecg_intervention_cnt', v)}
-						/>
-						<NumberInput
-							label='Đồ vải (Kg) / Truyền thông'
-							value={draft.linen_media_cnt}
-							onChange={(v) => setField('linen_media_cnt', v)}
-						/>
-					</div>
-					<div className='mrow3'>
-						<NumberInput
-							label='Xử lý dụng cụ sắt (Bộ)'
-							value={draft.tool_metal_cnt}
-							onChange={(v) => setField('tool_metal_cnt', v)}
-						/>
-						<NumberInput
-							label='Xử lý dụng cụ nhựa (Cái)'
-							value={draft.tool_plastic_cnt}
-							onChange={(v) => setField('tool_plastic_cnt', v)}
-						/>
-						<NumberInput
-							label='Khoa giám sát (số khoa)'
-							value={draft.supervised_dept_cnt}
-							onChange={(v) => setField('supervised_dept_cnt', v)}
-						/>
-					</div>
+					{chunk3(clsFields).map((row, i) => (
+						<div
+							key={i}
+							className={row.length === 2 ? 'mrow2' : 'mrow3'}
+						>
+							{row.map((f) => (
+								<NumberInput
+									key={f.id}
+									label={f.label}
+									value={draft[f.apiDaLamKey as keyof AddClsDraft] as number | null}
+									onChange={(v) => setField(f.apiDaLamKey as keyof AddClsDraft, v)}
+								/>
+							))}
+						</div>
+					))}
 				</div>
 
 				<div className='msec'>
 					<p className='msec-title'>⏳ Số lượng tồn / chờ</p>
-					<div className='mrow3'>
-						<NumberInput
-							label='Mẫu BP / Tiêu bản / NB khám / tư vấn'
-							value={draft.pending_sample_or_visit_cnt}
-							onChange={(v) => setField('pending_sample_or_visit_cnt', v)}
-						/>
-						<NumberInput
-							label='X-quang hoặc siêu âm'
-							value={draft.pending_xray_us_cnt}
-							onChange={(v) => setField('pending_xray_us_cnt', v)}
-						/>
-						<NumberInput
-							label='CT / Nội soi'
-							value={draft.pending_ct_endoscopy_cnt}
-							onChange={(v) => setField('pending_ct_endoscopy_cnt', v)}
-						/>
-					</div>
-					<div className='mrow3'>
-						<NumberInput
-							label='MRI / Loãng xương'
-							value={draft.pending_mri_bonedensity_cnt}
-							onChange={(v) => setField('pending_mri_bonedensity_cnt', v)}
-						/>
-						<NumberInput
-							label='Điện tim hoặc Can thiệp'
-							value={draft.pending_ecg_intervention_cnt}
-							onChange={(v) => setField('pending_ecg_intervention_cnt', v)}
-						/>
-						<NumberInput
-							label='Đồ vải (Kg)'
-							value={draft.pending_linen_cnt}
-							onChange={(v) => setField('pending_linen_cnt', v)}
-						/>
-					</div>
-					<div className='mrow2'>
-						<NumberInput
-							label='Xử lý dụng cụ sắt (Bộ)'
-							value={draft.pending_tool_metal_cnt}
-							onChange={(v) => setField('pending_tool_metal_cnt', v)}
-						/>
-						<NumberInput
-							label='Xử lý dụng cụ nhựa (Cái)'
-							value={draft.pending_tool_plastic_cnt}
-							onChange={(v) => setField('pending_tool_plastic_cnt', v)}
-						/>
-					</div>
+					{chunk3(clsFields.filter((f) => f.apiTonChoKey !== null)).map((row, i) => (
+						<div
+							key={i}
+							className={row.length === 2 ? 'mrow2' : 'mrow3'}
+						>
+							{row.map((f) => (
+								<NumberInput
+									key={f.id}
+									label={f.label}
+									value={draft[f.apiTonChoKey as keyof AddClsDraft] as number | null}
+									onChange={(v) => setField(f.apiTonChoKey as keyof AddClsDraft, v)}
+								/>
+							))}
+						</div>
+					))}
 				</div>
 
 				<div className='msec'>

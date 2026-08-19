@@ -9,3 +9,7 @@ export const ReportPage = lazy(() => import('@/modules/admin/pages/ReportPage'))
 export const DashboardPage = lazy(() => import('@/modules/admin/pages/DashboardPage'));
 export const LoginPage = lazy(() => import('@/modules/auth/pages/LoginPage'));
 export const HomePage = lazy(() => import('@/modules/home/pages/HomePage'));
+
+export const NotFoundPage = lazy(() => import('@/modules/errors/pages/NotFoundPage'));
+export const BadGatewayPage = lazy(() => import('@/modules/errors/pages/BadGatewayPage'));
+export const ServiceUnavailablePage = lazy(() => import('@/modules/errors/pages/ServiceUnavailablePage'));

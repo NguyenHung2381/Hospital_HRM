@@ -1,5 +1,6 @@
 const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
+const { hashPassword } = require('../utils/password');
 
 // GET /api/users
 async function getAll(req, res, next) {
@@ -80,12 +81,13 @@ async function create(req, res, next) {
 			return res
 				.status(400)
 				.json({ success: false, message: 'Thiếu thông tin bắt buộc' });
+		const hashedPassword = await hashPassword(password);
 		const pool = await getPool();
 		const result = await pool
 			.request()
 			.input('full_name', sql.NVarChar(150), full_name)
 			.input('username', sql.NVarChar(50), username)
-			.input('password', sql.NVarChar(255), password)
+			.input('password', sql.NVarChar(255), hashedPassword)
 			.input('user_code', sql.NVarChar(10), user_code ?? null)
 			.input('id_department', sql.Int, id_department ?? null)
 			.input('position', sql.NVarChar(100), position ?? null)

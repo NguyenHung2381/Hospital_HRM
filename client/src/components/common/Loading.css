@@ -1,0 +1,94 @@
+.loading-screen {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 18px;
+	background: var(--bg);
+	z-index: 50;
+}
+
+.loading-inline {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	padding: 40px 0;
+}
+
+.loading-spinner {
+	position: relative;
+	width: 56px;
+	height: 56px;
+}
+
+.loading-ring {
+	position: absolute;
+	inset: 0;
+	border-radius: 50%;
+	border: 3.5px solid transparent;
+	border-top-color: var(--p);
+	border-right-color: var(--p);
+	animation: loading-spin 0.9s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.loading-ring--delay {
+	inset: 8px;
+	border-top-color: var(--acc);
+	border-right-color: transparent;
+	border-left-color: var(--acc);
+	animation-duration: 1.3s;
+	animation-direction: reverse;
+	opacity: 0.85;
+}
+
+.loading-dot {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 8px;
+	height: 8px;
+	margin: -4px 0 0 -4px;
+	border-radius: 50%;
+	background: linear-gradient(135deg, var(--p), var(--pd));
+	animation: loading-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes loading-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes loading-pulse {
+	0%,
+	100% {
+		transform: scale(0.85);
+		opacity: 0.7;
+	}
+	50% {
+		transform: scale(1.15);
+		opacity: 1;
+	}
+}
+
+.loading-label {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--mut);
+	letter-spacing: 0.02em;
+	animation: loading-fade 1.6s ease-in-out infinite;
+}
+
+@keyframes loading-fade {
+	0%,
+	100% {
+		opacity: 0.55;
+	}
+	50% {
+		opacity: 1;
+	}
+}

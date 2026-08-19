@@ -143,7 +143,8 @@ export default function DataPage() {
 	} = usePagination(filtered, 15);
 
 	// ── Dual scroll sync ─────────────────────────────────────────────────
-	const { tblOuterRef, scrollTopRef, scrollInnerRef } = useDualScrollSync(report);
+	const wardScroll = useDualScrollSync(report);
+	const clsScroll = useDualScrollSync(report);
 
 	// ────────────────────────────────────────────────────────────────────
 	return (
@@ -191,8 +192,8 @@ export default function DataPage() {
 							<>
 								<span className='dv-hero-sub-label'>
 									{activeTab === 'ward'
-										? 'BẢNG THEO DÕI NHÂN LỰC ĐĐ - HỘ SINH - KTV'
-										: 'BẢNG THEO DÕI DỮ LIỆU HỆ CẬN LÂM SÀNG'}
+										? 'NHÂN LỰC ĐD - HỘ SINH - KTV'
+										: 'DỮ LIỆU HỆ CẬN LÂM SÀNG'}
 								</span>
 								<span className='dv-progress-pill'>
 									<span className='dv-progress-track'>
@@ -224,7 +225,6 @@ export default function DataPage() {
 							<WardTabActions
 								report={report}
 								loadingReport={loadingReport}
-								missingDepts={missingDepts}
 								selKhoa={selKhoa}
 								allRows={allRows}
 								canDeleteReport={canDeleteReport}
@@ -241,7 +241,6 @@ export default function DataPage() {
 							<ClsTabActions
 								report={report}
 								loadingReport={loadingReport}
-								missingClsDepts={missingClsDepts}
 								canDeleteReport={canDeleteReport}
 								onOpenAddClsRecord={() => setShowAddClsRecord(true)}
 								onOpenDeleteReport={() => {
@@ -302,9 +301,14 @@ export default function DataPage() {
 						getPermForDept={getPermForDept}
 						onEdit={setEditRecord}
 						onDelete={setDelRecord}
-						scrollTopRef={scrollTopRef}
-						scrollInnerRef={scrollInnerRef}
-						tblOuterRef={tblOuterRef}
+						scrollTopRef={wardScroll.scrollTopRef}
+						tblOuterRef={wardScroll.tblOuterRef}
+						scrollThumb={wardScroll.thumb}
+						onThumbPointerDown={wardScroll.onThumbPointerDown}
+						onThumbPointerMove={wardScroll.onThumbPointerMove}
+						onThumbPointerUp={wardScroll.onThumbPointerUp}
+						onTrackPointerDown={wardScroll.onTrackPointerDown}
+						onTableWheel={wardScroll.onWheel}
 						page={page}
 						setPage={setPage}
 						pageSize={pageSize}
@@ -324,6 +328,14 @@ export default function DataPage() {
 						getPermForDept={getPermForDept}
 						onEdit={setEditClsRecord}
 						onDelete={setDelClsRecord}
+						scrollTopRef={clsScroll.scrollTopRef}
+						tblOuterRef={clsScroll.tblOuterRef}
+						scrollThumb={clsScroll.thumb}
+						onThumbPointerDown={clsScroll.onThumbPointerDown}
+						onThumbPointerMove={clsScroll.onThumbPointerMove}
+						onThumbPointerUp={clsScroll.onThumbPointerUp}
+						onTrackPointerDown={clsScroll.onTrackPointerDown}
+						onTableWheel={clsScroll.onWheel}
 					/>
 				)}
 			</div>

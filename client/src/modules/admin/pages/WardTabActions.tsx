@@ -10,7 +10,6 @@ export interface MissingDept {
 export interface WardTabActionsProps {
 	report: ApiReport | null;
 	loadingReport: boolean;
-	missingDepts: MissingDept[];
 	selKhoa: Set<number>;
 	allRows: KhoaRecord[];
 	canDeleteReport: boolean;
@@ -25,7 +24,6 @@ export interface WardTabActionsProps {
 export default function WardTabActions({
 	report,
 	loadingReport,
-	missingDepts,
 	selKhoa,
 	allRows,
 	canDeleteReport,
@@ -58,7 +56,7 @@ export default function WardTabActions({
 					}}
 					onClick={onOpenAddRecord}
 				>
-					+ Thêm báo cáo khoa
+					+ Thêm khoa
 				</button>
 			)}
 			{selKhoa.size > 0 && selKhoa.size < allRows.length && (
@@ -79,29 +77,8 @@ export default function WardTabActions({
 					}}
 					onClick={onClearFilter}
 				>
-					✕ Bỏ lọc ({selKhoa.size} khoa)
+					✕ Bỏ lọc ({selKhoa.size})
 				</button>
-			)}
-			{report && missingDepts.length > 0 && (
-				<span
-					style={{
-						fontSize: '0.82rem',
-						fontWeight: 600,
-						background: '#fffbeb',
-						color: '#b45309',
-						border: '1.5px solid #fcd34d',
-						borderRadius: '8px',
-						padding: '6px 12px',
-						display: 'inline-flex',
-						alignItems: 'center',
-						gap: '6px',
-						cursor: 'default',
-						userSelect: 'none',
-					}}
-					title={missingDepts.map((d) => d.department_name).join('\n')}
-				>
-					⚠ {missingDepts.length} khoa chưa nhập
-				</span>
 			)}
 			{report && canDeleteReport && (
 				<button

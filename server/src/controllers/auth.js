@@ -1,5 +1,6 @@
 const { getPool, sql } = require('../config/db');
 const jwt = require('jsonwebtoken');
+const { comparePassword } = require('../utils/password');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change_me_in_production';
 const JWT_EXPIRES = process.env.JWT_EXPIRES || '8h';
@@ -37,8 +38,8 @@ async function login(req, res, next) {
 			});
 		}
 
-		// So sánh password plaintext (chưa bcrypt)
-		if (password !== found.password) {
+		const passwordOk = await comparePassword(password, found.password);
+		if (!passwordOk) {
 			return res
 				.status(401)
 				.json({ success: false, message: 'Mật khẩu không đúng' });

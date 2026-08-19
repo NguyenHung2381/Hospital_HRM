@@ -2,6 +2,7 @@ import type { ApiClsRecord, ApiReport } from '@/types/apiType';
 import type { KhoaClsRecord } from '@/types/clsType';
 import { formatDateToVN } from '@/utils/dateUtils';
 import type { aggregateClsDashboardStats } from '@/utils/clsCalc';
+import type { PointerEvent, RefObject, WheelEvent } from 'react';
 import ClsTable from './ClsTable';
 import type { DeptPerm } from './WardTable';
 
@@ -15,6 +16,15 @@ export interface ClsTabPanelProps {
 	getPermForDept: (id_department: number) => DeptPerm | undefined;
 	onEdit: (rec: ApiClsRecord) => void;
 	onDelete: (target: { id: number; name: string }) => void;
+
+	scrollTopRef: RefObject<HTMLDivElement | null>;
+	tblOuterRef: RefObject<HTMLDivElement | null>;
+	scrollThumb: { left: number; width: number; visible: boolean };
+	onThumbPointerDown: (e: PointerEvent<HTMLDivElement>) => void;
+	onThumbPointerMove: (e: PointerEvent<HTMLDivElement>) => void;
+	onThumbPointerUp: (e: PointerEvent<HTMLDivElement>) => void;
+	onTrackPointerDown: (e: PointerEvent<HTMLDivElement>) => void;
+	onTableWheel: (e: WheelEvent<HTMLDivElement>) => void;
 }
 
 /** Toàn bộ nội dung tab "Hệ Cận lâm sàng" (CLS) — DataPage. */
@@ -28,6 +38,14 @@ export default function ClsTabPanel({
 	getPermForDept,
 	onEdit,
 	onDelete,
+	scrollTopRef,
+	tblOuterRef,
+	scrollThumb,
+	onThumbPointerDown,
+	onThumbPointerMove,
+	onThumbPointerUp,
+	onTrackPointerDown,
+	onTableWheel,
 }: ClsTabPanelProps) {
 	return (
 		<>
@@ -115,15 +133,37 @@ export default function ClsTabPanel({
 					className='dv-tbl-wrap'
 					style={{ marginBottom: 24 }}
 				>
-					<div className='dv-tbl-scroll'>
-						<ClsTable
-							clsRows={clsRows}
-							report={report}
-							clsStats={clsStats}
-							getPermForDept={getPermForDept}
-							onEdit={onEdit}
-							onDelete={onDelete}
-						/>
+					<div
+						className='dv-scroll-top'
+						ref={scrollTopRef}
+						onPointerDown={onTrackPointerDown}
+					>
+						{scrollThumb.visible && (
+							<div
+								className='dv-scroll-top-thumb'
+								style={{ left: scrollThumb.left, width: scrollThumb.width }}
+								onPointerDown={onThumbPointerDown}
+								onPointerMove={onThumbPointerMove}
+								onPointerUp={onThumbPointerUp}
+								onPointerCancel={onThumbPointerUp}
+							/>
+						)}
+					</div>
+					<div className='dv-tbl-outer'>
+						<div
+							className='dv-tbl-hscroll'
+							ref={tblOuterRef}
+							onWheel={onTableWheel}
+						>
+							<ClsTable
+								clsRows={clsRows}
+								report={report}
+								clsStats={clsStats}
+								getPermForDept={getPermForDept}
+								onEdit={onEdit}
+								onDelete={onDelete}
+							/>
+						</div>
 					</div>
 				</div>
 			)}

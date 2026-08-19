@@ -3,7 +3,7 @@ import type { KhoaRecord } from '@/types/reportType';
 import { formatDateToVN } from '@/utils/dateUtils';
 import { buildStripItems } from '@/utils/UIHelperUtils';
 import type { aggregateDashboardStats } from '@/utils/staffingCalc';
-import type { RefObject } from 'react';
+import type { PointerEvent, RefObject, WheelEvent } from 'react';
 import StatCard from '../components/StatCard';
 import DataPager from './DataPager';
 import type { DeptPerm } from './WardTable';
@@ -25,8 +25,13 @@ export interface WardTabPanelProps {
 	onDelete: (target: { id: number; name: string }) => void;
 
 	scrollTopRef: RefObject<HTMLDivElement | null>;
-	scrollInnerRef: RefObject<HTMLDivElement | null>;
 	tblOuterRef: RefObject<HTMLDivElement | null>;
+	scrollThumb: { left: number; width: number; visible: boolean };
+	onThumbPointerDown: (e: PointerEvent<HTMLDivElement>) => void;
+	onThumbPointerMove: (e: PointerEvent<HTMLDivElement>) => void;
+	onThumbPointerUp: (e: PointerEvent<HTMLDivElement>) => void;
+	onTrackPointerDown: (e: PointerEvent<HTMLDivElement>) => void;
+	onTableWheel: (e: WheelEvent<HTMLDivElement>) => void;
 
 	page: number;
 	setPage: (p: number | ((prev: number) => number)) => void;
@@ -49,8 +54,13 @@ export default function WardTabPanel({
 	onEdit,
 	onDelete,
 	scrollTopRef,
-	scrollInnerRef,
 	tblOuterRef,
+	scrollThumb,
+	onThumbPointerDown,
+	onThumbPointerMove,
+	onThumbPointerUp,
+	onTrackPointerDown,
+	onTableWheel,
 	page,
 	setPage,
 	pageSize,
@@ -88,16 +98,24 @@ export default function WardTabPanel({
 				<div
 					className='dv-scroll-top'
 					ref={scrollTopRef}
+					onPointerDown={onTrackPointerDown}
 				>
-					<div
-						className='dv-scroll-top-inner'
-						ref={scrollInnerRef}
-					/>
+					{scrollThumb.visible && (
+						<div
+							className='dv-scroll-top-thumb'
+							style={{ left: scrollThumb.left, width: scrollThumb.width }}
+							onPointerDown={onThumbPointerDown}
+							onPointerMove={onThumbPointerMove}
+							onPointerUp={onThumbPointerUp}
+							onPointerCancel={onThumbPointerUp}
+						/>
+					)}
 				</div>
 				<div className='dv-tbl-outer'>
 					<div
 						className='dv-tbl-hscroll'
 						ref={tblOuterRef}
+						onWheel={onTableWheel}
 					>
 						{loadingReport ? (
 							<div

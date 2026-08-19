@@ -702,8 +702,16 @@
 	display: flex;
 	gap: 8px;
 	align-items: center;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	margin-left: auto;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.pg-hdr-actions::-webkit-scrollbar {
+	display: none;
+}
+.pg-hdr-actions > * {
+	flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
@@ -805,6 +813,8 @@
 		gap: 14px;
 	}
 	.pg-hdr-actions {
+		flex-wrap: wrap;
+		overflow-x: visible;
 		justify-content: flex-start;
 		gap: 8px 6px;
 	}

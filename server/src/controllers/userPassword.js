@@ -1,4 +1,5 @@
 const { getPool, sql } = require('../config/db');
+const { hashPassword, comparePassword } = require('../utils/password');
 
 // PUT /api/users/:id/reset-password
 async function resetPassword(req, res, next) {
@@ -13,10 +14,11 @@ async function resetPassword(req, res, next) {
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy người dùng' });
 		const { username } = userResult.recordset[0];
+		const hashedPassword = await hashPassword(username);
 		await pool
 			.request()
 			.input('id', sql.Int, req.params.id)
-			.input('password', sql.NVarChar(255), username)
+			.input('password', sql.NVarChar(255), hashedPassword)
 			.query(
 				`UPDATE Users SET password = @password, updated_at = SYSDATETIMEOFFSET() WHERE id_user = @id`,
 			);
@@ -57,15 +59,17 @@ async function changePassword(req, res, next) {
 				.json({ success: false, message: 'Không tìm thấy người dùng' });
 
 		const found = userResult.recordset[0];
-		if (found.password !== old_password)
+		const oldPasswordOk = await comparePassword(old_password, found.password);
+		if (!oldPasswordOk)
 			return res
 				.status(401)
 				.json({ success: false, message: 'Mật khẩu hiện tại không đúng' });
 
+		const hashedNewPassword = await hashPassword(new_password);
 		await pool
 			.request()
 			.input('id', sql.Int, req.params.id)
-			.input('new_password', sql.NVarChar(255), new_password)
+			.input('new_password', sql.NVarChar(255), hashedNewPassword)
 			.query(
 				`UPDATE Users SET password = @new_password, updated_at = SYSDATETIMEOFFSET() WHERE id_user = @id`,
 			);
