@@ -288,7 +288,7 @@ export default function DataPage() {
 					</div>
 				)}
 
-				{activeTab === 'ward' && (
+				<div style={activeTab === 'ward' ? undefined : { display: 'none' }}>
 					<WardTabPanel
 						selDate={selDate}
 						report={report}
@@ -315,9 +315,9 @@ export default function DataPage() {
 						setPageSize={setPageSize}
 						totalPages={totalPages}
 					/>
-				)}
+				</div>
 
-				{activeTab === 'cls' && (
+				<div style={activeTab === 'cls' ? undefined : { display: 'none' }}>
 					<ClsTabPanel
 						selDate={selDate}
 						report={report}
@@ -337,7 +337,7 @@ export default function DataPage() {
 						onTrackPointerDown={clsScroll.onTrackPointerDown}
 						onTableWheel={clsScroll.onWheel}
 					/>
-				)}
+				</div>
 			</div>
 
 			{/* Overlay mobile */}
