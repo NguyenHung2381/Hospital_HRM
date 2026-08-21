@@ -20,6 +20,7 @@
 
 const ExcelJS = require('exceljs');
 const { getPool, sql } = require('../config/db');
+const { loadUserDeptAccess } = require('../services/deptAccess');
 const { enumerateDays } = require('../utils/reportDateGrouping');
 
 const MAX_DAYS = 31;
@@ -625,6 +626,17 @@ async function exportClsToExcel(req, res, next) {
 		}
 
 		const pool = await getPool();
+
+		// Báo cáo gộp toàn bộ khoa hệ CLS → chỉ role có quyền xem toàn bệnh viện
+		// (department_access_type = 'all') mới được xuất.
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (access?.accessType !== 'all') {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền xuất báo cáo hệ CLS toàn bệnh viện',
+			});
+		}
+
 		const isRange = dateList.length > 1;
 
 		// Lấy dữ liệu tất cả các ngày trước (dùng chung cho sheet tổng quan + từng sheet ngày)

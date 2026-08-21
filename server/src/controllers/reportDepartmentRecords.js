@@ -1,5 +1,6 @@
 const { getPool, sql } = require('../config/db');
 const { resolveBothRecommended } = require('../services/reportRecommendedHelper');
+const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
 const appEmitter = require('../events/appEmitter');
 
 // POST /api/reports/:id/records
@@ -13,6 +14,14 @@ async function addRecord(req, res, next) {
 				.json({ success: false, message: 'Thiếu id_department' });
 
 		const pool = await getPool();
+
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (!canAccessDept(access, r.id_department, 'can_edit')) {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền nhập dữ liệu cho khoa này',
+			});
+		}
 
 		const check = await pool
 			.request()
@@ -129,6 +138,15 @@ async function updateRecord(req, res, next) {
 				.json({ success: false, message: 'Không tìm thấy record' });
 
 		const id_department = deptRes.recordset[0].id_department;
+
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (!canAccessDept(access, id_department, 'can_edit')) {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền sửa dữ liệu của khoa này',
+			});
+		}
+
 		const { recommended, recommendedCalc } = await resolveBothRecommended(
 			pool,
 			{
@@ -200,6 +218,26 @@ async function removeRecord(req, res, next) {
 	try {
 		const { id, recordId } = req.params;
 		const pool = await getPool();
+
+		const deptRes = await pool
+			.request()
+			.input('id', sql.Int, recordId)
+			.query(
+				`SELECT id_department FROM [Report_Department_Records ] WHERE Id = @id`,
+			);
+		if (!deptRes.recordset.length)
+			return res
+				.status(404)
+				.json({ success: false, message: 'Không tìm thấy bản ghi' });
+
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (!canAccessDept(access, deptRes.recordset[0].id_department, 'can_delete')) {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền xoá dữ liệu của khoa này',
+			});
+		}
+
 		const result = await pool
 			.request()
 			.input('id', sql.Int, recordId)

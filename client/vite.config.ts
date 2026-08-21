@@ -13,7 +13,10 @@ export default defineConfig({
 	},
 	server: {
 		host: true,
-		allowedHosts: true,
+		// KHÔNG đặt true — allowedHosts:true tắt hẳn cơ chế chống DNS-rebinding
+		// của Vite, nguy hiểm nếu chạy `npm run dev` trên máy đã thông Internet.
+		// Mặc định (không set) Vite chỉ cho phép localhost + hostname cấu hình —
+		// đủ dùng để mở dev server từ máy khác trong LAN qua http://<ip-may>:5173.
 		proxy: {
 			'/api': 'http://localhost:3000',
 		},

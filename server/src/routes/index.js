@@ -1,6 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const appEmitter = require('../events/appEmitter');
+const {
+	authenticate,
+	requireAdmin,
+	requireDashboardRole,
+	requireSelfOrAdmin,
+} = require('../middleware/auth');
+const { loginRateLimit } = require('../middleware/loginRateLimit');
 
 router.get('/', (req, res) => {
 	res.send('OK');
@@ -21,7 +28,10 @@ const coordination = require('../controllers/coordination');
 const { exportToExcel } = require('../controllers/exportReports');
 const { exportClsToExcel } = require('../controllers/exportCls');
 
-router.post('/auth/login', auth.login);
+router.post('/auth/login', loginRateLimit, auth.login);
+
+// ── Từ đây trở xuống: bắt buộc phải đăng nhập (JWT hợp lệ) ─────
+router.use(authenticate);
 
 // ── SSE: global realtime subscribe ───────────────────────────
 // Đặt TRƯỚC tất cả route /:id để không bị conflict
@@ -56,60 +66,87 @@ router.get('/subscribe', (req, res) => {
 router.get('/departments/simple', departments.getSimple);
 router.get('/departments', departments.getAll);
 router.get('/departments/:id', departments.getById);
-router.post('/departments', departments.create);
-router.put('/departments/:id', departments.update);
-router.delete('/departments/:id', departments.remove);
+router.post('/departments', requireDashboardRole, departments.create);
+router.put('/departments/:id', requireDashboardRole, departments.update);
+router.delete('/departments/:id', requireDashboardRole, departments.remove);
 
-// Cấu hình Khuyến nghị theo khoa
+// Cấu hình Khuyến nghị theo khoa (trang quản lý Khoa — dashboard)
 router.get(
 	'/departments/:id/recommended-config',
 	deptRecommendedConfig.getRecommendedConfig,
 );
 router.post(
 	'/departments/:id/recommended-config',
+	requireDashboardRole,
 	deptRecommendedConfig.createRecommendedConfig,
 );
 router.put(
 	'/departments/:id/recommended-config',
+	requireDashboardRole,
 	deptRecommendedConfig.updateRecommendedConfig,
 );
 router.delete(
 	'/departments/:id/recommended-config',
+	requireDashboardRole,
 	deptRecommendedConfig.removeRecommendedConfig,
 );
 
 // ── Users ─────────────────────────────────────────────────────
-router.get('/users', users.getAll);
-router.get('/users/:id/departments', userDepartmentAccess.getDepartments);
+// Quản lý tài khoản (danh sách, tạo/sửa/xoá, phân quyền) → 3 vai trò dashboard
+// (admin/giám đốc/điều dưỡng trưởng BV), khớp DASHBOARD_ROLES ở client.
+// Các route đọc/ghi dữ liệu của CHÍNH tài khoản đang đăng nhập (để load
+// dashboard riêng) → cho phép chính chủ hoặc 1 trong 3 vai trò trên.
+router.get('/users', requireDashboardRole, users.getAll);
+router.get(
+	'/users/:id/departments',
+	requireSelfOrAdmin(),
+	userDepartmentAccess.getDepartments,
+);
 router.get(
 	'/users/:id/assigned-departments',
+	requireSelfOrAdmin(),
 	userDepartmentAccess.getAssignedDepartments,
 );
 router.put(
 	'/users/:id/assigned-departments',
+	requireDashboardRole,
 	userDepartmentAccess.setAssignedDepartments,
 );
 router.get(
 	'/users/:id/dept-permissions',
+	requireSelfOrAdmin(),
 	userDepartmentAccess.getDeptPermissions,
 );
 router.put(
 	'/users/:id/dept-permissions',
+	requireDashboardRole,
 	userDepartmentAccess.setDeptPermissions,
 );
-router.put('/users/:id/reset-password', userPassword.resetPassword);
-router.put('/users/:id/change-password', userPassword.changePassword);
-router.get('/users/:id', users.getById);
-router.post('/users', users.create);
-router.put('/users/:id', users.update);
-router.delete('/users/:id', users.remove);
+router.put(
+	'/users/:id/reset-password',
+	requireDashboardRole,
+	userPassword.resetPassword,
+);
+router.put(
+	'/users/:id/change-password',
+	requireSelfOrAdmin(),
+	userPassword.changePassword,
+);
+router.get('/users/:id', requireDashboardRole, users.getById);
+router.post('/users', requireDashboardRole, users.create);
+router.put('/users/:id', requireDashboardRole, users.update);
+router.delete('/users/:id', requireDashboardRole, users.remove);
 
 // ── Roles & Permissions ───────────────────────────────────────
 router.get('/roles', roles.getAll);
 router.get('/roles/:id', roles.getById);
-router.post('/roles', roles.create);
-router.put('/roles/:id', roles.update);
-router.put('/roles/:id/permissions', roles.updatePermissions);
+router.post('/roles', requireDashboardRole, roles.create);
+router.put('/roles/:id', requireDashboardRole, roles.update);
+router.put(
+	'/roles/:id/permissions',
+	requireDashboardRole,
+	roles.updatePermissions,
+);
 router.get('/permissions', roles.getAllPermissions);
 
 // ── Daily Reports ─────────────────────────────────────────────
@@ -161,9 +198,11 @@ router.post('/tt03/calculate', tt03.calculate);
 router.get('/tt03/report/:reportId', tt03.getReportTT03);
 
 // ── Điều phối nhân lực giữa các khoa ────────────────────────────
+// Client (CoordinationPage.tsx) chỉ hiện nút thêm/sửa/xoá cho đúng vai trò
+// "Quản trị hệ thống" → khoá tương ứng ở server.
 router.get('/coordination', coordination.getAll);
-router.post('/coordination', coordination.create);
-router.put('/coordination/:id', coordination.update);
-router.delete('/coordination/:id', coordination.remove);
+router.post('/coordination', requireAdmin, coordination.create);
+router.put('/coordination/:id', requireAdmin, coordination.update);
+router.delete('/coordination/:id', requireAdmin, coordination.remove);
 
 module.exports = router;

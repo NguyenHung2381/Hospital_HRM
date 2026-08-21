@@ -1,10 +1,17 @@
 const { getPool, sql } = require('../config/db');
-const { calcRecommended, fetchRecommendedConfig } = require('../services/tt03Formulas');
+const {
+	calcRecommended,
+	fetchRecommendedConfig,
+} = require('../services/tt03Formulas');
+const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
 const appEmitter = require('../events/appEmitter');
 
 // ── Helper: tính recommended_staff (khuyến cáo cố định hệ CLS) ──────────
 async function resolveRecommended(pool, record) {
-	if (record.recommended_staff !== undefined && record.recommended_staff !== null) {
+	if (
+		record.recommended_staff !== undefined &&
+		record.recommended_staff !== null
+	) {
 		return record.recommended_staff;
 	}
 	if (!record.id_department) return null;
@@ -18,7 +25,8 @@ async function resolveRecommended(pool, record) {
 
 // ── Helper: lấy toàn bộ bản ghi CLS của 1 báo cáo (dùng trong reports.js#getById) ──
 async function getRecordsForReport(pool, id_report) {
-	const result = await pool.request().input('id_report', sql.Int, id_report).query(`
+	const result = await pool.request().input('id_report', sql.Int, id_report)
+		.query(`
 		SELECT
 			rcr.Id AS id, rcr.id_report, rcr.id_department, rcr.sort_order,
 			d.name_department AS department_name, d.code_department,
@@ -53,10 +61,20 @@ async function addRecord(req, res, next) {
 
 		const pool = await getPool();
 
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (!canAccessDept(access, r.id_department, 'can_edit')) {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền nhập dữ liệu cho khoa này',
+			});
+		}
+
 		const check = await pool
 			.request()
 			.input('id_report', sql.Int, id)
-			.query(`SELECT id_report FROM Daily_Reports WHERE id_report = @id_report`);
+			.query(
+				`SELECT id_report FROM Daily_Reports WHERE id_report = @id_report`,
+			);
 		if (!check.recordset.length)
 			return res
 				.status(404)
@@ -94,7 +112,11 @@ async function addRecord(req, res, next) {
 			.input('xray_us_cnt', sql.SmallInt, r.xray_us_cnt ?? null)
 			.input('ct_endoscopy_cnt', sql.SmallInt, r.ct_endoscopy_cnt ?? null)
 			.input('mri_bonedensity_cnt', sql.SmallInt, r.mri_bonedensity_cnt ?? null)
-			.input('ecg_intervention_cnt', sql.SmallInt, r.ecg_intervention_cnt ?? null)
+			.input(
+				'ecg_intervention_cnt',
+				sql.SmallInt,
+				r.ecg_intervention_cnt ?? null,
+			)
 			.input('linen_media_cnt', sql.SmallInt, r.linen_media_cnt ?? null)
 			.input('tool_metal_cnt', sql.SmallInt, r.tool_metal_cnt ?? null)
 			.input('tool_plastic_cnt', sql.SmallInt, r.tool_plastic_cnt ?? null)
@@ -121,7 +143,11 @@ async function addRecord(req, res, next) {
 				r.pending_ecg_intervention_cnt ?? null,
 			)
 			.input('pending_linen_cnt', sql.SmallInt, r.pending_linen_cnt ?? null)
-			.input('pending_tool_metal_cnt', sql.SmallInt, r.pending_tool_metal_cnt ?? null)
+			.input(
+				'pending_tool_metal_cnt',
+				sql.SmallInt,
+				r.pending_tool_metal_cnt ?? null,
+			)
 			.input(
 				'pending_tool_plastic_cnt',
 				sql.SmallInt,
@@ -192,6 +218,15 @@ async function updateRecord(req, res, next) {
 				.json({ success: false, message: 'Không tìm thấy bản ghi' });
 
 		const id_department = deptRes.recordset[0].id_department;
+
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (!canAccessDept(access, id_department, 'can_edit')) {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền sửa dữ liệu của khoa này',
+			});
+		}
+
 		const recommended = await resolveRecommended(pool, { ...r, id_department });
 
 		const result = await pool
@@ -202,7 +237,11 @@ async function updateRecord(req, res, next) {
 			.input('xray_us_cnt', sql.SmallInt, r.xray_us_cnt ?? null)
 			.input('ct_endoscopy_cnt', sql.SmallInt, r.ct_endoscopy_cnt ?? null)
 			.input('mri_bonedensity_cnt', sql.SmallInt, r.mri_bonedensity_cnt ?? null)
-			.input('ecg_intervention_cnt', sql.SmallInt, r.ecg_intervention_cnt ?? null)
+			.input(
+				'ecg_intervention_cnt',
+				sql.SmallInt,
+				r.ecg_intervention_cnt ?? null,
+			)
 			.input('linen_media_cnt', sql.SmallInt, r.linen_media_cnt ?? null)
 			.input('tool_metal_cnt', sql.SmallInt, r.tool_metal_cnt ?? null)
 			.input('tool_plastic_cnt', sql.SmallInt, r.tool_plastic_cnt ?? null)
@@ -229,7 +268,11 @@ async function updateRecord(req, res, next) {
 				r.pending_ecg_intervention_cnt ?? null,
 			)
 			.input('pending_linen_cnt', sql.SmallInt, r.pending_linen_cnt ?? null)
-			.input('pending_tool_metal_cnt', sql.SmallInt, r.pending_tool_metal_cnt ?? null)
+			.input(
+				'pending_tool_metal_cnt',
+				sql.SmallInt,
+				r.pending_tool_metal_cnt ?? null,
+			)
 			.input(
 				'pending_tool_plastic_cnt',
 				sql.SmallInt,
@@ -299,6 +342,26 @@ async function removeRecord(req, res, next) {
 	try {
 		const { id, recordId } = req.params;
 		const pool = await getPool();
+
+		const deptRes = await pool
+			.request()
+			.input('id', sql.Int, recordId)
+			.query(`SELECT id_department FROM Report_CLS_Records WHERE Id = @id`);
+		if (!deptRes.recordset.length)
+			return res
+				.status(404)
+				.json({ success: false, message: 'Không tìm thấy bản ghi' });
+
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (
+			!canAccessDept(access, deptRes.recordset[0].id_department, 'can_delete')
+		) {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền xoá dữ liệu của khoa này',
+			});
+		}
+
 		const result = await pool
 			.request()
 			.input('id', sql.Int, recordId)

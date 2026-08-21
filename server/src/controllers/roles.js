@@ -102,11 +102,16 @@ async function update(req, res, next) {
 		const check = await pool
 			.request()
 			.input('id_role', sql.Int, req.params.id)
-			.query(`SELECT id_role FROM Roles WHERE id_role = @id_role`);
+			.query(`SELECT id_role, is_system FROM Roles WHERE id_role = @id_role`);
 		if (!check.recordset.length)
 			return res
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy vai trò' });
+		if (check.recordset[0].is_system)
+			return res.status(403).json({
+				success: false,
+				message: 'Không thể sửa vai trò hệ thống',
+			});
 
 		const result = await pool
 			.request()
@@ -149,6 +154,21 @@ async function updatePermissions(req, res, next) {
 				.json({ success: false, message: 'permissions phải là mảng' });
 
 		const pool = await getPool();
+
+		const check = await pool
+			.request()
+			.input('id_role', sql.Int, req.params.id)
+			.query(`SELECT id_role, is_system FROM Roles WHERE id_role = @id_role`);
+		if (!check.recordset.length)
+			return res
+				.status(404)
+				.json({ success: false, message: 'Không tìm thấy vai trò' });
+		if (check.recordset[0].is_system)
+			return res.status(403).json({
+				success: false,
+				message: 'Không thể sửa quyền của vai trò hệ thống',
+			});
+
 		const transaction = new sql.Transaction(pool);
 		await transaction.begin();
 		try {

@@ -1,6 +1,7 @@
 const { getPool, sql } = require('../config/db');
 const { resolveBothRecommended } = require('../services/reportRecommendedHelper');
 const { getRecordsForReport: getClsRecordsForReport } = require('./clsRecords');
+const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
 const appEmitter = require('../events/appEmitter');
 
 // GET /api/reports
@@ -142,6 +143,19 @@ async function create(req, res, next) {
 				.json({ success: false, message: 'report_date không được để trống' });
 
 		const pool = await getPool();
+
+		if (Array.isArray(records) && records.length) {
+			const access = await loadUserDeptAccess(pool, req.user);
+			const denied = records.find(
+				(r) => !canAccessDept(access, r.id_department, 'can_edit'),
+			);
+			if (denied)
+				return res.status(403).json({
+					success: false,
+					message: 'Bạn không có quyền nhập dữ liệu cho một hoặc nhiều khoa trong danh sách',
+				});
+		}
+
 		const transaction = new sql.Transaction(pool);
 		await transaction.begin();
 

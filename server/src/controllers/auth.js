@@ -1,8 +1,9 @@
 const { getPool, sql } = require('../config/db');
 const jwt = require('jsonwebtoken');
 const { comparePassword } = require('../utils/password');
+const { JWT_SECRET } = require('../middleware/auth');
+const { recordLoginFailure, recordLoginSuccess } = require('../middleware/loginRateLimit');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'change_me_in_production';
 const JWT_EXPIRES = process.env.JWT_EXPIRES || '8h';
 
 // POST /api/auth/login
@@ -32,6 +33,7 @@ async function login(req, res, next) {
 		const found = result.recordset[0];
 
 		if (!found || found.status !== 'active') {
+			recordLoginFailure(req);
 			return res.status(404).json({
 				success: false,
 				message: 'Tài khoản không tồn tại hoặc đã bị khoá',
@@ -40,10 +42,13 @@ async function login(req, res, next) {
 
 		const passwordOk = await comparePassword(password, found.password);
 		if (!passwordOk) {
+			recordLoginFailure(req);
 			return res
 				.status(401)
 				.json({ success: false, message: 'Mật khẩu không đúng' });
 		}
+
+		recordLoginSuccess(req);
 
 		const payload = {
 			id_user: found.id_user,

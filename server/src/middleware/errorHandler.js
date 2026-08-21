@@ -56,7 +56,10 @@ function errorHandler(err, req, res, next) {
 				return res.status(500).json({
 					success: false,
 					code: 'DB_ERROR',
-					message: 'Lỗi database: ' + err.message,
+					message:
+						process.env.NODE_ENV === 'production'
+							? 'Đã xảy ra lỗi khi truy vấn dữ liệu, vui lòng thử lại sau'
+							: 'Lỗi database: ' + err.message,
 				});
 		}
 	}

@@ -15,7 +15,12 @@ const handlers = new Set<Handler>();
 
 function getSSE() {
 	if (!es || es.readyState === EventSource.CLOSED) {
-		es = new EventSource('/api/subscribe');
+		// EventSource không set được custom header → truyền token qua query string.
+		const token = localStorage.getItem('auth_token');
+		const url = token
+			? `/api/subscribe?token=${encodeURIComponent(token)}`
+			: '/api/subscribe';
+		es = new EventSource(url);
 		es.onmessage = (e) => {
 			const payload: SSEPayload = JSON.parse(e.data);
 			handlers.forEach((h) => h(payload));

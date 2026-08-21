@@ -11,11 +11,8 @@ import {
 
 /** Tải 1 file .xlsx từ 1 endpoint export (đọc Content-Disposition để đặt tên file). */
 async function downloadExportFile(url: string, fallbackName: string) {
-	const res = await fetch(url, {
-		headers: {
-			Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`,
-		},
-	});
+	// Header Authorization được gắn tự động bởi httpInterceptor (xem main.tsx).
+	const res = await fetch(url);
 	if (!res.ok) {
 		const json = await res.json().catch(() => ({}));
 		throw new Error((json as { message?: string }).message ?? `Lỗi ${res.status}`);

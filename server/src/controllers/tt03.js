@@ -1,5 +1,6 @@
 const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
+const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
 const {
 	calcTT03,
 	calcRecommended,
@@ -69,6 +70,14 @@ async function updateConfig(req, res, next) {
 			note,
 		} = req.body;
 		const pool = await getPool();
+
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (!canAccessDept(access, Number(req.params.deptId), 'can_edit')) {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền sửa cấu hình của khoa này',
+			});
+		}
 
 		const result = await pool
 			.request()
@@ -191,6 +200,14 @@ async function updateRecommendedConfig(req, res, next) {
 			return res
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy khoa' });
+
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (!canAccessDept(access, Number(req.params.deptId), 'can_edit')) {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền sửa cấu hình của khoa này',
+			});
+		}
 
 		const result = await pool
 			.request()

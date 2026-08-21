@@ -21,6 +21,7 @@
 
 const ExcelJS = require('exceljs');
 const { getPool } = require('../config/db');
+const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
 const { fetchRawRecords } = require('../services/reportsRepository');
 const { enumerateDays } = require('../utils/reportDateGrouping');
 const {
@@ -51,6 +52,22 @@ async function exportToExcel(req, res, next) {
 		}
 
 		const pool = await getPool();
+
+		const access = await loadUserDeptAccess(pool, req.user);
+		if (department === 'all') {
+			if (access?.accessType !== 'all') {
+				return res.status(403).json({
+					success: false,
+					message: 'Bạn không có quyền xuất báo cáo toàn bệnh viện',
+				});
+			}
+		} else if (!canAccessDept(access, Number(department), 'can_export')) {
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền xuất báo cáo của khoa này',
+			});
+		}
+
 		const raw = await fetchRawRecords(pool, { from, to, department });
 
 		if (!raw.length) {
