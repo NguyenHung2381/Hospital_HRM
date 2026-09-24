@@ -35,13 +35,13 @@ function clearSessionCookie(req, res) {
 	res.clearCookie(SESSION_COOKIE, cookieOptions(req));
 }
 
-function readSessionCookie(req) {
+function readCookie(req, name) {
 	const header = req.headers.cookie;
 	if (!header) return null;
 	for (const part of header.split(';')) {
 		const idx = part.indexOf('=');
 		if (idx === -1) continue;
-		if (part.slice(0, idx).trim() === SESSION_COOKIE) {
+		if (part.slice(0, idx).trim() === name) {
 			try {
 				return decodeURIComponent(part.slice(idx + 1).trim());
 			} catch {
@@ -52,4 +52,32 @@ function readSessionCookie(req) {
 	return null;
 }
 
-module.exports = { setSessionCookie, clearSessionCookie, readSessionCookie };
+function readSessionCookie(req) {
+	return readCookie(req, SESSION_COOKIE);
+}
+
+// Cookie "thiết bị quen" (xem services/trustedDevice.js): mã ngẫu nhiên của
+// trình duyệt, KHÔNG bị xoá khi đăng xuất — chỉ gửi kèm các API /api/auth.
+const DEVICE_COOKIE = 'hrm_device';
+const DEVICE_ID_PATTERN = /^[a-f0-9]{32}$/;
+
+function setDeviceCookie(req, res, deviceId, maxAgeMs) {
+	res.cookie(DEVICE_COOKIE, deviceId, {
+		...cookieOptions(req),
+		path: '/api/auth',
+		maxAge: maxAgeMs,
+	});
+}
+
+function readDeviceCookie(req) {
+	const value = readCookie(req, DEVICE_COOKIE);
+	return value && DEVICE_ID_PATTERN.test(value) ? value : null;
+}
+
+module.exports = {
+	setSessionCookie,
+	clearSessionCookie,
+	readSessionCookie,
+	setDeviceCookie,
+	readDeviceCookie,
+};

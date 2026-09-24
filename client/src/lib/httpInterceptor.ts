@@ -32,8 +32,13 @@ window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
 		headers,
 		credentials: 'same-origin',
 	}).then((res) => {
-		// Sai mật khẩu khi đăng nhập cũng trả 401 → không coi là hết phiên
-		if (res.status === 401 && !url.startsWith('/api/auth/login')) {
+		// Sai mật khẩu / pre-auth 2FA hết hạn khi đăng nhập cũng trả 401 →
+		// không coi là hết phiên
+		if (
+			res.status === 401 &&
+			!url.startsWith('/api/auth/login') &&
+			!url.startsWith('/api/auth/2fa/verify')
+		) {
 			localStorage.removeItem(STORAGE_KEY);
 			if (location.pathname !== '/') location.href = '/';
 		}

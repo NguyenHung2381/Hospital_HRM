@@ -1,0 +1,66 @@
+# Hospital HRM — môi trường DEV bằng Docker (hot reload)
+#   docker compose -f docker-compose.dev.yml up -d --build
+# Truy cập: http://localhost:${DEV_WEB_PORT:-5174}
+#
+# Tách hẳn khỏi production (docker-compose.yml, project hospital_hrm): project
+# riêng → container, network, image, volume riêng; chạy / down môi trường này
+# không đụng tới môi trường kia. Cổng mặc định 5174 / 3002 để không trùng
+# `npm run dev` (5173 / 3000) và Hospital_RMS dev (5173 / 3000).
+#
+# Cấu hình đọc từ server/.env (như `npm run dev`); các biến ở "environment"
+# bên dưới ghi đè những giá trị chỉ đúng khi chạy ngoài container.
+
+name: hospital_hrm_dev
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: dev
+    env_file:
+      - path: server/.env
+        required: false
+    environment:
+      NODE_ENV: development
+      # Nghe mọi interface trong container (server/.env để 127.0.0.1 → Vite
+      # ở container khác không gọi được).
+      HOST: 0.0.0.0
+      PORT: "3000"
+      # SQL Server chạy trên máy host: "localhost\SQLEXPRESS" trong server/.env
+      # trỏ vào chính container. DB_PORT vẫn lấy từ server/.env.
+      DB_HOST: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Chỉ loopback — để gọi API trực tiếp (Postman...) khi debug
+    ports:
+      - "127.0.0.1:${DEV_API_PORT:-3002}:3000"
+    volumes:
+      - ./server:/app/server
+      # Giữ node_modules cài trong image (Linux), không để thư mục của máy
+      # host (Windows) đè lên — bcrypt là native module.
+      - /app/server/node_modules
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  web:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      target: dev
+    environment:
+      VITE_API_PROXY: http://api:3000
+      VITE_USE_POLLING: "true"
+    ports:
+      - "${DEV_WEB_PORT:-5174}:5173"
+    volumes:
+      - ./client:/app/client
+      - /app/client/node_modules
+    depends_on:
+      - api
+    deploy:
+      resources:
+        limits:
+          memory: 768m

@@ -246,7 +246,7 @@ export default function DashboardLayout() {
 								}}
 							>
 								<EditIcon size={14} />
-								Đổi mật khẩu
+								Bảo mật tài khoản
 							</button>
 							<div
 								style={{ height: 1, background: 'var(--bdr)', margin: '3px 0' }}

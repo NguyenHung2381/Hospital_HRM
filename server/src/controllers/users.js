@@ -36,7 +36,8 @@ async function getAll(req, res, next) {
 		const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
 		const result = await request.query(`
 			SELECT u.id_user, u.full_name, u.username, u.user_code, u.position, u.status,
-				u.created_at, u.updated_at,
+				u.created_at, u.updated_at, u.totp_enabled,
+				CAST(CASE WHEN u.locked_until > SYSUTCDATETIME() THEN 1 ELSE 0 END AS BIT) AS is_locked,
 				d.id_department, d.name_department,
 				r.id_role, r.name_role, r.department_access_type
 			FROM Users u
@@ -58,7 +59,8 @@ async function getById(req, res, next) {
 		const result = await pool.request().input('id', sql.Int, req.params.id)
 			.query(`
 			SELECT u.id_user, u.full_name, u.username, u.user_code, u.position, u.status,
-				u.created_at, u.updated_at,
+				u.created_at, u.updated_at, u.totp_enabled,
+				CAST(CASE WHEN u.locked_until > SYSUTCDATETIME() THEN 1 ELSE 0 END AS BIT) AS is_locked,
 				d.id_department, d.name_department,
 				r.id_role, r.name_role, r.department_access_type
 			FROM Users u

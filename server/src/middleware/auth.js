@@ -2,27 +2,18 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { getPool, sql } = require('../config/db');
 const { readSessionCookie } = require('../utils/sessionCookie');
+const sessionStore = require('../services/sessionStore');
 
-// KHÔNG được fallback về 1 chuỗi cố định — nếu thiếu, kẻ tấn công biết trước
-// giá trị mặc định có thể tự ký JWT hợp lệ (kể cả token admin) mà không cần
-// đăng nhập. Production bắt buộc phải cấu hình JWT_SECRET; môi trường khác
-// (dev/local) tự sinh secret ngẫu nhiên mỗi lần khởi động — token cũ sẽ mất
-// hiệu lực sau mỗi lần restart, nhưng không bao giờ dùng giá trị đoán được.
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+// KHÔNG được fallback về 1 chuỗi cố định hay secret ngẫu nhiên — nếu thiếu,
+// kẻ tấn công biết trước giá trị mặc định có thể tự ký JWT hợp lệ (kể cả
+// token admin). Giống RMS: thiếu JWT_SECRET thì server không khởi động (kiểm
+// tra ở index.js trước khi nạp module này); ở đây kiểm tra lại cho chắc.
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
 	throw new Error(
-		'Thiếu biến môi trường JWT_SECRET — bắt buộc phải cấu hình trước khi chạy production.',
+		`JWT_SECRET chưa được cấu hình hoặc quá ngắn (< 32 ký tự). Tạo bằng: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`,
 	);
 }
-if (!process.env.JWT_SECRET) {
-	console.warn(
-		'⚠️  JWT_SECRET chưa được cấu hình — dùng secret ngẫu nhiên tạm thời cho phiên chạy này (token sẽ mất hiệu lực khi restart server). Hãy đặt JWT_SECRET trong .env.',
-	);
-} else if (process.env.JWT_SECRET.length < 32) {
-	console.warn(
-		'⚠️  JWT_SECRET quá ngắn (< 32 ký tự) — dễ bị dò ngược. Hãy dùng chuỗi ngẫu nhiên dài, vd: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"',
-	);
-}
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Cố định thuật toán — không để thư viện tự suy ra từ header của token.
 const JWT_ALGORITHM = 'HS256';
@@ -52,8 +43,21 @@ function passwordFingerprint(passwordHash) {
 		.slice(0, 16);
 }
 
-function signAuthToken(user) {
-	return jwt.sign(
+// Mục đích đặc biệt của token (vd bước trung gian 2FA) — token có "purpose"
+// KHÔNG bao giờ được chấp nhận làm phiên đăng nhập.
+const PRE_AUTH_2FA_PURPOSE = '2fa_pre_auth';
+const PRE_AUTH_2FA_TTL = '5m';
+
+function tokenExpiresAt(token) {
+	const { exp } = jwt.decode(token);
+	return new Date(exp * 1000);
+}
+
+// Tạo phiên đăng nhập mới: ký JWT (jti ngẫu nhiên) + ghi phiên vào
+// UserSessions kèm IP/thiết bị. Trả về token để đặt vào cookie HttpOnly.
+async function createAuthSession(req, user) {
+	const jti = crypto.randomBytes(16).toString('hex');
+	const token = jwt.sign(
 		{
 			id_user: user.id_user,
 			username: user.username,
@@ -63,34 +67,62 @@ function signAuthToken(user) {
 		{
 			algorithm: JWT_ALGORITHM,
 			expiresIn: JWT_EXPIRES,
-			jwtid: crypto.randomBytes(16).toString('hex'),
+			jwtid: jti,
 		},
+	);
+	await sessionStore.createSession({
+		jti,
+		id_user: user.id_user,
+		expiresAt: tokenExpiresAt(token),
+		ip: req.ip,
+		userAgent: req.get('user-agent'),
+	});
+	return token;
+}
+
+// Token trung gian giữa bước 1 (mật khẩu đúng) và bước 2 (mã OTP) của tài
+// khoản đã bật 2FA — không mang quyền truy cập, chỉ xác nhận "đã qua bước mật
+// khẩu cho user này" trong 5 phút. Gắn pwf để đổi mật khẩu giữa chừng là vô hiệu.
+function signPreAuthToken(user) {
+	return jwt.sign(
+		{
+			sub: String(user.id_user),
+			purpose: PRE_AUTH_2FA_PURPOSE,
+			pwf: passwordFingerprint(user.password),
+		},
+		JWT_SECRET,
+		{ algorithm: JWT_ALGORITHM, expiresIn: PRE_AUTH_2FA_TTL },
 	);
 }
 
-// ── Thu hồi token khi đăng xuất ────────────────────────────────
-// Lưu jti của token đã đăng xuất tới khi token hết hạn, để token (nếu từng
-// bị sao chép) không dùng lại được sau khi người dùng bấm Đăng xuất.
-// Lưu trong bộ nhớ: restart server thì danh sách mất, nhưng mật khẩu đổi/
-// tài khoản khoá vẫn luôn chặn được token cũ (xem passwordFingerprint).
-const revokedTokens = new Map(); // jti -> exp (giây)
-
-function revokeToken(token) {
-	const payload = jwt.decode(token);
-	if (!payload?.jti || !payload.exp) return;
-	const nowSec = Date.now() / 1000;
-	for (const [jti, exp] of revokedTokens) if (exp < nowSec) revokedTokens.delete(jti);
-	revokedTokens.set(payload.jti, payload.exp);
+// Trả về { id_user, pwf } nếu pre-auth token hợp lệ, ngược lại null.
+function verifyPreAuthToken(token) {
+	if (typeof token !== 'string' || token.length > 2000) return null;
+	try {
+		const payload = jwt.verify(token, JWT_SECRET, { algorithms: [JWT_ALGORITHM] });
+		if (payload.purpose !== PRE_AUTH_2FA_PURPOSE) return null;
+		const id_user = Number(payload.sub);
+		if (!Number.isInteger(id_user)) return null;
+		return { id_user, pwf: payload.pwf };
+	} catch {
+		return null;
+	}
 }
 
-function isTokenRevoked(jti) {
-	return revokedTokens.has(jti);
+// Thu hồi phiên gắn với token (đăng xuất). Token không hợp lệ thì bỏ qua.
+async function revokeToken(token) {
+	const payload = jwt.decode(token);
+	if (!payload?.jti) return;
+	await sessionStore.revokeSession(payload.jti, Number.isInteger(payload.id_user) ? payload.id_user : null);
 }
 
 // ── Nạp trạng thái tài khoản từ DB (có cache ngắn) ─────────────
 // Vai trò và trạng thái KHÔNG lấy từ token mà đọc lại từ DB: tài khoản bị
-// khoá/xoá hoặc bị hạ quyền sẽ mất quyền ngay (tối đa sau USER_CACHE_TTL_MS),
-// thay vì vẫn dùng được token cũ tới 8 tiếng.
+// vô hiệu hoá (status)/xoá hoặc bị hạ quyền sẽ mất quyền ngay (tối đa sau
+// USER_CACHE_TTL_MS), thay vì vẫn dùng được token cũ tới 8 tiếng.
+// Cố ý KHÔNG xét locked_until (khoá tạm do đăng nhập sai) — khác RMS: nếu đá
+// phiên đang mở ra thì kẻ tấn công chỉ cần cố tình nhập sai mật khẩu là đẩy
+// được người dùng thật ra khỏi hệ thống. Khoá tạm chỉ chặn đăng nhập MỚI.
 const USER_CACHE_TTL_MS = 15 * 1000;
 const userCache = new Map(); // id_user -> { user, expiresAt }
 
@@ -147,12 +179,16 @@ function authenticate(req, res, next) {
 	} catch {
 		return unauthorized(res);
 	}
-	if (!Number.isInteger(payload.id_user) || isTokenRevoked(payload.jti))
+	// Token có purpose (vd pre-auth 2FA) không phải phiên đăng nhập
+	if (payload.purpose || !Number.isInteger(payload.id_user) || !payload.jti)
 		return unauthorized(res);
 
-	loadAuthUser(payload.id_user)
-		.then((user) => {
-			if (!user || user.pwf !== payload.pwf) {
+	Promise.all([
+		loadAuthUser(payload.id_user),
+		sessionStore.isSessionActive(payload.jti, payload.id_user),
+	])
+		.then(([user, sessionActive]) => {
+			if (!user || user.pwf !== payload.pwf || !sessionActive) {
 				return unauthorized(res, 'Phiên đăng nhập không còn hiệu lực, vui lòng đăng nhập lại');
 			}
 			req.user = {
@@ -162,6 +198,7 @@ function authenticate(req, res, next) {
 				name_role: user.name_role,
 			};
 			req.sessionToken = token;
+			req.sessionJti = payload.jti;
 			next();
 		})
 		.catch(next);
@@ -241,9 +278,11 @@ module.exports = {
 	JWT_SECRET,
 	ADMIN_ROLE_NAME,
 	DASHBOARD_ROLE_NAMES,
-	signAuthToken,
+	createAuthSession,
+	signPreAuthToken,
+	verifyPreAuthToken,
 	revokeToken,
-	isTokenRevoked,
+	passwordFingerprint,
 	invalidateUserCache,
 	loadAuthUser,
 	authenticate,

@@ -142,6 +142,20 @@ Biến tuỳ chọn (đặt trong shell hoặc file `.env` ở thư mục gốc)
 
 Audit log nằm trong volume `hospital_hrm_api-logs`: `docker compose exec api ls logs`.
 
+### Dev bằng Docker (hot reload)
+
+`docker-compose.dev.yml` chạy môi trường dev trong project Compose riêng `hospital_hrm_dev`: container, network, image và volume tách hẳn khỏi production (`hospital_hrm`), nên hai môi trường chạy song song được và `down` bên này không ảnh hưởng bên kia.
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build   # lần đầu / sau khi sửa Dockerfile, package.json
+docker compose -f docker-compose.dev.yml logs -f api
+docker compose -f docker-compose.dev.yml down
+```
+
+- Giao diện: `http://localhost:5174` (Vite, sửa code tự nạp lại). API: `http://127.0.0.1:3002`. Đổi bằng `DEV_WEB_PORT` / `DEV_API_PORT`.
+- Cấu hình đọc từ `server/.env`. Compose tự ghi đè `HOST=0.0.0.0` và `DB_HOST=host.docker.internal` (giữ `DB_PORT`), vì `localhost\SQLEXPRESS` bên trong container là chính container. SQL Server phải bật TCP/IP ở cổng cố định.
+- Thêm dependency mới: chạy lại với `--build --renew-anon-volumes` để cài lại `node_modules` trong container.
+
 ## API
 
 Base URL: `http://localhost:3000/api`

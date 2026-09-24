@@ -214,9 +214,11 @@ export function useAccountActions(roles: ApiRole[], refetchUsers: () => Promise<
 
 	// Mật khẩu tạm ngẫu nhiên server trả về sau khi đặt lại — chỉ hiển thị 1 lần
 	const [tempPassword, setTempPassword] = useState<string | null>(null);
+	const [twoFaResetDone, setTwoFaResetDone] = useState(false);
 
 	const closeReset = () => {
 		setTempPassword(null);
+		setTwoFaResetDone(false);
 		setError('');
 		setModal(null);
 	};
@@ -238,6 +240,30 @@ export function useAccountActions(roles: ApiRole[], refetchUsers: () => Promise<
 				setTempPassword(data.data.temp_password);
 			} else {
 				setError(data.message ?? 'Lỗi khi đặt lại mật khẩu');
+			}
+		} catch {
+			setError('Lỗi kết nối server.');
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	// Tắt 2FA cho người dùng mất điện thoại / app xác thực
+	const handleReset2FA = async () => {
+		if (!target) return;
+		setSaving(true);
+		setError('');
+		try {
+			const res = await fetch(`/api/users/${target.id_user}/reset-2fa`, {
+				method: 'PUT',
+			});
+			const data = (await res.json()) as { success: boolean; message?: string };
+			if (data.success) {
+				setTwoFaResetDone(true);
+				setTarget({ ...target, totp_enabled: false });
+				await refetchUsers();
+			} else {
+				setError(data.message ?? 'Lỗi khi tắt xác thực 2 lớp');
 			}
 		} catch {
 			setError('Lỗi kết nối server.');
@@ -274,5 +300,7 @@ export function useAccountActions(roles: ApiRole[], refetchUsers: () => Promise<
 		handleReset,
 		tempPassword,
 		closeReset,
+		handleReset2FA,
+		twoFaResetDone,
 	};
 }

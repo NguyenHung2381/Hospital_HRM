@@ -4,12 +4,13 @@ import EyeClosedIcon from '@/assets/svg/EyeIcon';
 import LockIcon from '@/assets/svg/LockIcon';
 import UserIcon from '@/assets/svg/UserIcon';
 import { DASHBOARD_ROLES } from '@/context/AuthRoles';
+import type { LoginResult } from '@/context/AuthContext';
 import { useAuth } from '@/context/useAuth';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function LoginForm() {
-	const { login } = useAuth();
+	const { login, verify2FA } = useAuth();
 	const navigate = useNavigate();
 
 	const [username, setUsername] = useState('');
@@ -19,40 +20,165 @@ export default function LoginForm() {
 	const [loading, setLoading] = useState(false);
 	const [focused, setFocused] = useState<string | null>(null);
 	const [error, setError] = useState('');
+	// Bước 2 (chỉ khi tài khoản đã bật xác thực 2 lớp): nhập mã 6 số từ app
+	const [preAuthToken, setPreAuthToken] = useState<string | null>(null);
+	const [otpCode, setOtpCode] = useState('');
+
+	const backToPasswordStep = () => {
+		setPreAuthToken(null);
+		setOtpCode('');
+		setPassword('');
+	};
+
+	const handleResult = (result: LoginResult) => {
+		switch (result.status) {
+			case 'ok':
+				navigate(
+					DASHBOARD_ROLES.includes(result.user.vaiTro) ? '/dashboard' : '/home',
+					{ replace: true },
+				);
+				return;
+			case 'requires_2fa':
+				setPreAuthToken(result.preAuthToken);
+				setOtpCode('');
+				return;
+			case 'not_found':
+				setError('Tài khoản không tồn tại hoặc đã bị khoá.');
+				return;
+			case 'wrong_pass':
+				setError('Tên đăng nhập hoặc mật khẩu không đúng.');
+				return;
+			case 'wrong_code':
+				setError(result.message);
+				setOtpCode('');
+				return;
+			case 'pre_auth_expired':
+				backToPasswordStep();
+				setError('Phiên xác thực đã hết hạn, vui lòng đăng nhập lại.');
+				return;
+			case 'locked':
+				backToPasswordStep();
+				setError(result.message);
+				return;
+			case 'rate_limited':
+				setError(
+					result.message ??
+						'Bạn đã nhập sai quá nhiều lần, vui lòng thử lại sau ít phút.',
+				);
+				return;
+		}
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError('');
 		setLoading(true);
-
-		const result = await login(username.trim(), password, remember);
-
-		if (result.status === 'not_found') {
-			setError('Tài khoản không tồn tại hoặc đã bị khoá.');
-			setLoading(false);
-			return;
-		}
-
-		if (result.status === 'wrong_pass') {
-			setError('Tên đăng nhập hoặc mật khẩu không đúng.');
-			setLoading(false);
-			return;
-		}
-
-		if (result.status === 'rate_limited') {
-			setError('Bạn đã nhập sai quá nhiều lần, vui lòng thử lại sau ít phút.');
-			setLoading(false);
-			return;
-		}
-
-		if (DASHBOARD_ROLES.includes(result.user.vaiTro)) {
-			navigate('/dashboard', { replace: true });
-		} else {
-			navigate('/home', { replace: true });
-		}
-
+		handleResult(await login(username.trim(), password, remember));
 		setLoading(false);
 	};
+
+	const handleVerifyOtp = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!preAuthToken || otpCode.length !== 6) return;
+		setError('');
+		setLoading(true);
+		handleResult(await verify2FA(preAuthToken, otpCode));
+		setLoading(false);
+	};
+
+	if (preAuthToken) {
+		return (
+			<div className='login-form-wrapper'>
+				<div className='login-header'>
+					<h2 className='login-title'>Xác thực 2 lớp</h2>
+					<p className='login-desc'>
+						Nhập mã 6 số trong ứng dụng xác thực (Google Authenticator,
+						Microsoft Authenticator...) của tài khoản <b>{username.trim()}</b>
+					</p>
+				</div>
+
+				<form
+					onSubmit={handleVerifyOtp}
+					className='login-form'
+					noValidate
+				>
+					<div
+						className={`field-group ${focused === 'otp' ? 'field-focused' : ''}`}
+					>
+						<label
+							className='field-label'
+							htmlFor='otp'
+						>
+							Mã xác thực
+						</label>
+						<div className='field-input-wrap'>
+							<span className='field-icon'>
+								<LockIcon size={18} />
+							</span>
+							<input
+								id='otp'
+								type='text'
+								inputMode='numeric'
+								autoComplete='one-time-code'
+								maxLength={6}
+								className='field-input'
+								placeholder='000000'
+								value={otpCode}
+								onChange={(e) => {
+									setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+									setError('');
+								}}
+								onFocus={() => setFocused('otp')}
+								onBlur={() => setFocused(null)}
+								autoFocus
+							/>
+						</div>
+					</div>
+
+					{error && (
+						<p
+							className='login-error'
+							role='alert'
+						>
+							{error}
+						</p>
+					)}
+
+					<button
+						type='submit'
+						className={`submit-btn ${loading ? 'loading' : ''}`}
+						disabled={loading || otpCode.length !== 6}
+					>
+						{loading ? (
+							<span className='btn-spinner' />
+						) : (
+							<>
+								<span>Xác nhận</span>
+								<ArrowIcon />
+							</>
+						)}
+					</button>
+
+					<button
+						type='button'
+						className='forgot-link'
+						style={{ background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'center' }}
+						onClick={() => {
+							backToPasswordStep();
+							setError('');
+						}}
+						disabled={loading}
+					>
+						← Quay lại đăng nhập
+					</button>
+				</form>
+
+				<p className='login-footer'>
+					© {new Date().getFullYear()} Bệnh viện Hữu Nghị Đa Khoa Nghệ An
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className='login-form-wrapper'>
