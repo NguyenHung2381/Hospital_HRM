@@ -13,8 +13,11 @@ const config = {
 	password: process.env.DB_PASSWORD,
 	options: {
 		...(!port && instanceName && { instanceName }),
-		encrypt: false, // 🔥 local thì nên false
-		trustServerCertificate: true,
+		// Mã hoá kết nối tới SQL Server. Mặc định tắt để không phá cấu hình
+		// hiện tại (DB cùng máy). Nếu DB nằm ở máy khác trong mạng → đặt
+		// DB_ENCRYPT=true, và DB_TRUST_CERT=false khi SQL Server có chứng chỉ hợp lệ.
+		encrypt: process.env.DB_ENCRYPT === 'true',
+		trustServerCertificate: process.env.DB_TRUST_CERT !== 'false',
 		enableArithAbort: true,
 	},
 	pool: {

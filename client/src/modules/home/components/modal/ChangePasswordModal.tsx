@@ -35,8 +35,12 @@ export default function ChangePasswordModal({
 			setPwdError('Vui lòng nhập mật khẩu hiện tại');
 			return;
 		}
-		if (!pwdNew.trim() || pwdNew.length < 6) {
-			setPwdError('Mật khẩu mới phải có ít nhất 6 ký tự');
+		if (!pwdNew.trim() || pwdNew.length < 8) {
+			setPwdError('Mật khẩu mới phải có ít nhất 8 ký tự');
+			return;
+		}
+		if (!/[A-Za-z]/.test(pwdNew) || !/\d/.test(pwdNew)) {
+			setPwdError('Mật khẩu mới phải gồm cả chữ và số');
 			return;
 		}
 		if (pwdNew !== pwdConfirm) {
@@ -58,6 +62,7 @@ export default function ChangePasswordModal({
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ old_password: pwdOld, new_password: pwdNew }),
 			});
+			// Server tự cấp cookie phiên mới cho thiết bị này (phiên ở thiết bị khác bị huỷ)
 			const data = (await res.json()) as { success: boolean; message?: string };
 			if (!data.success) {
 				setPwdError(data.message ?? 'Đổi mật khẩu thất bại');

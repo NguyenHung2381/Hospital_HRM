@@ -9,8 +9,10 @@ import type { KhoaItem } from '@/types/staffingType';
 import type { UserAccount } from '@/types/userType';
 import { useEffect, useState } from 'react';
 
+// Chỉ lưu thông tin hiển thị của user (để không nháy màn hình đăng nhập khi
+// tải lại trang). Token nằm trong cookie HttpOnly, không lưu ở đây; vai trò
+// thật luôn được server kiểm tra và đồng bộ lại qua /api/auth/me.
 const STORAGE_KEY = 'auth_user';
-const TOKEN_KEY = 'auth_token';
 
 // ── Map role ──────────────────────────────
 const ROLE_MAP: Record<string, RoleType> = {
@@ -116,6 +118,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		}
 	};
 
+	// Khi tải lại trang: xác minh phiên cookie còn hiệu lực và lấy vai trò/
+	// trạng thái mới nhất từ server (phiên hết hạn → interceptor tự đăng xuất).
+	useEffect(() => {
+		if (!localStorage.getItem(STORAGE_KEY)) return;
+		fetch('/api/auth/me')
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data) => {
+				if (!data?.success) return;
+				const fresh = mapApiUser(data.data.user);
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+				setUser((prev) =>
+					JSON.stringify(prev) === JSON.stringify(fresh) ? prev : fresh,
+				);
+			})
+			.catch(() => {});
+	}, []);
+
 	// 🔥 AUTO SYNC khi reload hoặc user change
 	useEffect(() => {
 		if (user?.id) {
@@ -137,17 +156,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 			if (res.status === 404) return { status: 'not_found' };
 			if (res.status === 401) return { status: 'wrong_pass' };
+			if (res.status === 429) return { status: 'rate_limited' };
 			if (!res.ok) return { status: 'not_found' };
 
 			const data = await res.json();
 			const loggedInUser = mapApiUser(data.data.user);
-			const token = data.data.token;
 
 			setUser(loggedInUser);
 
-			// lưu user + token
+			// Token đã được server đặt vào cookie HttpOnly — chỉ lưu thông tin hiển thị
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(loggedInUser));
-			localStorage.setItem(TOKEN_KEY, token);
 
 			return { status: 'ok', user: loggedInUser };
 		} catch {
@@ -162,7 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		setDeptPermissions([]);
 
 		localStorage.removeItem(STORAGE_KEY);
-		localStorage.removeItem(TOKEN_KEY);
+		// Thu hồi phiên phía server + xoá cookie HttpOnly
+		fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
 	};
 
 	// 🔥 MANUAL REFRESH (rất hữu ích)

@@ -10,6 +10,7 @@ export interface StaffingBoardSidebarProps {
 	records: { date: string }[];
 	activeDate: string;
 	onSelectDate: (d: string) => void;
+	onMonthChange: (year: number, month: number) => void;
 	canAddForDate: (date: string) => boolean;
 	onAdd: (date?: string) => void;
 	showAddButton: boolean;
@@ -23,6 +24,7 @@ export default function StaffingBoardSidebar({
 	records,
 	activeDate,
 	onSelectDate,
+	onMonthChange,
 	canAddForDate,
 	onAdd,
 	showAddButton,
@@ -38,6 +40,7 @@ export default function StaffingBoardSidebar({
 				records={records}
 				activeDate={activeDate}
 				onSelect={onSelectDate}
+				onMonthChange={onMonthChange}
 				onAdd={(date) => {
 					if (canAddForDate(date ?? getTodayDateString())) onAdd(date);
 				}}

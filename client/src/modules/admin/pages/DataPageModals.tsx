@@ -109,7 +109,11 @@ export default function DataPageModals({
 						setReport(newReport);
 						setReportMetas((prev) => [
 							...prev,
-							{ id_report: newReport.id_report, report_date: selDate },
+							{
+								id_report: newReport.id_report,
+								report_date: selDate,
+								has_records: true,
+							},
 						]);
 					}}
 					onClose={() => setShowCreate(false)}

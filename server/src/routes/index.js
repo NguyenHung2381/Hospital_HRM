@@ -3,11 +3,17 @@ const router = express.Router();
 const appEmitter = require('../events/appEmitter');
 const {
 	authenticate,
+	isTokenRevoked,
+	loadAuthUser,
+	requireCsrfHeader,
 	requireAdmin,
 	requireDashboardRole,
+	requireSelf,
 	requireSelfOrAdmin,
 } = require('../middleware/auth');
 const { loginRateLimit } = require('../middleware/loginRateLimit');
+const { auditWrites } = require('../utils/auditLog');
+const jwt = require('jsonwebtoken');
 
 router.get('/', (req, res) => {
 	res.send('OK');
@@ -28,14 +34,35 @@ const coordination = require('../controllers/coordination');
 const { exportToExcel } = require('../controllers/exportReports');
 const { exportClsToExcel } = require('../controllers/exportCls');
 
+router.use(requireCsrfHeader);
+
 router.post('/auth/login', loginRateLimit, auth.login);
+router.post('/auth/logout', auth.logout);
 
 // ── Từ đây trở xuống: bắt buộc phải đăng nhập (JWT hợp lệ) ─────
 router.use(authenticate);
+// Ghi audit log cho mọi request ghi dữ liệu thành công
+router.use(auditWrites);
+
+router.get('/auth/me', auth.me);
 
 // ── SSE: global realtime subscribe ───────────────────────────
+// Xác thực bằng cookie phiên HttpOnly (EventSource tự gửi cookie cùng origin).
 // Đặt TRƯỚC tất cả route /:id để không bị conflict
+const MAX_SSE_PER_USER = 10;
+const sseCountByUser = new Map();
+
 router.get('/subscribe', (req, res) => {
+	const userId = req.user.id_user;
+	const { pwf, jti } = jwt.decode(req.sessionToken);
+	const current = sseCountByUser.get(userId) || 0;
+	if (current >= MAX_SSE_PER_USER) {
+		return res
+			.status(429)
+			.json({ success: false, message: 'Quá nhiều kết nối realtime đang mở' });
+	}
+	sseCountByUser.set(userId, current + 1);
+
 	res.set({
 		'Content-Type': 'text/event-stream',
 		'Cache-Control': 'no-cache',
@@ -44,8 +71,18 @@ router.get('/subscribe', (req, res) => {
 	});
 	res.flushHeaders();
 
-	// Giữ kết nối mỗi 30s để không bị proxy/browser timeout
-	const keepAlive = setInterval(() => res.write(': ping\n\n'), 30000);
+	// Giữ kết nối mỗi 30s để không bị proxy/browser timeout; đồng thời kiểm
+	// tra lại phiên — tài khoản bị khoá/xoá, đổi mật khẩu hoặc đã đăng xuất
+	// thì ngắt luồng realtime.
+	const keepAlive = setInterval(() => {
+		loadAuthUser(userId)
+			.then((user) =>
+				user && user.pwf === pwf && !isTokenRevoked(jti)
+					? res.write(': ping\n\n')
+					: res.end(),
+			)
+			.catch(() => res.end());
+	}, 30000);
 
 	const onChanged = (payload) => {
 		res.write(`data: ${JSON.stringify(payload)}\n\n`);
@@ -57,6 +94,9 @@ router.get('/subscribe', (req, res) => {
 	req.on('close', () => {
 		clearInterval(keepAlive);
 		appEmitter.off('changed', onChanged);
+		const left = (sseCountByUser.get(userId) || 1) - 1;
+		if (left > 0) sseCountByUser.set(userId, left);
+		else sseCountByUser.delete(userId);
 	});
 });
 
@@ -129,7 +169,7 @@ router.put(
 );
 router.put(
 	'/users/:id/change-password',
-	requireSelfOrAdmin(),
+	requireSelf(),
 	userPassword.changePassword,
 );
 router.get('/users/:id', requireDashboardRole, users.getById);
@@ -155,6 +195,8 @@ router.get('/permissions', roles.getAllPermissions);
 router.get('/reports/export', exportToExcel);
 router.get('/reports/cls-export', exportClsToExcel);
 router.get('/reports/date/:date', reports.getByDate);
+router.get('/reports/department/:deptId', reports.getByDepartment);
+router.get('/reports/department/:deptId/cls', clsRecords.getByDepartment);
 router.get('/reports', reports.getAll);
 router.get('/reports/:id', reports.getById);
 router.post('/reports', reports.create);

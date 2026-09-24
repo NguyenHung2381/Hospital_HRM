@@ -1,6 +1,11 @@
 const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
-const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
+const {
+	loadUserDeptAccess,
+	canAccessDept,
+	loadReadScope,
+	filterByReadScope,
+} = require('../services/deptAccess');
 const {
 	calcTT03,
 	calcRecommended,
@@ -350,7 +355,8 @@ async function getReportTT03(req, res, next) {
 				WHERE id_report = @id_report
 				ORDER BY id_department ASC
 			`);
-		res.json({ success: true, data: result.recordset });
+		const scope = await loadReadScope(pool, req.user);
+		res.json({ success: true, data: filterByReadScope(scope, result.recordset) });
 	} catch (err) {
 		next(err);
 	}

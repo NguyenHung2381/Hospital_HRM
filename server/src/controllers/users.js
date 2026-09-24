@@ -1,6 +1,18 @@
 const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
-const { hashPassword } = require('../utils/password');
+const { hashPassword, validatePasswordPolicy } = require('../utils/password');
+const { invalidateUserCache } = require('../middleware/auth');
+const { assertCanManageUser, assertCanAssignRole } = require('../services/accountGuard');
+
+// Lấy tài khoản kèm tên vai trò hiện tại (để kiểm tra quyền quản lý)
+async function findUserWithRole(pool, id) {
+	const r = await pool.request().input('id', sql.Int, id).query(`
+		SELECT u.id_user, u.username, r.name_role
+		FROM Users u LEFT JOIN Roles r ON r.id_role = u.id_role
+		WHERE u.id_user = @id
+	`);
+	return r.recordset[0] ?? null;
+}
 
 // GET /api/users
 async function getAll(req, res, next) {
@@ -81,8 +93,14 @@ async function create(req, res, next) {
 			return res
 				.status(400)
 				.json({ success: false, message: 'Thiếu thông tin bắt buộc' });
-		const hashedPassword = await hashPassword(password);
+		const policyError = validatePasswordPolicy(password, { username });
+		if (policyError)
+			return res.status(400).json({ success: false, message: policyError });
 		const pool = await getPool();
+		const roleDenied = await assertCanAssignRole(pool, req.user, id_role);
+		if (roleDenied)
+			return res.status(403).json({ success: false, message: roleDenied });
+		const hashedPassword = await hashPassword(password);
 		const result = await pool
 			.request()
 			.input('full_name', sql.NVarChar(150), full_name)
@@ -127,14 +145,20 @@ async function update(req, res, next) {
 		const { full_name, user_code, id_department, position, id_role, status } =
 			req.body;
 		const pool = await getPool();
-		const check = await pool
-			.request()
-			.input('id', sql.Int, req.params.id)
-			.query(`SELECT id_user FROM Users WHERE id_user = @id`);
-		if (!check.recordset.length)
+		const target = await findUserWithRole(pool, req.params.id);
+		if (!target)
 			return res
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy người dùng' });
+		const denied =
+			assertCanManageUser(req.user, target) ||
+			(await assertCanAssignRole(pool, req.user, id_role));
+		if (denied) return res.status(403).json({ success: false, message: denied });
+		if (target.id_user === req.user.id_user && (status ?? 'active') !== 'active')
+			return res.status(400).json({
+				success: false,
+				message: 'Không thể tự khoá tài khoản đang đăng nhập',
+			});
 		const result = await pool
 			.request()
 			.input('id', sql.Int, req.params.id)
@@ -161,6 +185,7 @@ async function update(req, res, next) {
 				WHERE id_user = @id;
 				SELECT * FROM @uout;
 			`);
+		invalidateUserCache(req.params.id);
 		appEmitter.emit('changed', {
 			resource: 'users',
 			action: 'updated',
@@ -176,6 +201,18 @@ async function update(req, res, next) {
 async function remove(req, res, next) {
 	try {
 		const pool = await getPool();
+		const target = await findUserWithRole(pool, req.params.id);
+		if (!target)
+			return res
+				.status(404)
+				.json({ success: false, message: 'Không tìm thấy người dùng' });
+		const denied = assertCanManageUser(req.user, target);
+		if (denied) return res.status(403).json({ success: false, message: denied });
+		if (target.id_user === req.user.id_user)
+			return res.status(400).json({
+				success: false,
+				message: 'Không thể tự xoá tài khoản đang đăng nhập',
+			});
 		const result = await pool.request().input('id_user', sql.Int, req.params.id)
 			.query(`
 				DECLARE @dout TABLE (id_user INT);
@@ -186,6 +223,7 @@ async function remove(req, res, next) {
 			return res
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy người dùng' });
+		invalidateUserCache(req.params.id);
 		appEmitter.emit('changed', {
 			resource: 'users',
 			action: 'deleted',

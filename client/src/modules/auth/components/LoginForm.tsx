@@ -34,7 +34,13 @@ export default function LoginForm() {
 		}
 
 		if (result.status === 'wrong_pass') {
-			setError('Mật khẩu không đúng.');
+			setError('Tên đăng nhập hoặc mật khẩu không đúng.');
+			setLoading(false);
+			return;
+		}
+
+		if (result.status === 'rate_limited') {
+			setError('Bạn đã nhập sai quá nhiều lần, vui lòng thử lại sau ít phút.');
 			setLoading(false);
 			return;
 		}

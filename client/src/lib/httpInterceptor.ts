@@ -1,8 +1,10 @@
-// Gắn tự động header "Authorization: Bearer <token>" cho mọi request tới
-// /api/* (trừ /api/auth/login) và tự đăng xuất khi token hết hạn/không hợp lệ (401).
+// Phiên đăng nhập nằm trong cookie HttpOnly do server đặt (JavaScript không
+// đọc được token) — trình duyệt tự gửi cookie kèm mọi request cùng origin.
+// Interceptor này chỉ:
+//  - gắn header chống CSRF "X-Requested-With" cho mọi request tới /api/*;
+//  - tự đăng xuất khi phiên hết hạn/không hợp lệ (401).
 // Import 1 lần (side-effect) ở main.tsx, trước khi app render — vì hầu hết
 // component trong app gọi fetch() trực tiếp, không đi qua 1 client dùng chung.
-const TOKEN_KEY = 'auth_token';
 const STORAGE_KEY = 'auth_user';
 
 const nativeFetch = window.fetch.bind(window);
@@ -16,22 +18,28 @@ function resolveUrl(input: RequestInfo | URL): string {
 window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
 	const url = resolveUrl(input);
 
-	if (!url.startsWith('/api/') || url.startsWith('/api/auth/login')) {
+	if (!url.startsWith('/api/')) {
 		return nativeFetch(input, init);
 	}
 
-	const token = localStorage.getItem(TOKEN_KEY);
 	const headers = new Headers(
 		init?.headers ?? (input instanceof Request ? input.headers : undefined),
 	);
-	if (token) headers.set('Authorization', `Bearer ${token}`);
+	headers.set('X-Requested-With', 'XMLHttpRequest');
 
-	return nativeFetch(input, { ...init, headers }).then((res) => {
-		if (res.status === 401) {
-			localStorage.removeItem(TOKEN_KEY);
+	return nativeFetch(input, {
+		...init,
+		headers,
+		credentials: 'same-origin',
+	}).then((res) => {
+		// Sai mật khẩu khi đăng nhập cũng trả 401 → không coi là hết phiên
+		if (res.status === 401 && !url.startsWith('/api/auth/login')) {
 			localStorage.removeItem(STORAGE_KEY);
 			if (location.pathname !== '/') location.href = '/';
 		}
 		return res;
 	});
 };
+
+// Dọn token cũ còn sót trong localStorage từ phiên bản trước (đã chuyển sang cookie)
+localStorage.removeItem('auth_token');

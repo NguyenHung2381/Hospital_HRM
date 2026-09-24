@@ -1,5 +1,9 @@
 const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
+const { isAdmin, invalidateUserCache } = require('../middleware/auth');
+const { isReservedRoleName } = require('../services/accountGuard');
+
+const DEPARTMENT_ACCESS_TYPES = ['all', 'assigned', 'own'];
 
 // GET /api/roles
 async function getAll(req, res, next) {
@@ -63,6 +67,15 @@ async function create(req, res, next) {
 			return res
 				.status(400)
 				.json({ success: false, message: 'Tên vai trò không được để trống' });
+		if (isReservedRoleName(name))
+			return res.status(403).json({
+				success: false,
+				message: 'Tên vai trò này đã được hệ thống dành riêng',
+			});
+		if (department_access_type && !DEPARTMENT_ACCESS_TYPES.includes(department_access_type))
+			return res
+				.status(400)
+				.json({ success: false, message: 'Loại truy cập khoa không hợp lệ' });
 
 		const pool = await getPool();
 		const result = await pool
@@ -71,7 +84,8 @@ async function create(req, res, next) {
 			.input('description', sql.NVarChar(sql.MAX), description ?? null)
 			.input('icon', sql.NVarChar(20), icon ?? null)
 			.input('color', sql.NVarChar(20), color ?? null)
-			.input('is_system', sql.Bit, is_system ?? 0)
+			// Vai trò hệ thống (không sửa/xoá được) — chỉ Quản trị hệ thống được đặt
+			.input('is_system', sql.Bit, isAdmin(req.user) && is_system ? 1 : 0)
 			.input(
 				'department_access_type',
 				sql.NVarChar(10),
@@ -97,12 +111,16 @@ async function create(req, res, next) {
 async function update(req, res, next) {
 	try {
 		const { name, description, icon, color, department_access_type } = req.body;
+		if (department_access_type && !DEPARTMENT_ACCESS_TYPES.includes(department_access_type))
+			return res
+				.status(400)
+				.json({ success: false, message: 'Loại truy cập khoa không hợp lệ' });
 		const pool = await getPool();
 
 		const check = await pool
 			.request()
 			.input('id_role', sql.Int, req.params.id)
-			.query(`SELECT id_role, is_system FROM Roles WHERE id_role = @id_role`);
+			.query(`SELECT id_role, name_role, is_system FROM Roles WHERE id_role = @id_role`);
 		if (!check.recordset.length)
 			return res
 				.status(404)
@@ -111,6 +129,18 @@ async function update(req, res, next) {
 			return res.status(403).json({
 				success: false,
 				message: 'Không thể sửa vai trò hệ thống',
+			});
+		// Đổi tên thành / từ 1 vai trò dashboard sẽ trao / tước quyền quản trị
+		// của mọi tài khoản thuộc vai trò đó → không cho phép qua API.
+		const renaming =
+			String(name ?? '').trim() !== String(check.recordset[0].name_role).trim();
+		if (
+			renaming &&
+			(isReservedRoleName(name) || isReservedRoleName(check.recordset[0].name_role))
+		)
+			return res.status(403).json({
+				success: false,
+				message: 'Không thể đổi tên sang/từ vai trò quản trị dành riêng',
 			});
 
 		const result = await pool
@@ -133,6 +163,7 @@ async function update(req, res, next) {
 				WHERE id_role = @id_role
 			`);
 
+		invalidateUserCache(); // tên vai trò quyết định quyền của mọi user thuộc vai trò
 		appEmitter.emit('changed', {
 			resource: 'roles',
 			action: 'updated',

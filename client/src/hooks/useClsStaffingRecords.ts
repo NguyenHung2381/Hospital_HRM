@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/context/useAuth';
-import { useAppSSE } from '@/hooks/useAppSSE';
+import { useDeptMonthRecords } from '@/hooks/useDeptMonthRecords';
 import type { ApiClsRecord } from '@/types/apiType';
 import type { DailyClsRecord } from '@/types/clsType';
 import { blankDailyClsRecord } from '@/types/clsType';
@@ -14,12 +14,30 @@ export function useClsStaffingRecords(
 ) {
 	const { user } = useAuth();
 
-	const [records, setRecords] = useState<DailyClsRecord[]>([]);
-	const [recordIds, setRecordIds] = useState<
-		Record<string, { id_report: number; record_id: number }>
-	>({});
 	const [activeDate, setActiveDate] = useState(getTodayDateString());
-	const [loadingRecords, setLoadingRecords] = useState(false);
+	const {
+		records,
+		setRecords,
+		recordIds,
+		setRecordIds,
+		loadingRecords,
+		loadMonth,
+		reloadMonthOf,
+	} =
+		useDeptMonthRecords<ApiClsRecord & { report_date: string }, DailyClsRecord>(
+			activeKhoaId,
+			'cls',
+			apiToDailyClsRecord,
+			(recs, rows) => {
+				for (const row of rows)
+					if (row.recommended_staff !== null)
+						onRecommendedStaffFromRecord(row.recommended_staff);
+				// Chưa có bản ghi hôm nay → nhảy tới ngày gần nhất có dữ liệu
+				const today = getTodayDateString();
+				if (!recs.some((r) => r.date === today) && recs.length)
+					setActiveDate(recs[recs.length - 1].date);
+			},
+		);
 	const [saving, setSaving] = useState(false);
 	const [apiError, setApiError] = useState('');
 
@@ -29,81 +47,6 @@ export function useClsStaffingRecords(
 		blankDailyClsRecord(getTodayDateString()),
 	);
 	const [delDate, setDelDate] = useState<string | null>(null);
-
-	// ── Fetch records từ API khi đổi khoa ────────────────────
-	const fetchKhoaRecords = useCallback(async () => {
-		if (!activeKhoaId) return;
-		setLoadingRecords(true);
-		try {
-			const from = new Date();
-			from.setDate(from.getDate() - 30);
-			const fromStr = from.toISOString().slice(0, 10);
-			const listRes = await fetch(`/api/reports?from=${fromStr}`);
-			const listData = (await listRes.json()) as {
-				success: boolean;
-				data: { id_report: number; report_date: string }[];
-			};
-			if (!listData.success) return;
-
-			const detailPromises = listData.data.map((rep) =>
-				fetch(`/api/reports/${rep.id_report}`).then(
-					(r) =>
-						r.json() as Promise<{
-							success: boolean;
-							data: {
-								id_report: number;
-								report_date: string;
-								cls_records: ApiClsRecord[];
-							};
-						}>,
-				),
-			);
-			const details = await Promise.all(detailPromises);
-
-			const newRecords: DailyClsRecord[] = [];
-			const newIds: Record<string, { id_report: number; record_id: number }> =
-				{};
-
-			for (const detail of details) {
-				if (!detail.success) continue;
-				const { id_report, report_date, cls_records: recs } = detail.data;
-				const deptRec = recs.find((r) => r.id_department === activeKhoaId);
-				if (!deptRec) continue;
-				const dateKey = report_date.slice(0, 10);
-				newRecords.push(apiToDailyClsRecord(dateKey, deptRec));
-				newIds[dateKey] = { id_report, record_id: deptRec.id };
-				if (deptRec.recommended_staff !== null)
-					onRecommendedStaffFromRecord(deptRec.recommended_staff);
-			}
-
-			newRecords.sort((a, b) => a.date.localeCompare(b.date));
-			setRecords(newRecords);
-			setRecordIds(newIds);
-			const today = getTodayDateString();
-			const hasToday = newRecords.some((r) => r.date === today);
-			if (!hasToday && newRecords.length)
-				setActiveDate(newRecords[newRecords.length - 1].date);
-		} finally {
-			setLoadingRecords(false);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [activeKhoaId]);
-
-	useEffect(() => {
-		fetchKhoaRecords();
-	}, [fetchKhoaRecords]);
-
-	// ── Realtime: tự cập nhật khi có thay đổi từ server ──────
-	useAppSSE(
-		useCallback(
-			(payload) => {
-				if (payload.resource === 'reports') {
-					fetchKhoaRecords();
-				}
-			},
-			[fetchKhoaRecords],
-		),
-	);
 
 	const openAdd = (date?: string) => {
 		setFormInitial(
@@ -230,7 +173,7 @@ export function useClsStaffingRecords(
 			);
 			setActiveDate(draft.date);
 			setMMode(null);
-			fetchKhoaRecords();
+			reloadMonthOf(draft.date);
 		} finally {
 			setSaving(false);
 		}
@@ -272,6 +215,7 @@ export function useClsStaffingRecords(
 	};
 
 	return {
+		loadMonth,
 		records,
 		recordIds,
 		activeDate,

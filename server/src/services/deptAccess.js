@@ -1,4 +1,5 @@
 const { sql } = require('../config/db');
+const { isDashboardRole } = require('../middleware/auth');
 
 // Nạp toàn bộ ngữ cảnh quyền truy cập khoa của 1 user: loại truy cập theo Role
 // (all/assigned/own), khoa công tác, và bảng quyền (can_edit/can_delete/can_export)
@@ -61,4 +62,31 @@ function canAccessDept(access, id_department, action) {
 	return !!perm?.[action];
 }
 
-module.exports = { loadUserDeptAccess, canAccessDept };
+// ── Quyền XEM dữ liệu khoa ─────────────────────────────────────
+// Trả về null nếu user được xem toàn bệnh viện (3 vai trò dashboard hoặc
+// role có department_access_type = 'all'), ngược lại trả về Set id các khoa
+// được xem (khoa công tác + khoa được phân). User không còn active → Set rỗng.
+async function loadReadScope(pool, user) {
+	if (isDashboardRole(user)) return null;
+	const access = await loadUserDeptAccess(pool, user);
+	if (!access) return new Set();
+	if (access.accessType === 'all') return null;
+	return new Set(access.permsByDept.keys());
+}
+
+function canReadDept(scope, id_department) {
+	return scope === null || scope.has(Number(id_department));
+}
+
+// Lọc danh sách bản ghi chỉ giữ các khoa user được xem
+function filterByReadScope(scope, rows, key = 'id_department') {
+	return scope === null ? rows : rows.filter((r) => scope.has(Number(r[key])));
+}
+
+module.exports = {
+	loadUserDeptAccess,
+	canAccessDept,
+	loadReadScope,
+	canReadDept,
+	filterByReadScope,
+};

@@ -79,7 +79,7 @@ async function addRecord(req, res, next) {
 			.input('recommended_staff_calc', sql.Decimal(10, 4), recommendedCalc)
 			.input('coordination', sql.Decimal(10, 4), r.coordination ?? null)
 			.input('note', sql.NVarChar(sql.MAX), r.note ?? null)
-			.input('created_by', sql.Int, r.created_by ?? null).query(`
+			.input('created_by', sql.Int, req.user.id_user).query(`
 				DECLARE @out TABLE (Id INT);
 				INSERT INTO [Report_Department_Records ]
 					(id_report, id_department, sort_order,

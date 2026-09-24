@@ -1,5 +1,10 @@
 RewriteEngine On
 
+# Bắt buộc HTTPS: khi đã cài chứng chỉ SSL cho site, bỏ dấu # ở 2 dòng dưới
+# (đồng thời bật HSTS ở cuối file và đặt COOKIE_SECURE=true trong server/.env)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 RewriteCond %{REQUEST_URI} ^/api
 RewriteRule ^ - [L]
 
@@ -8,3 +13,15 @@ RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
 RewriteRule . /index.html [L]
+
+# Header bảo mật cho trang web (helmet ở Node chỉ áp dụng cho /api).
+# Cần bật mod_headers; nếu chưa bật, khối này được bỏ qua, không gây lỗi.
+<IfModule mod_headers.c>
+	Header always set X-Content-Type-Options "nosniff"
+	Header always set X-Frame-Options "DENY"
+	Header always set Referrer-Policy "strict-origin-when-cross-origin"
+	Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+	# Chỉ bật HSTS khi site đã chạy HTTPS ổn định (bỏ dấu # ở dòng dưới)
+	# Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>

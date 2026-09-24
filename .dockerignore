@@ -1,0 +1,14 @@
+# Không đưa vào build context: dependency cài sẵn trên máy, bí mật, log, build cũ
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+**/logs
+**/*.log
+.git
+.vscode
+.idea
+.claude
+server/scripts/setAccountPasswords.js
+server/uploads

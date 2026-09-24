@@ -5,6 +5,7 @@ import { createContext } from 'react';
 export type LoginResult =
 	| { status: 'ok'; user: UserAccount }
 	| { status: 'wrong_pass' }
+	| { status: 'rate_limited' }
 	| { status: 'not_found' };
 
 // Quyền thao tác theo từng khoa

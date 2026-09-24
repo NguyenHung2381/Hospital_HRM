@@ -1,0 +1,82 @@
+# Hospital HRM — chạy bằng Docker
+#   docker compose up -d --build
+# Truy cập: http://localhost:${WEB_PORT:-8080}
+#
+# Database: dùng SQL Server có sẵn trên máy host (không nằm trong compose).
+# Cấu hình DB/JWT đọc từ server/.env; các biến dưới "environment" ghi đè
+# những giá trị chỉ đúng khi chạy trực tiếp trên Windows (HOST, DB_HOST...).
+
+name: hospital_hrm
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    image: hospital-hrm-api:latest
+    restart: unless-stopped
+    env_file:
+      - server/.env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      # SQL Server trên máy host. Đổi DOCKER_DB_HOST nếu DB ở máy khác.
+      DB_HOST: ${DOCKER_DB_HOST:-host.docker.internal}
+      # true khi truy cập qua HTTPS (proxy/TLS phía trước nginx)
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # API không mở cổng ra ngoài — chỉ nginx (web) gọi tới qua mạng nội bộ
+    expose:
+      - "3000"
+    volumes:
+      - api-logs:/app/server/logs
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  web:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    image: hospital-hrm-web:latest
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  # Audit log của server (audit-YYYY-MM-DD.log)
+  api-logs:

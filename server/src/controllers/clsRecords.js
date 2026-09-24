@@ -3,7 +3,12 @@ const {
 	calcRecommended,
 	fetchRecommendedConfig,
 } = require('../services/tt03Formulas');
-const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
+const {
+	loadUserDeptAccess,
+	canAccessDept,
+	loadReadScope,
+	canReadDept,
+} = require('../services/deptAccess');
 const appEmitter = require('../events/appEmitter');
 
 // ── Helper: tính recommended_staff (khuyến cáo cố định hệ CLS) ──────────
@@ -24,29 +29,68 @@ async function resolveRecommended(pool, record) {
 }
 
 // ── Helper: lấy toàn bộ bản ghi CLS của 1 báo cáo (dùng trong reports.js#getById) ──
+// Cột + JOIN dùng chung cho bản ghi CLS (getRecordsForReport, getByDepartment)
+const CLS_RECORD_SELECT = `
+	SELECT
+		rcr.Id AS id, rcr.id_report, rcr.id_department, rcr.sort_order,
+		d.name_department AS department_name, d.code_department,
+		rcr.sample_or_visit_cnt, rcr.xray_us_cnt, rcr.ct_endoscopy_cnt,
+		rcr.mri_bonedensity_cnt, rcr.ecg_intervention_cnt, rcr.linen_media_cnt,
+		rcr.tool_metal_cnt, rcr.tool_plastic_cnt, rcr.supervised_dept_cnt,
+		rcr.pending_sample_or_visit_cnt, rcr.pending_xray_us_cnt, rcr.pending_ct_endoscopy_cnt,
+		rcr.pending_mri_bonedensity_cnt, rcr.pending_ecg_intervention_cnt, rcr.pending_linen_cnt,
+		rcr.pending_tool_metal_cnt, rcr.pending_tool_plastic_cnt,
+		rcr.total_staff, rcr.staff_on_duty, rcr.staff_long_leave,
+		rcr.staff_working, rcr.work_ratio, rcr.recommended_staff, rcr.coordination,
+		rc.formula_type AS rec_formula_type, rc.fixed_add AS rec_fixed_add, rc.note AS rec_note,
+		rcr.note, rcr.created_at, rcr.updated_at
+	FROM Report_CLS_Records rcr
+	LEFT JOIN Departments d ON d.id_department = rcr.id_department
+	LEFT JOIN Dept_Recommended_Config rc ON rc.id_department = rcr.id_department
+`;
+
 async function getRecordsForReport(pool, id_report) {
 	const result = await pool.request().input('id_report', sql.Int, id_report)
 		.query(`
-		SELECT
-			rcr.Id AS id, rcr.id_report, rcr.id_department, rcr.sort_order,
-			d.name_department AS department_name, d.code_department,
-			rcr.sample_or_visit_cnt, rcr.xray_us_cnt, rcr.ct_endoscopy_cnt,
-			rcr.mri_bonedensity_cnt, rcr.ecg_intervention_cnt, rcr.linen_media_cnt,
-			rcr.tool_metal_cnt, rcr.tool_plastic_cnt, rcr.supervised_dept_cnt,
-			rcr.pending_sample_or_visit_cnt, rcr.pending_xray_us_cnt, rcr.pending_ct_endoscopy_cnt,
-			rcr.pending_mri_bonedensity_cnt, rcr.pending_ecg_intervention_cnt, rcr.pending_linen_cnt,
-			rcr.pending_tool_metal_cnt, rcr.pending_tool_plastic_cnt,
-			rcr.total_staff, rcr.staff_on_duty, rcr.staff_long_leave,
-			rcr.staff_working, rcr.work_ratio, rcr.recommended_staff, rcr.coordination,
-			rc.formula_type AS rec_formula_type, rc.fixed_add AS rec_fixed_add, rc.note AS rec_note,
-			rcr.note, rcr.created_at, rcr.updated_at
-		FROM Report_CLS_Records rcr
-		LEFT JOIN Departments d ON d.id_department = rcr.id_department
-		LEFT JOIN Dept_Recommended_Config rc ON rc.id_department = rcr.id_department
+		${CLS_RECORD_SELECT}
 		WHERE rcr.id_report = @id_report
 		ORDER BY rcr.sort_order
 	`);
 	return result.recordset;
+}
+
+// GET /api/reports/department/:deptId/cls?from=&to=
+// Bản ghi CLS của 1 khoa trong khoảng ngày — 1 truy vấn.
+async function getByDepartment(req, res, next) {
+	try {
+		const { from, to } = req.query;
+		if (!from || !to)
+			return res
+				.status(400)
+				.json({ success: false, message: 'Thiếu from/to' });
+		const pool = await getPool();
+		if (!canReadDept(await loadReadScope(pool, req.user), req.params.deptId))
+			return res
+				.status(403)
+				.json({ success: false, message: 'Bạn không có quyền xem dữ liệu của khoa này' });
+		const result = await pool
+			.request()
+			.input('dept', sql.Int, req.params.deptId)
+			.input('from', sql.Date, from)
+			.input('to', sql.Date, to).query(`
+				${CLS_RECORD_SELECT.replace(
+					'SELECT',
+					'SELECT CONVERT(varchar(10), dr.report_date, 23) AS report_date,',
+				)}
+				INNER JOIN Daily_Reports dr ON dr.id_report = rcr.id_report
+				WHERE rcr.id_department = @dept
+				  AND dr.report_date BETWEEN @from AND @to
+				ORDER BY dr.report_date
+			`);
+		res.json({ success: true, data: result.recordset });
+	} catch (err) {
+		next(err);
+	}
 }
 
 // POST /api/reports/:id/cls-records
@@ -161,7 +205,7 @@ async function addRecord(req, res, next) {
 			.input('recommended_staff', sql.SmallInt, recommended)
 			.input('coordination', sql.SmallInt, r.coordination ?? null)
 			.input('note', sql.NVarChar(sql.MAX), r.note ?? null)
-			.input('created_by', sql.Int, r.created_by ?? null).query(`
+			.input('created_by', sql.Int, req.user.id_user).query(`
 				DECLARE @out TABLE (Id INT);
 				INSERT INTO Report_CLS_Records
 					(id_report, id_department, sort_order,
@@ -389,6 +433,7 @@ async function removeRecord(req, res, next) {
 
 module.exports = {
 	getRecordsForReport,
+	getByDepartment,
 	addRecord,
 	updateRecord,
 	removeRecord,

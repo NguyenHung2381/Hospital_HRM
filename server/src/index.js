@@ -33,7 +33,13 @@ app.use(
 	}),
 );
 
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+
+// Dữ liệu nhân sự/bệnh nhân → không cho trình duyệt/proxy lưu cache response API
+app.use('/api', (req, res, next) => {
+	res.set('Cache-Control', 'no-store');
+	next();
+});
 
 // Routes
 app.use('/api', routes);
@@ -58,12 +64,11 @@ app.get('/health/db', authenticate, requireDashboardRole, async (req, res) => {
 			database: result.recordset[0].database_name,
 			login_user: result.recordset[0].login_user,
 			sql_version: result.recordset[0].sql_version,
-			host: process.env.DB_HOST,
 		});
 	} catch (err) {
+		console.error('[health/db]', err);
 		res.status(503).json({
 			status: 'error',
-			message: err.message,
 			code: err.code || err.number || null,
 		});
 	}

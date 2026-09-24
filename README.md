@@ -10,8 +10,8 @@ Hệ thống quản lý nhân sự bệnh viện (Human Resource Management). �
 | Routing | React Router DOM v7 |
 | Backend | Node.js, Express |
 | Database | Microsoft SQL Server (MSSQL) |
-| Auth | JWT (jsonwebtoken), bcrypt |
-| Bảo mật | Helmet, CORS whitelist, rate limit đăng nhập, phân quyền theo phòng ban |
+| Auth | JWT trong cookie HttpOnly (jsonwebtoken), bcrypt |
+| Bảo mật | Helmet, CSP, CORS whitelist, chống CSRF, rate limit đăng nhập, phân quyền xem/ghi theo phòng ban, audit log |
 | Realtime | Server-Sent Events (SSE) |
 | Export | ExcelJS |
 | Dev tools | Nodemon, Concurrently, ESLint |
@@ -62,7 +62,7 @@ Hospital_HRM/
 
 ## Tính năng
 
-- **Xác thực & bảo mật**: Đăng nhập JWT, rate limit chống brute-force (5 lần sai/15 phút theo IP+username), Helmet, CORS whitelist theo domain, phân quyền theo role và theo phòng ban (chỉ truy cập khoa được gán)
+- **Xác thực & bảo mật**: Đăng nhập JWT lưu trong cookie HttpOnly + SameSite=Strict (thu hồi khi đăng xuất / đổi mật khẩu / khoá tài khoản), chống CSRF (header `X-Requested-With`), rate limit chống brute-force (5 lần sai/15 phút theo IP+username, 30 lần/IP), chính sách mật khẩu (≥ 8 ký tự, có chữ và số), đặt lại mật khẩu bằng mật khẩu tạm ngẫu nhiên, Helmet + CSP, CORS whitelist, phân quyền theo role và theo phòng ban (chỉ xem/ghi khoa được gán), audit log (`server/logs/audit-YYYY-MM-DD.log`)
 - **Quản lý tài khoản**: CRUD nhân viên, gán phòng ban, phân quyền, đổi/đặt lại mật khẩu
 - **Phòng ban**: Quản lý danh sách phòng ban, cấu hình nhân lực khuyến nghị theo khoa
 - **Phân quyền**: Cấu hình role và quyền truy cập (permission grid)
@@ -91,7 +91,7 @@ npm install --prefix server
 
 ### 2. Cấu hình environment
 
-Tạo file `server/.env`:
+Tạo file `server/.env` (xem đầy đủ các biến trong `server/.env.example`):
 
 ```env
 PORT=3000
@@ -100,7 +100,8 @@ DB_HOST=localhost\SQLEXPRESS   # hoặc tên server\instance
 DB_NAME=Hospital_HRM
 DB_USER=sa
 DB_PASSWORD=your_password
-JWT_SECRET=your_jwt_secret
+JWT_SECRET=                    # chuỗi ngẫu nhiên >= 32 ký tự: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+COOKIE_SECURE=false            # đặt true khi site chạy HTTPS
 CORS_ORIGIN=                   # domain thật nếu cần gọi API từ origin khác, cách nhau bởi dấu phẩy
 ```
 
@@ -115,11 +116,37 @@ npm run client   # Frontend: http://localhost:5173
 npm run server   # Backend:  http://localhost:3000
 ```
 
+## Chạy bằng Docker
+
+Gồm 2 container: `web` (nginx — phục vụ giao diện, reverse-proxy `/api`, header bảo mật, giới hạn tốc độ đăng nhập) và `api` (Node, không mở cổng ra ngoài). Database dùng SQL Server có sẵn trên máy host, kết nối qua `host.docker.internal`.
+
+```bash
+# 1. Cấu hình server/.env như mục trên (DB_PORT phải là cổng TCP của SQL Server,
+#    SQL Server phải bật TCP/IP và cho phép kết nối không chỉ từ localhost)
+# 2. Build + chạy
+docker compose up -d --build
+# Truy cập: http://localhost:8080
+
+docker compose logs -f api        # xem log server
+docker compose down               # dừng
+```
+
+Biến tuỳ chọn (đặt trong shell hoặc file `.env` ở thư mục gốc):
+
+| Biến | Mặc định | Ý nghĩa |
+|------|----------|---------|
+| `WEB_PORT` | `8080` | Cổng truy cập giao diện |
+| `WEB_BIND` | `0.0.0.0` | Đặt `127.0.0.1` nếu chỉ cho truy cập từ chính máy chủ |
+| `DOCKER_DB_HOST` | `host.docker.internal` | Địa chỉ SQL Server nhìn từ container |
+| `COOKIE_SECURE` | `false` | Đặt `true` khi truy cập qua HTTPS |
+
+Audit log nằm trong volume `hospital_hrm_api-logs`: `docker compose exec api ls logs`.
+
 ## API
 
 Base URL: `http://localhost:3000/api`
 
-Tất cả endpoint bên dưới (trừ `/auth/login`) yêu cầu JWT hợp lệ (header `Authorization: Bearer <token>`).
+Tất cả endpoint bên dưới (trừ `/auth/login`, `/auth/logout`) yêu cầu đăng nhập: JWT nằm trong cookie HttpOnly `hrm_session` do `/auth/login` đặt. Mọi request POST/PUT/DELETE phải kèm header `X-Requested-With: XMLHttpRequest` (chống CSRF).
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|

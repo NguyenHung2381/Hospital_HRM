@@ -22,11 +22,14 @@ export default function Calendar({
 	activeDate,
 	onSelect,
 	onAdd,
+	onMonthChange,
 }: {
 	records: { date: string }[];
 	activeDate: string;
 	onSelect: (d: string) => void;
 	onAdd: (d: string) => void;
+	/** Gọi khi người dùng chuyển tháng (month: 0–11) → nơi dùng tải dữ liệu theo tháng. */
+	onMonthChange?: (year: number, month: number) => void;
 }) {
 	const today = getTodayDateString();
 	const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
@@ -51,18 +54,15 @@ export default function Calendar({
 		return `${viewYear}-${mm}-${dd}`;
 	};
 
-	const prev = () => {
-		if (viewMonth === 0) {
-			setViewYear((y) => y - 1);
-			setViewMonth(11);
-		} else setViewMonth((m) => m - 1);
+	const goTo = (year: number, month: number) => {
+		setViewYear(year);
+		setViewMonth(month);
+		onMonthChange?.(year, month);
 	};
-	const next = () => {
-		if (viewMonth === 11) {
-			setViewYear((y) => y + 1);
-			setViewMonth(0);
-		} else setViewMonth((m) => m + 1);
-	};
+	const prev = () =>
+		viewMonth === 0 ? goTo(viewYear - 1, 11) : goTo(viewYear, viewMonth - 1);
+	const next = () =>
+		viewMonth === 11 ? goTo(viewYear + 1, 0) : goTo(viewYear, viewMonth + 1);
 
 	return (
 		<div className='cal'>

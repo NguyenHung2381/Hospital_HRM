@@ -1,4 +1,8 @@
-import { getTodayDateStringVNLong, formatDateToVN } from '@/utils/dateUtils';
+import {
+	formatDateToVN,
+	getTodayDateString,
+	getTodayDateStringVNLong,
+} from '@/utils/dateUtils';
 import {
 	aggregateDashboardStats,
 	getTrendStats,
@@ -62,7 +66,7 @@ export default function DashboardPage() {
 		toKhoaClsRecord(r, i + 1),
 	);
 	const selDateStr = selectedReport.report_date.slice(0, 10);
-	const isLatest = selIdx === 0;
+	const isToday = selDateStr === getTodayDateString();
 
 	const {
 		totalNB,
@@ -159,7 +163,7 @@ export default function DashboardPage() {
 					</select>
 				</div>
 
-				{isLatest && (
+				{isToday && (
 					<span className='ov-latest-badge'>
 						<span className='ov-latest-dot' />
 						Cập nhật hôm nay

@@ -102,3 +102,14 @@ export const validateRecordDate = (
 		return 'Ngày này đã có bản ghi, vui lòng chọn ngày khác';
 	return '';
 };
+
+/** Khoảng ngày của 1 tháng (month: 0–11) dạng YYYY-MM-DD + key 'YYYY-MM'. */
+export const getMonthRange = (year: number, month: number) => {
+	const mm = String(month + 1).padStart(2, '0');
+	const lastDay = new Date(year, month + 1, 0).getDate();
+	return {
+		key: `${year}-${mm}`,
+		from: `${year}-${mm}-01`,
+		to: `${year}-${mm}-${String(lastDay).padStart(2, '0')}`,
+	};
+};

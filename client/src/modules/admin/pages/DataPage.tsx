@@ -61,6 +61,7 @@ export default function DataPage() {
 		loadingReport,
 		apiError,
 		setApiError,
+		loadMonth,
 	} = useReportData(selDate);
 
 	const allRows = useMemo(
@@ -155,6 +156,7 @@ export default function DataPage() {
 				reportMetas={reportMetas}
 				selDate={selDate}
 				onSelectDate={setSelDate}
+				onMonthChange={loadMonth}
 				activeTab={activeTab}
 				allRows={allRows}
 				selKhoa={selKhoa}

@@ -57,7 +57,7 @@ function errorHandler(err, req, res, next) {
 					success: false,
 					code: 'DB_ERROR',
 					message:
-						process.env.NODE_ENV === 'production'
+						process.env.NODE_ENV !== 'development'
 							? 'Đã xảy ra lỗi khi truy vấn dữ liệu, vui lòng thử lại sau'
 							: 'Lỗi database: ' + err.message,
 				});
@@ -105,7 +105,7 @@ function errorHandler(err, req, res, next) {
 		success: false,
 		code: 'INTERNAL_ERROR',
 		message:
-			process.env.NODE_ENV === 'production'
+			process.env.NODE_ENV !== 'development'
 				? 'Đã xảy ra lỗi, vui lòng thử lại sau'
 				: err.message,
 	});

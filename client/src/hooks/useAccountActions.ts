@@ -212,16 +212,30 @@ export function useAccountActions(roles: ApiRole[], refetchUsers: () => Promise<
 		}
 	};
 
+	// Mật khẩu tạm ngẫu nhiên server trả về sau khi đặt lại — chỉ hiển thị 1 lần
+	const [tempPassword, setTempPassword] = useState<string | null>(null);
+
+	const closeReset = () => {
+		setTempPassword(null);
+		setError('');
+		setModal(null);
+	};
+
 	const handleReset = async () => {
 		if (!target) return;
 		setSaving(true);
+		setError('');
 		try {
 			const res = await fetch(`/api/users/${target.id_user}/reset-password`, {
 				method: 'PUT',
 			});
-			const data = (await res.json()) as { success: boolean; message?: string };
-			if (data.success) {
-				setModal(null);
+			const data = (await res.json()) as {
+				success: boolean;
+				message?: string;
+				data?: { temp_password: string };
+			};
+			if (data.success && data.data?.temp_password) {
+				setTempPassword(data.data.temp_password);
 			} else {
 				setError(data.message ?? 'Lỗi khi đặt lại mật khẩu');
 			}
@@ -258,5 +272,7 @@ export function useAccountActions(roles: ApiRole[], refetchUsers: () => Promise<
 		togglePerm,
 		handleDel,
 		handleReset,
+		tempPassword,
+		closeReset,
 	};
 }

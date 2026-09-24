@@ -13,20 +13,15 @@ let es: EventSource | null = null;
 let refCount = 0;
 const handlers = new Set<Handler>();
 
-function getSSE() {
-	if (!es || es.readyState === EventSource.CLOSED) {
-		// EventSource không set được custom header → truyền token qua query string.
-		const token = localStorage.getItem('auth_token');
-		const url = token
-			? `/api/subscribe?token=${encodeURIComponent(token)}`
-			: '/api/subscribe';
-		es = new EventSource(url);
-		es.onmessage = (e) => {
-			const payload: SSEPayload = JSON.parse(e.data);
-			handlers.forEach((h) => h(payload));
-		};
-	}
-	return es;
+// Xác thực bằng cookie phiên HttpOnly — EventSource tự gửi cookie cùng origin,
+// nên không cần (và không được) đưa token vào URL.
+function connectSSE() {
+	if (es && es.readyState !== EventSource.CLOSED) return;
+	es = new EventSource('/api/subscribe');
+	es.onmessage = (e) => {
+		const payload: SSEPayload = JSON.parse(e.data);
+		handlers.forEach((h) => h(payload));
+	};
 }
 
 export function useAppSSE(onChanged: Handler) {
@@ -37,7 +32,7 @@ export function useAppSSE(onChanged: Handler) {
 		const handler: Handler = (payload) => handlerRef.current(payload);
 		handlers.add(handler);
 		refCount++;
-		getSSE(); // đảm bảo kết nối đang mở
+		connectSSE(); // đảm bảo kết nối đang mở
 
 		return () => {
 			handlers.delete(handler);

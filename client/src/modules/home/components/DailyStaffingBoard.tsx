@@ -98,6 +98,7 @@ export default function DailyStaffingBoard({
 		activeDate,
 		setActiveDate,
 		loadingRecords,
+		loadMonth,
 		saving,
 		apiError,
 		mMode,
@@ -146,6 +147,7 @@ export default function DailyStaffingBoard({
 				khoaList={userKhoa}
 				activeId={activeKhoaId}
 				onKhoaChange={handleKhoaChange}
+				onMonthChange={loadMonth}
 				records={records}
 				activeDate={activeDate}
 				onSelectDate={setActiveDate}

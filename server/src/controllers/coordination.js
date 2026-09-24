@@ -1,5 +1,6 @@
 const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
+const { loadReadScope, canReadDept } = require('../services/deptAccess');
 
 // GET /api/coordination?date=YYYY-MM-DD
 async function getAll(req, res, next) {
@@ -26,7 +27,12 @@ async function getAll(req, res, next) {
 				WHERE dr.report_date = @date
 				ORDER BY sc.created_at DESC
 			`);
-		res.json({ success: true, data: result.recordset });
+		// Chỉ trả các lượt điều phối liên quan tới khoa user được xem
+		const scope = await loadReadScope(pool, req.user);
+		const rows = result.recordset.filter(
+			(r) => canReadDept(scope, r.id_department_from) || canReadDept(scope, r.id_department_to),
+		);
+		res.json({ success: true, data: rows });
 	} catch (err) {
 		next(err);
 	}
@@ -41,7 +47,6 @@ async function create(req, res, next) {
 			id_department_to,
 			staff_count,
 			note,
-			created_by,
 		} = req.body;
 
 		if (!report_date || !id_department_from || !id_department_to || !staff_count)
@@ -80,7 +85,7 @@ async function create(req, res, next) {
 			.input('id_department_to', sql.Int, id_department_to)
 			.input('staff_count', sql.SmallInt, staff_count)
 			.input('note', sql.NVarChar(300), note ?? null)
-			.input('created_by', sql.Int, created_by ?? null).query(`
+			.input('created_by', sql.Int, req.user.id_user).query(`
 				DECLARE @out TABLE (id INT);
 				INSERT INTO Staff_Coordination_Records
 					(id_report, id_department_from, id_department_to, staff_count, note, created_by)

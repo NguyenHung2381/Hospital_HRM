@@ -54,6 +54,8 @@ export default function AccountPage() {
 		togglePerm,
 		handleDel,
 		handleReset,
+		tempPassword,
+		closeReset,
 	} = useAccountActions(roles, refetchUsers);
 
 	// ── Computed ──────────────────────────────────────────
@@ -311,46 +313,79 @@ export default function AccountPage() {
 			{modal === 'reset' && (
 				<ModalForm
 					title='🔑 Đặt lại mật khẩu'
-					onClose={() => setModal(null)}
+					onClose={closeReset}
 				>
 					{error && <p className='login-error'>⚠️ {error}</p>}
-					<p className='confirm-txt'>
-						Đặt lại mật khẩu cho <strong>{target?.full_name}</strong>?
-						<br />
-						<br />
-						Mật khẩu sẽ được đặt về:{' '}
-						<strong
-							style={{
-								fontFamily: 'monospace',
-								background: '#f1f5f9',
-								padding: '2px 8px',
-								borderRadius: 4,
-							}}
-						>
-							{target?.username}
-						</strong>
-						<br />
-						<span style={{ fontSize: '.78rem', color: '#64748b' }}>
-							Người dùng cần đổi mật khẩu sau khi đăng nhập lại.
-						</span>
-					</p>
-					<div className='mfooter'>
-						<button
-							className='btn-ghost'
-							onClick={() => setModal(null)}
-							disabled={saving}
-						>
-							Huỷ
-						</button>
-						<button
-							className='btn-primary'
-							style={{ background: '#d97706' }}
-							onClick={handleReset}
-							disabled={saving}
-						>
-							{saving ? '⏳ Đang xử lý...' : '🔑 Xác nhận đặt lại'}
-						</button>
-					</div>
+					{tempPassword ? (
+						<>
+							<p className='confirm-txt'>
+								Đã đặt lại mật khẩu cho <strong>{target?.full_name}</strong>.
+								<br />
+								<br />
+								Mật khẩu tạm:{' '}
+								<strong
+									style={{
+										fontFamily: 'monospace',
+										background: '#f1f5f9',
+										padding: '2px 8px',
+										borderRadius: 4,
+										userSelect: 'all',
+									}}
+								>
+									{tempPassword}
+								</strong>
+								<br />
+								<span style={{ fontSize: '.78rem', color: '#64748b' }}>
+									Mật khẩu này chỉ hiển thị 1 lần. Hãy chuyển trực tiếp cho người
+									dùng và yêu cầu họ đổi mật khẩu ngay sau khi đăng nhập.
+								</span>
+							</p>
+							<div className='mfooter'>
+								<button
+									className='btn-ghost'
+									onClick={() => {
+										void navigator.clipboard?.writeText(tempPassword);
+									}}
+								>
+									📋 Sao chép
+								</button>
+								<button className='btn-primary' onClick={closeReset}>
+									Đóng
+								</button>
+							</div>
+						</>
+					) : (
+						<>
+							<p className='confirm-txt'>
+								Đặt lại mật khẩu cho <strong>{target?.full_name}</strong>?
+								<br />
+								<br />
+								Hệ thống sẽ tạo một mật khẩu tạm ngẫu nhiên và đăng xuất tài khoản
+								khỏi mọi thiết bị.
+								<br />
+								<span style={{ fontSize: '.78rem', color: '#64748b' }}>
+									Người dùng cần đổi mật khẩu sau khi đăng nhập lại.
+								</span>
+							</p>
+							<div className='mfooter'>
+								<button
+									className='btn-ghost'
+									onClick={closeReset}
+									disabled={saving}
+								>
+									Huỷ
+								</button>
+								<button
+									className='btn-primary'
+									style={{ background: '#d97706' }}
+									onClick={handleReset}
+									disabled={saving}
+								>
+									{saving ? '⏳ Đang xử lý...' : '🔑 Xác nhận đặt lại'}
+								</button>
+							</div>
+						</>
+					)}
 				</ModalForm>
 			)}
 		</div>

@@ -15,6 +15,7 @@ export interface DataPageSidebarProps {
 	reportMetas: ReportMeta[];
 	selDate: string;
 	onSelectDate: (d: string) => void;
+	onMonthChange: (year: number, month: number) => void;
 	activeTab: 'ward' | 'cls';
 	allRows: KhoaRecord[];
 	selKhoa: Set<number>;
@@ -35,6 +36,7 @@ export default function DataPageSidebar({
 	reportMetas,
 	selDate,
 	onSelectDate,
+	onMonthChange,
 	activeTab,
 	allRows,
 	selKhoa,
@@ -66,6 +68,7 @@ export default function DataPageSidebar({
 					activeDate={selDate}
 					onSelect={(d) => onSelectDate(d)}
 					onAdd={(d) => onSelectDate(d)}
+					onMonthChange={onMonthChange}
 				/>
 			</div>
 

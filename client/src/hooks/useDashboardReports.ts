@@ -1,8 +1,11 @@
-import type { ApiReport } from '@/types/apiType';
+import type { ApiReport, ReportMeta } from '@/types/apiType';
 import { useCallback, useEffect, useState } from 'react';
 import { useAppSSE } from './useAppSSE';
 
-/** Fetch 30 ngày báo cáo gần nhất + tự cập nhật qua SSE (DashboardPage). */
+/** Số ngày có dữ liệu tối đa mà Dashboard tải chi tiết. */
+const MAX_REPORTS = 30;
+
+/** Fetch 30 ngày báo cáo có dữ liệu gần nhất + tự cập nhật qua SSE (DashboardPage). */
 export function useDashboardReports() {
 	const [allReports, setAllReports] = useState<ApiReport[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -11,24 +14,28 @@ export function useDashboardReports() {
 
 	const fetchData = useCallback(async () => {
 		try {
-			const from = new Date();
-			from.setDate(from.getDate() - 30);
-			const fromStr = from.toISOString().slice(0, 10);
-
-			const listRes = await fetch(`/api/reports?from=${fromStr}`);
+			// Không giới hạn theo lịch: ngày có dữ liệu gần nhất có thể đã quá 30 ngày
+			const listRes = await fetch(`/api/reports`);
 			const listData = (await listRes.json()) as {
 				success: boolean;
-				data: { id_report: number; report_date: string }[];
+				data: ReportMeta[];
 			};
 
-			if (!listData.success || !listData.data.length) {
-				setLoading(false);
+			// Bỏ các ngày đã tạo báo cáo nhưng chưa có khoa nào nhập liệu
+			// (API đã sắp xếp report_date giảm dần → lấy MAX_REPORTS ngày mới nhất)
+			const withRecords = listData.success
+				? listData.data.filter((r) => r.has_records).slice(0, MAX_REPORTS)
+				: [];
+
+			if (!withRecords.length) {
+				setAllReports([]);
+				setSelIdx(0);
 				return;
 			}
 
-			// Lấy chi tiết tất cả báo cáo (tối đa 30 ngày)
+			// Lấy chi tiết các báo cáo (tối đa MAX_REPORTS ngày)
 			const detailResults = await Promise.all(
-				listData.data.map((r) =>
+				withRecords.map((r) =>
 					fetch(`/api/reports/${r.id_report}`).then(
 						(res) =>
 							res.json() as Promise<{
