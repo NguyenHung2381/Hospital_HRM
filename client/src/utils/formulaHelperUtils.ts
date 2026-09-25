@@ -38,7 +38,7 @@ export const REC_FORMULA_BADGE_COLOR: Record<
 	coef_with_outpatient: { bg: '#eff6ff', color: '#1d4ed8' }, // xanh dương
 	total_ratio: { bg: '#fff7ed', color: '#c2410c' }, // cam
 	outpatient_count: { bg: '#fdf4ff', color: '#7c3aed' }, // tím
-	fixed: { bg: '#f1f5f9', color: '#334155' }, // xám
+	fixed: { bg: '#f0f4f6', color: '#2d4050' }, // xám
 };
 
 export interface TT03Block {

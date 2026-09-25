@@ -22,7 +22,7 @@ export default function ConfirmDeleteModal({
 		>
 			<p className='confirm-txt'>
 				Xoá dữ liệu ngày <strong>{fmtDisplay(date)}</strong>?<br />
-				<span style={{ fontSize: '.8rem', color: '#64748b' }}>
+				<span style={{ fontSize: '.8rem', color: '#6b8090' }}>
 					Toàn bộ dữ liệu báo cáo ngày này sẽ bị xoá vĩnh viễn.
 				</span>
 			</p>

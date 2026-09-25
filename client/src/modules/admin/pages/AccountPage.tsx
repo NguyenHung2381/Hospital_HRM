@@ -185,7 +185,7 @@ export default function AccountPage() {
 														<span
 															style={{
 																fontSize: '.72rem',
-																color: '#94a3b8',
+																color: '#9aaab6',
 																marginLeft: 6,
 															}}
 														>
@@ -346,7 +346,7 @@ export default function AccountPage() {
 								<strong
 									style={{
 										fontFamily: 'monospace',
-										background: '#f1f5f9',
+										background: '#f0f4f6',
 										padding: '2px 8px',
 										borderRadius: 4,
 										userSelect: 'all',
@@ -355,7 +355,7 @@ export default function AccountPage() {
 									{tempPassword}
 								</strong>
 								<br />
-								<span style={{ fontSize: '.78rem', color: '#64748b' }}>
+								<span style={{ fontSize: '.78rem', color: '#6b8090' }}>
 									Mật khẩu này chỉ hiển thị 1 lần. Hãy chuyển trực tiếp cho người
 									dùng và yêu cầu họ đổi mật khẩu ngay sau khi đăng nhập.
 								</span>
@@ -383,7 +383,7 @@ export default function AccountPage() {
 								Hệ thống sẽ tạo một mật khẩu tạm ngẫu nhiên, mở khoá tài khoản (nếu
 								đang bị khoá tạm) và đăng xuất tài khoản khỏi mọi thiết bị.
 								<br />
-								<span style={{ fontSize: '.78rem', color: '#64748b' }}>
+								<span style={{ fontSize: '.78rem', color: '#6b8090' }}>
 									Người dùng cần đổi mật khẩu sau khi đăng nhập lại.
 								</span>
 							</p>

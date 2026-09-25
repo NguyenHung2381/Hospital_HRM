@@ -67,14 +67,14 @@ export default function DepartmentPage() {
 					{
 						label: 'Tổng khoa',
 						val: depts.length,
-						color: '#1e293b',
-						bg: '#f8fafc',
+						color: '#1a2a35',
+						bg: '#f8fafb',
 					},
 					{
 						label: 'Đang hoạt động',
 						val: activeCount,
 						color: '#087c3b',
-						bg: '#eef8f2',
+						bg: '#e7f5ed',
 					},
 					{
 						label: 'Tạm dừng',
@@ -166,7 +166,7 @@ export default function DepartmentPage() {
 										</td>
 										<td
 											className='td-center td-mono'
-											style={{ color: '#64748b', fontSize: '.8rem' }}
+											style={{ color: '#6b8090', fontSize: '.8rem' }}
 										>
 											{k.code_department ?? '—'}
 										</td>
@@ -187,14 +187,14 @@ export default function DepartmentPage() {
 													{FORMULA_LABELS[ft]}
 												</span>
 											) : (
-												<span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+												<span style={{ color: '#9aaab6', fontSize: '0.75rem' }}>
 													Chưa cấu hình
 												</span>
 											)}
 										</td>
 										<td
 											className='td-center td-mono'
-											style={{ fontSize: '0.75rem', color: '#475569' }}
+											style={{ fontSize: '0.75rem', color: '#4a6070' }}
 										>
 											{ratioDisplay}
 										</td>
@@ -228,7 +228,7 @@ export default function DepartmentPage() {
 													)?.label ?? k.rec_formula_type}
 												</span>
 											) : (
-												<span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+												<span style={{ color: '#9aaab6', fontSize: '0.75rem' }}>
 													Chưa cấu hình
 												</span>
 											)}

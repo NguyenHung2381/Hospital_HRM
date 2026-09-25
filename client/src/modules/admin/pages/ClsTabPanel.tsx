@@ -85,8 +85,8 @@ export default function ClsTabPanel({
 						className='dv-strip-card'
 						style={
 							{
-								'--sc': clsStats.khoaThieu.length > 0 ? '#dc2626' : '#64748b',
-								'--sb': clsStats.khoaThieu.length > 0 ? '#fef2f2' : '#f8fafc',
+								'--sc': clsStats.khoaThieu.length > 0 ? '#dc2626' : '#6b8090',
+								'--sb': clsStats.khoaThieu.length > 0 ? '#fef2f2' : '#f8fafb',
 							} as React.CSSProperties
 						}
 					>

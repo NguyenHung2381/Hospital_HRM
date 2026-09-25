@@ -34,7 +34,7 @@ export default function DashboardPage() {
 					minHeight: 300,
 				}}
 			>
-				<p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+				<p style={{ color: '#6b8090', fontSize: '0.9rem' }}>
 					Đang tải dữ liệu...
 				</p>
 			</div>
@@ -52,7 +52,7 @@ export default function DashboardPage() {
 					minHeight: 300,
 				}}
 			>
-				<p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+				<p style={{ color: '#6b8090', fontSize: '0.9rem' }}>
 					Chưa có dữ liệu báo cáo.
 				</p>
 			</div>
@@ -111,7 +111,7 @@ export default function DashboardPage() {
 			lbl: 'Tổng người bệnh',
 			sub: `${totalNBKham} NB khám/PT KH`,
 			col: '#0a9b4a',
-			bg: '#eef8f2',
+			bg: '#e7f5ed',
 		},
 		{
 			icon: '👥',

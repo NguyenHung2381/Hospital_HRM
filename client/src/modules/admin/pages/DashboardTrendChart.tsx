@@ -76,14 +76,14 @@ export default function DashboardTrendChart({
 							<span
 								style={{
 									fontSize: '.62rem',
-									color: '#94a3b8',
+									color: '#9aaab6',
 									marginTop: 3,
 									textAlign: 'center',
 								}}
 							>
 								{formatShortDay(t.date)}
 							</span>
-							<span style={{ fontSize: '.6rem', color: '#cbd5e1' }}>{t.nb}</span>
+							<span style={{ fontSize: '.6rem', color: '#cbd5dc' }}>{t.nb}</span>
 						</div>
 					);
 				})}
@@ -107,7 +107,7 @@ export default function DashboardTrendChart({
 							alignItems: 'center',
 							gap: 4,
 							fontSize: '.68rem',
-							color: '#64748b',
+							color: '#6b8090',
 						}}
 					>
 						<span
@@ -129,7 +129,7 @@ export default function DashboardTrendChart({
 					style={{
 						fontSize: '.72rem',
 						fontWeight: 700,
-						color: '#64748b',
+						color: '#6b8090',
 						marginBottom: 6,
 					}}
 				>
@@ -142,7 +142,7 @@ export default function DashboardTrendChart({
 							val: rows.filter((r) => r.dieuPhoi !== null && r.dieuPhoi > 0)
 								.length,
 							col: '#0a9b4a',
-							bg: '#eef8f2',
+							bg: '#e7f5ed',
 						},
 						{
 							lbl: 'Cần điều phối (+)',
@@ -155,8 +155,8 @@ export default function DashboardTrendChart({
 							lbl: 'Không điều phối',
 							val: rows.filter((r) => r.dieuPhoi === 0 || r.dieuPhoi === null)
 								.length,
-							col: '#94a3b8',
-							bg: '#f8fafc',
+							col: '#9aaab6',
+							bg: '#f8fafb',
 						},
 					].map((d) => (
 						<div
@@ -181,7 +181,7 @@ export default function DashboardTrendChart({
 							<p
 								style={{
 									fontSize: '.6rem',
-									color: '#64748b',
+									color: '#6b8090',
 									lineHeight: 1.3,
 								}}
 							>

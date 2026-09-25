@@ -32,7 +32,7 @@ export default function DashboardStaffStatus({
 							cy='40'
 							r='32'
 							fill='none'
-							stroke='#f1f5f9'
+							stroke='#f0f4f6'
 							strokeWidth='10'
 						/>
 						<circle
@@ -55,7 +55,7 @@ export default function DashboardStaffStatus({
 				</div>
 				<div className='ov-nl-stats'>
 					{[
-						{ lbl: 'Tổng NL', val: totalNL, col: '#1e293b' },
+						{ lbl: 'Tổng NL', val: totalNL, col: '#1a2a35' },
 						{ lbl: 'Đi làm', val: totalDiLam, col: '#0a9b4a' },
 						{ lbl: 'Nghỉ trực', val: totalNghiTruc, col: '#d97706' },
 						{ lbl: 'Nghỉ > 2 ngày', val: totalNghiDai, col: '#dc2626' },
@@ -64,7 +64,7 @@ export default function DashboardStaffStatus({
 							key={s.lbl}
 							className='ov-nl-stat-row'
 						>
-							<span style={{ fontSize: '.72rem', color: '#64748b' }}>
+							<span style={{ fontSize: '.72rem', color: '#6b8090' }}>
 								{s.lbl}
 							</span>
 							<span
@@ -109,7 +109,7 @@ export default function DashboardStaffStatus({
 						>
 							{t.val}
 						</span>
-						<span style={{ fontSize: '.65rem', color: '#64748b' }}>{t.lbl}</span>
+						<span style={{ fontSize: '.65rem', color: '#6b8090' }}>{t.lbl}</span>
 					</div>
 				))}
 			</div>

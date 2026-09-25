@@ -24,7 +24,7 @@ export const buildStripItems = (
 				: '#0a9b4a'; // xanh lá — dư
 
 	const diLamBg =
-		totalDL < totalKC ? '#fef2f2' : totalDL === totalKC ? '#eff6ff' : '#eef8f2';
+		totalDL < totalKC ? '#fef2f2' : totalDL === totalKC ? '#eff6ff' : '#e7f5ed';
 
 	return [
 		{ label: '🛏️ Người bệnh', val: totalNB, color: '#2563eb', bg: '#eff6ff' },
@@ -45,8 +45,8 @@ export const buildStripItems = (
 		{
 			label: '🔍 Khoa lọc',
 			val: `${filteredLen}/${totalLen}`,
-			color: '#475569',
-			bg: '#f8fafc',
+			color: '#4a6070',
+			bg: '#f8fafb',
 		},
 		...(missingCount > 0
 			? [

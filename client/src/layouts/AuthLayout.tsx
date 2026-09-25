@@ -7,76 +7,86 @@ interface AuthLayoutProps {
 	subtitle?: string;
 }
 
+const features = [
+	'Quản lý hồ sơ Điều dưỡng, Hộ sinh, Kỹ thuật viên',
+	'Theo dõi điều phối nhân lực giữa các khoa',
+	'Báo cáo & thống kê nhân sự trực quan',
+	'Phân quyền linh hoạt theo vai trò',
+];
+
 export default function AuthLayout({
 	children,
-	title = 'Bệnh viện Hữu Nghị\nĐa Khoa Nghệ An',
-	subtitle = 'Hệ thống quản lý nhân sự\nĐiều dưỡng, Hộ Sinh, Kỹ thuật viên',
+	title = 'Bệnh viện\nHữu Nghị Đa Khoa\nNghệ An',
+	subtitle = 'Hệ thống Quản lý Nhân sự\n— Điều dưỡng, Hộ sinh, Kỹ thuật viên',
 }: AuthLayoutProps) {
 	return (
-		<div className='auth-root'>
-			{/* Background decorations */}
-			<div className='bg-blob bg-blob-1' />
-			<div className='bg-blob bg-blob-2' />
-			<div className='bg-blob bg-blob-3' />
+		<div className='auth-wrapper'>
+			{/* Panel trái - Branding */}
+			<div className='auth-panel-left'>
+				{/* Vòng tròn trang trí */}
+				<div className='auth-panel-decor' />
+				<div className='auth-panel-decor' />
+				<div className='auth-panel-decor' />
 
-			<div className='auth-card'>
-				{/* Left Panel — Hospital Info */}
-				<div className='auth-left'>
-					<div className='auth-left-inner'>
-						<div className='logo-wrapper'>
-							<img
-								src={logo}
-								alt='Logo Bệnh viện'
-								className='logo-img'
-							/>
-							<div className='logo-ring' />
-						</div>
+				{/* Glow blobs trang trí */}
+				<div className='auth-glow-orb auth-glow-orb-1' />
+				<div className='auth-glow-orb auth-glow-orb-2' />
 
-						<div className='hospital-info'>
-							{title.split('\n').map((line, i) => (
-								<span
-									key={i}
-									className={
-										i === 0 ? 'hospital-name-main' : 'hospital-name-sub'
-									}
-								>
-									{line}
-								</span>
-							))}
-						</div>
+				<div className='auth-panel-content'>
+					<div className='auth-panel-logo'>
+						<img
+							src={logo}
+							alt='Logo Bệnh viện Hữu Nghị Đa Khoa Nghệ An'
+						/>
+					</div>
 
-						<div className='divider' />
-
-						<p className='hospital-subtitle'>
-							{subtitle.split('\n').map((line, i) => (
+					<div>
+						<h1 className='auth-panel-title'>
+							{title.split('\n').map((line, i, arr) => (
 								<span key={i}>
 									{line}
-									{i < subtitle.split('\n').length - 1 && <br />}
+									{i < arr.length - 1 && <br />}
+								</span>
+							))}
+						</h1>
+						<p className='auth-panel-subtitle'>
+							{subtitle.split('\n').map((line, i, arr) => (
+								<span key={i}>
+									{line}
+									{i < arr.length - 1 && <br />}
 								</span>
 							))}
 						</p>
-
-						<div className='feature-list'>
-							{[
-								{ icon: '❤️', text: 'Chăm sóc bệnh nhân tận tâm' },
-								{ icon: '🩺', text: 'Đội ngũ y bác sĩ chuyên nghiệp' },
-								{ icon: '🏨', text: 'Cơ sở vật chất hiện đại, đạt chuẩn' },
-							].map((f, i) => (
-								<div
-									key={i}
-									className='feature-item'
-									style={{ animationDelay: `${i * 0.15}s` }}
-								>
-									<span className='feature-icon'>{f.icon}</span>
-									<span className='feature-text'>{f.text}</span>
-								</div>
-							))}
-						</div>
 					</div>
-				</div>
 
-				{/* Right Panel — Login Form */}
-				<div className='auth-right'>{children}</div>
+					<ul className='auth-panel-features'>
+						{features.map((f) => (
+							<li
+								key={f}
+								className='auth-feature-item'
+							>
+								<span className='auth-feature-check'>✓</span>
+								{f}
+							</li>
+						))}
+					</ul>
+
+					<div className='auth-panel-divider' />
+				</div>
+			</div>
+
+			{/* Panel phải - Nội dung (form) */}
+			<div className='auth-panel-right'>
+				<div className='auth-right-ring auth-right-ring-1' />
+				<div className='auth-right-ring auth-right-ring-2' />
+				<div className='auth-right-ring auth-right-ring-3' />
+
+				<div className='auth-form-wrapper'>{children}</div>
+
+				<div className='auth-footer'>
+					© {new Date().getFullYear()} Bệnh viện Hữu Nghị Đa Khoa Nghệ An —
+					Phòng CNTT
+				</div>
 			</div>
 		</div>
 	);

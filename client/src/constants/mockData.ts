@@ -160,7 +160,7 @@ export const COLOR_MAP: Record<
 	purple: { bg: '#ede9fe', text: '#6d28d9', border: '#c4b5fd' },
 	orange: { bg: '#fef3c7', text: '#b45309', border: '#fcd34d' },
 	red: { bg: '#fee2e2', text: '#b91c1c', border: '#fca5a5' },
-	gray: { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' },
+	gray: { bg: '#f0f4f6', text: '#4a6070', border: '#cbd5dc' },
 };
 
 export const COLOR_OPTIONS = Object.keys(COLOR_MAP);

@@ -45,15 +45,15 @@ export default function DashboardSystemInfo({
 									flexDirection: 'column',
 									gap: 4,
 									padding: '10px 12px',
-									background: '#f8fafc',
+									background: '#f8fafb',
 									borderRadius: 8,
-									border: '1px solid #e2e8f0',
+									border: '1px solid #e2e8ec',
 								}}
 							>
 								<span
 									style={{
 										fontSize: '.68rem',
-										color: '#64748b',
+										color: '#6b8090',
 										fontWeight: 600,
 										textTransform: 'uppercase',
 										letterSpacing: '0.04em',
@@ -65,7 +65,7 @@ export default function DashboardSystemInfo({
 									style={{
 										fontSize: '.8rem',
 										fontWeight: 700,
-										color: '#1e293b',
+										color: '#1a2a35',
 										lineHeight: 1.3,
 									}}
 								>
@@ -96,7 +96,7 @@ export default function DashboardSystemInfo({
 								alignItems: 'center',
 								justifyContent: 'center',
 								padding: '12px 10px',
-								background: '#eef8f2',
+								background: '#e7f5ed',
 								borderRadius: 10,
 								border: '1px solid #bbf7d0',
 								textAlign: 'center',

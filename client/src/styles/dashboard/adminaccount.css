@@ -15,8 +15,8 @@
 	color: #0f766e;
 }
 .role-nhan-vien {
-	background: #f1f5f9;
-	color: #475569;
+	background: #f0f4f6;
+	color: #4a6070;
 }
 
 /* ── Avatar màu theo cấp bậc ── */
@@ -33,7 +33,7 @@
 	background: linear-gradient(135deg, #0f766e, #2dd4bf);
 }
 .td-avatar.acc-av-nhan_vien {
-	background: linear-gradient(135deg, #475569, #94a3b8);
+	background: linear-gradient(135deg, #4a6070, #9aaab6);
 }
 
 /* ── Thanh tóm tắt cấp bậc (chip trên toolbar) ── */
@@ -52,7 +52,7 @@
 	color: var(--txt);
 }
 .acc-rank-count {
-	background: #f1f5f9;
+	background: #f0f4f6;
 	color: var(--mut);
 	border-radius: 9999px;
 	font-size: 0.68rem;
@@ -66,12 +66,12 @@
 	align-items: center;
 	gap: 7px;
 	font-size: 0.75rem;
-	color: #475569;
-	background: #f8fafc;
+	color: #4a6070;
+	background: #f8fafb;
 	border: 1px solid var(--bdr);
 	border-radius: 8px;
 	padding: 8px 12px;
 }
 
 /* Ví dụ: highlight row active theo trạng thái */
-/* .tbl tbody tr:has(.badge-green):hover td { background: #eef8f2; } */
+/* .tbl tbody tr:has(.badge-green):hover td { background: #e7f5ed; } */

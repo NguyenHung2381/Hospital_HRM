@@ -24,8 +24,8 @@ body,
 
 body {
 	font-family: 'Be Vietnam Pro', sans-serif;
-	background-color: var(--color-background);
-	color: var(--color-foreground);
+	background-color: var(--color-gray-50);
+	color: var(--color-gray-800);
 	-webkit-font-smoothing: antialiased;
 }
 
@@ -34,26 +34,68 @@ body {
 /* ============================= */
 ::-webkit-scrollbar {
 	width: 6px;
+	height: 6px;
+}
+::-webkit-scrollbar-track {
+	background: var(--color-gray-100);
+	border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb {
-	background: var(--color-primary);
+	background: var(--color-gray-300);
 	border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: var(--color-primary-light);
 }
 
 /* ============================= */
 /* CSS Variables (Design Tokens) */
 /* ============================= */
 :root {
-	--p: #0a9b4a;       /* Xanh Tây Ban Nha (màu chủ đạo) */
-	--color-primary: var(--p);
-	--pd: #087c3b;      /* Xanh Tây Ban Nha đậm */
-	--pl: #d3f1df;      /* Xanh Tây Ban Nha nhạt */
-	--acc: #df0984;     /* Hồng tím (màu bổ trợ) */
-	--bg: #f0f4f8;      /* Original background color */
-	--sur: #ffffff;     /* Surface color */
-	--bdr: #e2e8f0;     /* Border slate */
-	--txt: #1e293b;     /* Original slate text */
-	--mut: #64748b;     /* Slate-500 muted text */
+	/* === Bảng màu đồng bộ với Hospital_RMS (styles/variables.css) === */
+	/* MÀU CHỦ ĐẠO: Xanh Tây Ban Nha — RGB 10,155,74 */
+	--color-primary: #0a9b4a;
+	--color-primary-dark: #087c3b;
+	--color-primary-light: #4fc47e;
+	--color-primary-pale: #e7f5ed;
+
+	/* MÀU BỔ TRỢ: Hồng tím — RGB 223,9,132 */
+	--color-accent: #df0984;
+	--color-accent-dark: #b3076a;
+	--color-accent-light: #ee84c3;
+
+	--color-secondary: #34b8d8;
+	--color-secondary-dark: #1a9abe;
+
+	/* MÀU TRUNG TÍNH */
+	--color-white: #ffffff;
+	--color-gray-50: #f8fafb;
+	--color-gray-100: #f0f4f6;
+	--color-gray-200: #e2e8ec;
+	--color-gray-300: #cbd5dc;
+	--color-gray-400: #9aaab6;
+	--color-gray-500: #6b8090;
+	--color-gray-600: #4a6070;
+	--color-gray-700: #2d4050;
+	--color-gray-800: #1a2a35;
+	--color-gray-900: #0d1820;
+
+	/* MÀU TRẠNG THÁI */
+	--color-success: #0a9b4a;
+	--color-warning: #f5a623;
+	--color-error: #e84545;
+	--color-info: #34b8d8;
+
+	/* Alias ngắn dùng trong HRM */
+	--p: var(--color-primary);
+	--pd: var(--color-primary-dark);
+	--pl: #d3f1df;
+	--acc: var(--color-accent);
+	--bg: var(--color-gray-50);
+	--sur: var(--color-white);
+	--bdr: var(--color-gray-200);
+	--txt: var(--color-gray-800);
+	--mut: var(--color-gray-500);
 
 	/* Colors */
 	--blue: #3b82f6;
@@ -62,12 +104,12 @@ body {
 	--purple-l: #ede9fe;
 	--teal: #0d9488;
 	--teal-l: #ccfbf1;
-	--red: #dc2626;
+	--red: var(--color-error);
 	--red-l: #fee2e2;
 	--yellow: #d97706;
 	--yellow-l: #fef3c7;
-	--green: #0a9b4a;
-	--gray-l: #f1f5f9;
+	--green: var(--color-success);
+	--gray-l: var(--color-gray-100);
 
 	/* Layout */
 	--nav-w: 240px;
@@ -148,7 +190,7 @@ body {
 	white-space: nowrap;
 }
 .btn-outline:hover:not(:disabled) {
-	background: #eef8f2;
+	background: #e7f5ed;
 	transform: translateY(-1px);
 	box-shadow: 0 4px 10px rgba(10, 155, 74, 0.1);
 }
@@ -158,7 +200,7 @@ body {
 
 .btn-edit {
 	padding: 0.45rem 1rem;
-	background: #f1f5f9;
+	background: #f0f4f6;
 	color: var(--txt);
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
@@ -169,8 +211,8 @@ body {
 	transition: all 0.15s ease;
 }
 .btn-edit:hover {
-	background: #e2e8f0;
-	border-color: #cbd5e1;
+	background: #e2e8ec;
+	border-color: #cbd5dc;
 	color: var(--p);
 }
 
@@ -237,9 +279,9 @@ body {
 	white-space: nowrap;
 }
 .btn-ghost:hover:not(:disabled) {
-	background: #f8fafc;
+	background: #f8fafb;
 	color: var(--txt);
-	border-color: #cbd5e1;
+	border-color: #cbd5dc;
 }
 .btn-ghost:disabled {
 	opacity: 0.5;
@@ -275,7 +317,7 @@ body {
 .overlay {
 	position: fixed;
 	inset: 0;
-	background: rgba(15, 23, 42, 0.4);
+	background: rgba(13, 24, 32, 0.4);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -298,7 +340,7 @@ body {
 	overflow: hidden;
 	box-shadow:
 		0 0 0 1px rgba(0, 0, 0, 0.04),
-		0 8px 30px rgba(15, 23, 42, 0.12),
+		0 8px 30px rgba(13, 24, 32, 0.12),
 		0 24px 60px rgba(0, 0, 0, 0.08);
 	animation: modal-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -526,7 +568,7 @@ body {
 .fi-label {
 	font-size: 0.76rem;
 	font-weight: 600;
-	color: #475569;
+	color: #4a6070;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -545,14 +587,14 @@ body {
 	color: var(--txt);
 	outline: none;
 	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-	background: #f8fafc;
+	background: #f8fafb;
 	width: 100%;
 	box-sizing: border-box;
 	min-width: 0;
 }
 .fi-input:focus {
 	border-color: var(--p);
-	box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+	box-shadow: 0 0 0 4px rgba(10, 155, 74, 0.15);
 	background: white;
 }
 .fi-ta {

@@ -45,19 +45,19 @@
 	position: relative;
 }
 .perm-role-item:hover {
-	background: #f8fafc;
+	background: #f8fafb;
 	border-color: var(--bdr);
 }
 .perm-role-active {
 	background: var(--pl) !important;
-	border-color: rgba(14, 165, 233, 0.35) !important;
+	border-color: rgba(10, 155, 74, 0.35) !important;
 }
 .perm-role-ico {
 	width: 30px;
 	height: 30px;
 	border-radius: 8px;
 	flex-shrink: 0;
-	background: #f1f5f9;
+	background: #f0f4f6;
 	font-size: 0.95rem;
 	display: flex;
 	align-items: center;
@@ -181,7 +181,7 @@
 	transition: all 0.15s;
 }
 .pq-on {
-	background: #eef8f2;
+	background: #e7f5ed;
 	border-color: #d3f1df;
 }
 .pq-on:hover {
@@ -212,8 +212,8 @@
 	color: #087c3b;
 }
 .pq-toggle-off {
-	background: #f1f5f9;
-	color: #94a3b8;
+	background: #f0f4f6;
+	color: #9aaab6;
 }
 .pq-label {
 	font-size: 0.8rem;
@@ -238,7 +238,7 @@
 	transition: all 0.15s;
 }
 .pk-on {
-	background: #eef8f2;
+	background: #e7f5ed;
 	border-color: #d3f1df;
 }
 .pk-on:hover {
@@ -248,7 +248,7 @@
 	background: #fafafa;
 }
 .pk-off:hover {
-	background: #f8fafc;
+	background: #f8fafb;
 	border-color: var(--bdr);
 }
 .pk-check {
@@ -268,13 +268,13 @@
 }
 .pk-check-off {
 	background: transparent;
-	border: 1.5px solid #cbd5e1;
+	border: 1.5px solid #cbd5dc;
 }
 .pk-num {
 	width: 20px;
 	height: 20px;
 	border-radius: 5px;
-	background: #f1f5f9;
+	background: #f0f4f6;
 	font-size: 0.65rem;
 	font-weight: 700;
 	color: var(--mut);
@@ -297,7 +297,7 @@
 	gap: 8px;
 	padding: 32px 0;
 	text-align: center;
-	background: #eef8f2;
+	background: #e7f5ed;
 	border: 1px dashed #86efac;
 	border-radius: 8px;
 	font-size: 0.82rem;
@@ -349,8 +349,8 @@
 	display: flex;
 	align-items: center;
 	gap: 5px;
-	background: var(--rb, #f1f5f9);
-	color: var(--rc, #475569);
+	background: var(--rb, #f0f4f6);
+	color: var(--rc, #4a6070);
 	border-radius: 8px;
 	padding: 5px 10px;
 	font-size: 0.75rem;
@@ -373,7 +373,7 @@
 	white-space: nowrap;
 }
 .perm-rank-arrow {
-	color: #94a3b8;
+	color: #9aaab6;
 	font-size: 1rem;
 	margin-left: 4px;
 	background: none;
@@ -384,7 +384,7 @@
 	width: 18px;
 	height: 18px;
 	border-radius: 50%;
-	background: #f1f5f9;
+	background: #f0f4f6;
 	color: var(--mut);
 	font-size: 0.62rem;
 	font-weight: 800;

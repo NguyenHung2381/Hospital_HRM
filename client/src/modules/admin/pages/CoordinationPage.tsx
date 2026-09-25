@@ -162,11 +162,11 @@ export default function CoordinationPage() {
 			</PageHeader>
 
 			{loadingReport ? (
-				<div style={{ textAlign: 'center', padding: 48, color: '#94a3b8' }}>
+				<div style={{ textAlign: 'center', padding: 48, color: '#9aaab6' }}>
 					Đang tải dữ liệu...
 				</div>
 			) : !report ? (
-				<div style={{ textAlign: 'center', padding: 48, color: '#94a3b8' }}>
+				<div style={{ textAlign: 'center', padding: 48, color: '#9aaab6' }}>
 					Chưa có báo cáo ngày {formatDateToVN(selDate)}. Vui lòng nhập số liệu
 					ngày này trước khi điều phối.
 				</div>

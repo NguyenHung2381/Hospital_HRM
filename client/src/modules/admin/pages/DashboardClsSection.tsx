@@ -21,11 +21,11 @@ export default function DashboardClsSection({
 						justifyContent: 'center',
 						gap: 8,
 						padding: '24px 20px',
-						color: '#64748b',
+						color: '#6b8090',
 						fontSize: '.85rem',
-						background: '#f8fafc',
+						background: '#f8fafb',
 						borderRadius: 10,
-						border: '1px dashed #cbd5e1',
+						border: '1px dashed #cbd5dc',
 					}}
 				>
 					<span style={{ fontSize: '1.1rem' }}>🧪</span>
@@ -50,7 +50,7 @@ export default function DashboardClsSection({
 			lbl: 'Tổng khối lượng CV',
 			sub: `${clsStats.totalNL} tổng nhân lực`,
 			col: '#0a9b4a',
-			bg: '#eef8f2',
+			bg: '#e7f5ed',
 		},
 		{
 			icon: '✅',
@@ -106,7 +106,7 @@ export default function DashboardClsSection({
 										<span
 											style={{
 												fontSize: '.65rem',
-												color: '#64748b',
+												color: '#6b8090',
 												whiteSpace: 'nowrap',
 											}}
 										>
@@ -124,7 +124,7 @@ export default function DashboardClsSection({
 									>
 										+{Math.abs(r.chenhLech ?? 0)}
 									</span>
-									<p style={{ fontSize: '.6rem', color: '#94a3b8' }}>
+									<p style={{ fontSize: '.6rem', color: '#9aaab6' }}>
 										cần bổ sung
 									</p>
 								</div>

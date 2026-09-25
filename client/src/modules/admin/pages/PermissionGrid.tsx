@@ -45,8 +45,8 @@ export default function PermissionGrid({
 					<span
 						className='perm-detail-icon'
 						style={{
-							background: COLOR_MAP[activeRole.color ?? '']?.bg ?? '#f1f5f9',
-							color: COLOR_MAP[activeRole.color ?? '']?.text ?? '#475569',
+							background: COLOR_MAP[activeRole.color ?? '']?.bg ?? '#f0f4f6',
+							color: COLOR_MAP[activeRole.color ?? '']?.text ?? '#4a6070',
 						}}
 					>
 						{activeRole.icon}
@@ -105,7 +105,7 @@ export default function PermissionGrid({
 					<p
 						style={{
 							fontSize: '.67rem',
-							color: '#64748b',
+							color: '#6b8090',
 							marginTop: 1,
 						}}
 					>
@@ -124,7 +124,7 @@ export default function PermissionGrid({
 							style={{
 								marginLeft: 6,
 								fontSize: '.7rem',
-								color: '#94a3b8',
+								color: '#9aaab6',
 							}}
 						>
 							· 🔒 không thể sửa
@@ -164,8 +164,8 @@ export default function PermissionGrid({
 												style={{
 													marginLeft: 'auto',
 													fontSize: '.65rem',
-													color: isAutoTicked ? '#0f766e' : '#94a3b8',
-													background: isAutoTicked ? '#ccfbf1' : '#f1f5f9',
+													color: isAutoTicked ? '#0f766e' : '#9aaab6',
+													background: isAutoTicked ? '#ccfbf1' : '#f0f4f6',
 													borderRadius: 4,
 													padding: '1px 6px',
 												}}

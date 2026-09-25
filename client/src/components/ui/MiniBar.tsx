@@ -10,7 +10,7 @@ export default function MiniBar({ val, max, color }: MiniBarProps) {
 		<div
 			style={{
 				flex: 1,
-				background: '#f1f5f9',
+				background: '#f0f4f6',
 				borderRadius: 4,
 				height: 6,
 				overflow: 'hidden',

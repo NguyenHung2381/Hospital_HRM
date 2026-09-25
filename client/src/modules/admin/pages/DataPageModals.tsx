@@ -160,7 +160,7 @@ export default function DataPageModals({
 					<p className='confirm-txt'>
 						Xóa toàn bộ báo cáo ngày <strong>{formatDateToVN(selDate)}</strong>?
 						<br />
-						<span style={{ fontSize: '.8rem', color: '#64748b' }}>
+						<span style={{ fontSize: '.8rem', color: '#6b8090' }}>
 							Dữ liệu tất cả {report?.records.length ?? 0} khoa trong ngày này
 							sẽ bị xóa vĩnh viễn.
 						</span>
@@ -195,7 +195,7 @@ export default function DataPageModals({
 						Xóa bản ghi của <strong>{delRecord.name}</strong> khỏi báo cáo ngày{' '}
 						<strong>{formatDateToVN(selDate)}</strong>?
 						<br />
-						<span style={{ fontSize: '.8rem', color: '#64748b' }}>
+						<span style={{ fontSize: '.8rem', color: '#6b8090' }}>
 							Chỉ xóa dữ liệu của khoa này, không ảnh hưởng các khoa khác.
 						</span>
 					</p>
@@ -229,7 +229,7 @@ export default function DataPageModals({
 						Xóa bản ghi của <strong>{delClsRecord.name}</strong> khỏi báo cáo
 						ngày <strong>{formatDateToVN(selDate)}</strong>?
 						<br />
-						<span style={{ fontSize: '.8rem', color: '#64748b' }}>
+						<span style={{ fontSize: '.8rem', color: '#6b8090' }}>
 							Chỉ xóa dữ liệu của khoa này, không ảnh hưởng các khoa khác.
 						</span>
 					</p>

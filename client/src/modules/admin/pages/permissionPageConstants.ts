@@ -20,8 +20,8 @@ export const ACCESS_INFO: Record<
 		icon: '👤',
 		text: 'Chỉ khoa đang công tác của mình',
 		sub: 'Tự động theo trường khoa công tác trong hồ sơ tài khoản',
-		color: '#475569',
-		bg: '#f1f5f9',
+		color: '#4a6070',
+		bg: '#f0f4f6',
 	},
 };
 

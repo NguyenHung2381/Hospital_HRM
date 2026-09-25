@@ -40,7 +40,7 @@ export default function ShortageBoard({
 				<p
 					style={{
 						fontSize: '.68rem',
-						color: '#94a3b8',
+						color: '#9aaab6',
 						margin: '-4px 0 8px',
 					}}
 				>
@@ -178,7 +178,7 @@ export default function ShortageBoard({
 											style={{
 												fontWeight: 800,
 												color:
-													dp > 0 ? '#0a9b4a' : dp < 0 ? '#dc2626' : '#94a3b8',
+													dp > 0 ? '#0a9b4a' : dp < 0 ? '#dc2626' : '#9aaab6',
 											}}
 										>
 											{dp > 0 ? `+${dp}` : dp}
@@ -187,7 +187,7 @@ export default function ShortageBoard({
 													style={{
 														fontSize: '.6rem',
 														fontWeight: 500,
-														color: '#94a3b8',
+														color: '#9aaab6',
 													}}
 												>
 													gốc {rawDp > 0 ? `+${rawDp}` : rawDp}

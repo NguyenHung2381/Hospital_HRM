@@ -17,7 +17,7 @@ export default function DashboardTopShortage({
 					style={{
 						textAlign: 'center',
 						padding: '24px',
-						color: '#64748b',
+						color: '#6b8090',
 						fontSize: '.82rem',
 					}}
 				>
@@ -36,8 +36,8 @@ export default function DashboardTopShortage({
 									height: 22,
 									borderRadius: '50%',
 									background:
-										i === 0 ? '#fef2f2' : i === 1 ? '#fef3c7' : '#f1f5f9',
-									color: i === 0 ? '#dc2626' : i === 1 ? '#d97706' : '#94a3b8',
+										i === 0 ? '#fef2f2' : i === 1 ? '#fef3c7' : '#f0f4f6',
+									color: i === 0 ? '#dc2626' : i === 1 ? '#d97706' : '#9aaab6',
 									fontSize: '.7rem',
 									fontWeight: 800,
 									display: 'flex',
@@ -71,7 +71,7 @@ export default function DashboardTopShortage({
 									<span
 										style={{
 											fontSize: '.65rem',
-											color: '#64748b',
+											color: '#6b8090',
 											whiteSpace: 'nowrap',
 										}}
 									>
@@ -89,7 +89,7 @@ export default function DashboardTopShortage({
 								>
 									+{Math.abs(r.dieuPhoi ?? 0)}
 								</span>
-								<p style={{ fontSize: '.6rem', color: '#94a3b8' }}>
+								<p style={{ fontSize: '.6rem', color: '#9aaab6' }}>
 									cần bổ sung
 								</p>
 							</div>

@@ -24,7 +24,7 @@ export default function Pagination({
 				alignItems: 'center',
 				justifyContent: 'space-between',
 				padding: '12px 18px',
-				borderTop: '1.5px solid #f1f5f9',
+				borderTop: '1.5px solid #f0f4f6',
 				background: '#ffffff',
 				flexWrap: 'wrap',
 				gap: 12,
@@ -36,7 +36,7 @@ export default function Pagination({
 					alignItems: 'center',
 					gap: 8,
 					fontSize: '.8rem',
-					color: '#64748b',
+					color: '#6b8090',
 				}}
 			>
 				<span>Hiển thị</span>
@@ -44,7 +44,7 @@ export default function Pagination({
 					value={pageSize}
 					onChange={(e) => onPageSizeChange(Number(e.target.value))}
 					style={{
-						border: '1px solid #e2e8f0',
+						border: '1px solid #e2e8ec',
 						borderRadius: 6,
 						padding: '2px 6px',
 						fontSize: '.8rem',
@@ -72,7 +72,7 @@ export default function Pagination({
 					style={{
 						padding: '3px 8px',
 						borderRadius: 6,
-						border: '1px solid #e2e8f0',
+						border: '1px solid #e2e8ec',
 						cursor: page === 1 ? 'default' : 'pointer',
 					}}
 				>
@@ -84,7 +84,7 @@ export default function Pagination({
 					style={{
 						padding: '3px 8px',
 						borderRadius: 6,
-						border: '1px solid #e2e8f0',
+						border: '1px solid #e2e8ec',
 						cursor: page === 1 ? 'default' : 'pointer',
 					}}
 				>
@@ -107,7 +107,7 @@ export default function Pagination({
 								style={{
 									padding: '3px 6px',
 									fontSize: '.78rem',
-									color: '#94a3b8',
+									color: '#9aaab6',
 								}}
 							>
 								…
@@ -120,9 +120,9 @@ export default function Pagination({
 									padding: '3px 9px',
 									borderRadius: 6,
 									border: '1px solid',
-									borderColor: page === n ? '#0f766e' : '#e2e8f0',
+									borderColor: page === n ? '#0f766e' : '#e2e8ec',
 									background: page === n ? '#0f766e' : 'white',
-									color: page === n ? 'white' : '#475569',
+									color: page === n ? 'white' : '#4a6070',
 									cursor: 'pointer',
 									fontSize: '.78rem',
 									fontWeight: page === n ? 600 : 400,
@@ -139,7 +139,7 @@ export default function Pagination({
 					style={{
 						padding: '3px 8px',
 						borderRadius: 6,
-						border: '1px solid #e2e8f0',
+						border: '1px solid #e2e8ec',
 						cursor: page === totalPages ? 'default' : 'pointer',
 					}}
 				>
@@ -151,7 +151,7 @@ export default function Pagination({
 					style={{
 						padding: '3px 8px',
 						borderRadius: 6,
-						border: '1px solid #e2e8f0',
+						border: '1px solid #e2e8ec',
 						cursor: page === totalPages ? 'default' : 'pointer',
 					}}
 				>

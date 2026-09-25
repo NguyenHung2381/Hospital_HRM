@@ -62,7 +62,7 @@ export default function DashboardPatientStats({
 							<span
 								style={{
 									fontSize: '.62rem',
-									color: '#94a3b8',
+									color: '#9aaab6',
 									marginTop: 2,
 									display: 'block',
 								}}
@@ -75,7 +75,7 @@ export default function DashboardPatientStats({
 				))}
 			</div>
 			<div className='ov-nb-total'>
-				<span style={{ fontSize: '.78rem', color: '#64748b', fontWeight: 600 }}>
+				<span style={{ fontSize: '.78rem', color: '#6b8090', fontWeight: 600 }}>
 					Tổng người bệnh
 				</span>
 				<span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0a9b4a' }}>

@@ -19,7 +19,7 @@ export default function RolesList({
 		<aside className='perm-sidebar'>
 			<p className='perm-sidebar-label'>Vai trò</p>
 			{loadingRoles ? (
-				<div style={{ padding: 12, fontSize: '0.85rem', color: '#64748b' }}>
+				<div style={{ padding: 12, fontSize: '0.85rem', color: '#6b8090' }}>
 					Đang tải...
 				</div>
 			) : (

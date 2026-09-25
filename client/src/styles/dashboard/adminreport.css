@@ -75,7 +75,7 @@
 	padding: 7px 10px;
 	border: 1.5px solid var(--bdr);
 	border-radius: var(--rs);
-	background: #f8fafc;
+	background: #f8fafb;
 	cursor: pointer;
 	transition:
 		background 0.15s,
@@ -88,7 +88,7 @@
 .rp-tab:hover {
 	border-color: var(--p);
 	color: var(--p);
-	background: #eef8f2;
+	background: #e7f5ed;
 }
 .rp-tab--active {
 	border-color: var(--p);
@@ -170,7 +170,7 @@
 	margin-top: 10px;
 	font-size: 0.74rem;
 	color: var(--pd, #087c3b);
-	background: #eef8f2;
+	background: #e7f5ed;
 	border: 1px solid #a7f3d0;
 	border-radius: 6px;
 	padding: 5px 10px;
@@ -187,7 +187,7 @@
 	padding: 9px 10px;
 	border: 1.5px solid var(--bdr);
 	border-radius: var(--rs);
-	background: #f8fafc;
+	background: #f8fafb;
 	font-size: 0.8rem;
 	font-weight: 600;
 	font-family: inherit;
@@ -263,7 +263,7 @@
 .rp-export-btn--outline:hover:not(:disabled) {
 	border-color: var(--p);
 	color: var(--p);
-	background: #eef8f2;
+	background: #e7f5ed;
 	box-shadow: none;
 	transform: none;
 }
@@ -320,7 +320,7 @@
 	display: flex;
 	align-items: center;
 	gap: 9px;
-	background: #f8fafc;
+	background: #f8fafb;
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
 	padding: 10px 11px;
@@ -357,7 +357,7 @@
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
 	padding: 12px 14px;
-	background: #f8fafc;
+	background: #f8fafb;
 }
 .rp-sheet--primary {
 	border-color: #86efac;
@@ -419,7 +419,7 @@
 
 /* Chú giải màu */
 .rp-legend {
-	background: #f8fafc;
+	background: #f8fafb;
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
 	padding: 12px 14px;
