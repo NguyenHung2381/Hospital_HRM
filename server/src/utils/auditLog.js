@@ -108,8 +108,8 @@ function requestLogger(req, res, next) {
 				action,
 				module: moduleOf(route || req.originalUrl),
 				...actorFields(req),
-				session_id: req.auth?.sid ?? undefined,
-				auth_via: req.auth?.via ?? undefined,
+				// 8 ký tự đầu của jti — đủ để đối chiếu với danh sách phiên, không lộ cả mã
+				session_id: req.sessionJti ? req.sessionJti.slice(0, 8) : undefined,
 				method: req.method,
 				path: req.originalUrl.split('?')[0].slice(0, 300),
 				route,

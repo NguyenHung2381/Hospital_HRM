@@ -5,12 +5,13 @@ const {
 	validatePasswordPolicy,
 	generateTempPassword,
 } = require('../utils/password');
-const { invalidateUserCache } = require('../middleware/auth');
+const { invalidateUserCache, createAuthSession } = require('../middleware/auth');
+const sessionStore = require('../services/sessionStore');
+const { logSecurityEvent } = require('../utils/securityEvents');
 const { assertCanManageUser } = require('../services/accountGuard');
 const { setSessionCookie } = require('../utils/sessionCookie');
-const { signAccessToken, passwordFingerprint } = require('../utils/tokens');
-const sessions = require('../services/sessions');
 const { audit } = require('../utils/auditLog');
+const { trustDevice, revokeTrustedDevices } = require('../services/trustedDevice');
 
 // PUT /api/users/:id/reset-password
 // Đặt mật khẩu tạm NGẪU NHIÊN (trước đây đặt = username → ai biết tên đăng
@@ -43,14 +44,23 @@ async function resetPassword(req, res, next) {
 			.input('id', sql.Int, req.params.id)
 			.input('password', sql.NVarChar(255), hashedPassword)
 			.query(
-				`UPDATE Users SET password = @password, updated_at = SYSDATETIMEOFFSET() WHERE id_user = @id`,
+				`UPDATE Users SET password = @password, failed_login_count = 0, locked_until = NULL,
+					lockout_level = 0, updated_at = SYSDATETIMEOFFSET()
+				 WHERE id_user = @id`,
 			);
 		invalidateUserCache(target.id_user);
-		const revoked = await sessions.revokeUserSessions(target.id_user, 'password_reset');
+		await sessionStore.revokeAllSessions(target.id_user);
+		await revokeTrustedDevices(pool, target.id_user);
+		req.auditLogged = true;
 		audit(req, 'user.reset_password', {
 			target_user_id: target.id_user,
 			target_username: target.username,
-			revoked_sessions: revoked,
+		});
+		await logSecurityEvent(req, {
+			eventType: 'password_reset_by_admin',
+			actorId: req.user.id_user,
+			targetId: target.id_user,
+			detail: `Đặt lại mật khẩu + mở khoá tài khoản ${target.username}`,
 		});
 
 		res.set('Cache-Control', 'no-store');
@@ -114,25 +124,76 @@ async function changePassword(req, res, next) {
 			);
 		invalidateUserCache(found.id_user);
 
-		// Mọi thiết bị khác bị đăng xuất; phiên hiện tại được giữ, cập nhật
-		// dấu vân tay mật khẩu mới và cấp access token mới (token cũ mang dấu
-		// vân tay cũ nên hết hiệu lực) để người dùng không bị đăng xuất.
-		const revoked = await sessions.revokeUserSessions(found.id_user, 'password_changed', req.auth.sid);
-		await sessions.updateSessionFingerprint(req.auth.sid, hashedNewPassword);
-		const accessToken = signAccessToken({
-			id_user: found.id_user,
-			username: found.username,
-			pwf: passwordFingerprint(hashedNewPassword),
-			sid: req.auth.sid,
+		// Đổi mật khẩu thường vì nghi lộ → thu hồi mọi phiên và bỏ "quen" mọi
+		// thiết bị, rồi cấp phiên mới + giữ "quen" cho thiết bị hiện tại để người
+		// dùng không bị đăng xuất.
+		await sessionStore.revokeAllSessions(found.id_user);
+		await revokeTrustedDevices(pool, found.id_user);
+		setSessionCookie(
+			req,
+			res,
+			await createAuthSession(req, { ...found, password: hashedNewPassword }),
+		);
+		await trustDevice(req, res, found.id_user);
+		req.auditLogged = true;
+		audit(req, 'user.change_password', { target_user_id: found.id_user });
+		await logSecurityEvent(req, {
+			eventType: 'password_changed',
+			actorId: found.id_user,
+			targetId: found.id_user,
 		});
-		// Client web nhận cookie mới; client API (Bearer) nhận token trong body
-		if (req.auth.via === 'cookie') setSessionCookie(req, res, accessToken);
-		audit(req, 'user.change_password', { target_user_id: found.id_user, revoked_sessions: revoked });
 
+		res.json({ success: true, message: 'Đổi mật khẩu thành công' });
+	} catch (err) {
+		next(err);
+	}
+}
+
+// PUT /api/users/:id/reset-2fa — quản trị tắt 2FA cho người dùng bị mất điện
+// thoại / app xác thực. Chủ tài khoản đăng nhập lại bằng mật khẩu rồi tự
+// thiết lập 2FA mới. Mọi phiên cũ của tài khoản bị huỷ.
+async function reset2FA(req, res, next) {
+	try {
+		const pool = await getPool();
+		const userResult = await pool
+			.request()
+			.input('id', sql.Int, req.params.id)
+			.query(`
+				SELECT u.id_user, u.username, u.totp_enabled, r.name_role
+				FROM Users u LEFT JOIN Roles r ON r.id_role = u.id_role
+				WHERE u.id_user = @id
+			`);
+		const target = userResult.recordset[0];
+		if (!target)
+			return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+
+		const denied = assertCanManageUser(req.user, target);
+		if (denied) return res.status(403).json({ success: false, message: denied });
+		if (!target.totp_enabled)
+			return res
+				.status(400)
+				.json({ success: false, message: 'Tài khoản này chưa bật xác thực 2 lớp' });
+
+		await pool
+			.request()
+			.input('id', sql.Int, target.id_user)
+			.query(
+				`UPDATE Users SET totp_secret = NULL, totp_enabled = 0,
+					totp_verified_at = NULL, totp_last_step = NULL,
+					updated_at = SYSDATETIMEOFFSET()
+				 WHERE id_user = @id`,
+			);
+		await sessionStore.revokeAllSessions(target.id_user);
+		req.auditLogged = true;
+		await logSecurityEvent(req, {
+			eventType: '2fa_reset_by_admin',
+			actorId: req.user.id_user,
+			targetId: target.id_user,
+			detail: `Tắt xác thực 2 lớp của tài khoản ${target.username}`,
+		});
 		res.json({
 			success: true,
-			message: 'Đổi mật khẩu thành công',
-			...(req.auth.via === 'bearer' ? { data: { access_token: accessToken } } : {}),
+			message: `Đã tắt xác thực 2 lớp cho tài khoản ${target.username}`,
 		});
 	} catch (err) {
 		next(err);
@@ -142,4 +203,5 @@ async function changePassword(req, res, next) {
 module.exports = {
 	resetPassword,
 	changePassword,
+	reset2FA,
 };

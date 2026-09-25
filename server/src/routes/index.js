@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const appEmitter = require('../events/appEmitter');
+const rateLimit = require('express-rate-limit');
 const {
 	authenticate,
 	loadAuthUser,
@@ -11,7 +12,29 @@ const {
 	requireSelfOrAdmin,
 } = require('../middleware/auth');
 const { loginRateLimit } = require('../middleware/loginRateLimit');
-const { isSessionActive } = require('../services/sessions');
+const { listSecurityEvents } = require('../utils/securityEvents');
+const { isSessionActive } = require('../services/sessionStore');
+const jwt = require('jsonwebtoken');
+
+// Rate-limit theo IP cho các thao tác nhạy cảm (ngoài login đã có
+// loginRateLimit riêng) — chặn dò mã OTP / dò mật khẩu hiện tại / spam.
+function limiter(limit, message) {
+	return rateLimit({
+		windowMs: 15 * 60 * 1000,
+		limit,
+		standardHeaders: true,
+		legacyHeaders: false,
+		message: { success: false, message },
+	});
+}
+const twoFaVerifyLimiter = limiter(
+	10,
+	'Quá nhiều lần nhập mã xác thực. Vui lòng thử lại sau ít phút.',
+);
+const sensitiveLimiter = limiter(
+	10,
+	'Quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.',
+);
 
 router.get('/', (req, res) => {
 	res.send('OK');
@@ -27,6 +50,7 @@ const reports = require('../controllers/reportsCore');
 const reportDepartmentRecords = require('../controllers/reportDepartmentRecords');
 const clsRecords = require('../controllers/clsRecords');
 const auth = require('../controllers/auth');
+const accountSecurity = require('../controllers/accountSecurity');
 const tt03 = require('../controllers/tt03');
 const coordination = require('../controllers/coordination');
 const { exportToExcel } = require('../controllers/exportReports');
@@ -36,23 +60,14 @@ const logs = require('../controllers/logs');
 router.use(requireCsrfHeader);
 
 // ── Xác thực ──────────────────────────────────────────────────
-// Web: token trong cookie HttpOnly (access 15 phút + refresh xoay vòng).
 router.post('/auth/login', loginRateLimit, auth.login);
-router.post('/auth/refresh', auth.refresh);
+router.post('/auth/2fa/verify', twoFaVerifyLimiter, loginRateLimit, auth.verify2FALogin);
 router.post('/auth/logout', auth.logout);
-// Client API (Postman/app/hệ thống khác): token trong body, gọi API bằng
-// header "Authorization: Bearer <access_token>".
-router.post('/auth/token', loginRateLimit, auth.issueToken);
-router.post('/auth/token/refresh', auth.refreshToken);
-router.post('/auth/token/revoke', auth.revokeToken);
 
 // ── Từ đây trở xuống: bắt buộc phải đăng nhập (access token hợp lệ) ─────
 router.use(authenticate);
 
 router.get('/auth/me', auth.me);
-router.get('/auth/sessions', auth.mySessions);
-router.delete('/auth/sessions/:sid', auth.revokeMySession);
-router.post('/auth/logout-all', auth.logoutOthers);
 
 // ── Nhật ký hệ thống & phiên đăng nhập toàn hệ thống (chỉ Quản trị hệ thống) ─
 router.get('/logs', requireAdmin, logs.list);
@@ -63,6 +78,18 @@ router.get('/admin/sessions', requireAdmin, logs.allSessions);
 router.delete('/admin/sessions/:sid', requireAdmin, logs.revokeAnySession);
 router.post('/admin/users/:id/revoke-sessions', requireAdmin, logs.revokeUserSessions);
 
+// ── Bảo mật tài khoản của chính mình: 2FA + phiên đăng nhập ──────
+router.get('/auth/2fa/status', accountSecurity.status2FA);
+router.post('/auth/2fa/setup', sensitiveLimiter, accountSecurity.setup2FA);
+router.post('/auth/2fa/verify-setup', twoFaVerifyLimiter, accountSecurity.verifySetup2FA);
+router.post('/auth/2fa/disable', sensitiveLimiter, accountSecurity.disable2FA);
+router.get('/auth/sessions', accountSecurity.listSessions);
+router.delete('/auth/sessions/:sessionId', accountSecurity.revokeSession);
+router.post('/auth/logout-all', sensitiveLimiter, accountSecurity.logoutOtherSessions);
+
+// Nhật ký sự kiện bảo mật (khoá TK, sai OTP, bật/tắt 2FA...) — chỉ quản trị
+router.get('/security-events', requireAdmin, listSecurityEvents);
+
 // ── SSE: global realtime subscribe ───────────────────────────
 // Xác thực bằng cookie phiên HttpOnly (EventSource tự gửi cookie cùng origin).
 // Đặt TRƯỚC tất cả route /:id để không bị conflict
@@ -71,7 +98,8 @@ const sseCountByUser = new Map();
 
 router.get('/subscribe', (req, res) => {
 	const userId = req.user.id_user;
-	const { pwf, sid } = req.auth;
+	const { pwf } = jwt.decode(req.sessionToken);
+	const jti = req.sessionJti;
 	const current = sseCountByUser.get(userId) || 0;
 	if (current >= MAX_SSE_PER_USER) {
 		return res
@@ -93,9 +121,9 @@ router.get('/subscribe', (req, res) => {
 	// hồi/đăng xuất thì ngắt luồng realtime. (Access token hết hạn giữa chừng
 	// không ngắt — phiên vẫn được kiểm tra trực tiếp ở đây.)
 	const keepAlive = setInterval(() => {
-		Promise.all([loadAuthUser(userId), isSessionActive(sid)])
-			.then(([user, active]) =>
-				user && user.pwf === pwf && active
+		Promise.all([loadAuthUser(userId), isSessionActive(jti, userId)])
+			.then(([user, sessionActive]) =>
+				user && user.pwf === pwf && sessionActive
 					? res.write(': ping\n\n')
 					: res.end(),
 			)
@@ -186,7 +214,13 @@ router.put(
 	userPassword.resetPassword,
 );
 router.put(
+	'/users/:id/reset-2fa',
+	requireDashboardRole,
+	userPassword.reset2FA,
+);
+router.put(
 	'/users/:id/change-password',
+	sensitiveLimiter,
 	requireSelf(),
 	userPassword.changePassword,
 );

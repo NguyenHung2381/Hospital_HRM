@@ -9,7 +9,21 @@ COPY server/package.json server/package-lock.json ./server/
 WORKDIR /app/server
 RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
-FROM node:22-bookworm-slim
+# ─── Dev (docker-compose.dev.yml): đủ devDependencies (nodemon), source mount
+# từ máy host nên không COPY src. Stage prod phải luôn nằm CUỐI file để
+# `docker build` / docker-compose.yml (không chỉ định target) vẫn ra image prod.
+FROM node:22-bookworm-slim AS dev
+WORKDIR /app
+COPY package.json ./package.json
+COPY server/package.json server/package-lock.json ./server/
+WORKDIR /app/server
+RUN npm ci --no-audit --no-fund && npm cache clean --force
+EXPOSE 3000
+# -L (polling): bind mount qua Docker Desktop không phát fs-events
+CMD ["node", "node_modules/nodemon/bin/nodemon.js", "-L", "src/index.js"]
+
+# ─── Prod
+FROM node:22-bookworm-slim AS prod
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=3000

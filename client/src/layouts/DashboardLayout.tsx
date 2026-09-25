@@ -258,7 +258,7 @@ export default function DashboardLayout() {
 								}}
 							>
 								<EditIcon size={14} />
-								Đổi mật khẩu
+								Bảo mật tài khoản
 							</button>
 							<button
 								className='nav-user-dd-item'

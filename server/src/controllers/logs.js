@@ -1,10 +1,9 @@
 const ExcelJS = require('exceljs');
 const { getPool, sql } = require('../config/db');
 const logReader = require('../services/logReader');
-const sessions = require('../services/sessions');
+const sessionStore = require('../services/sessionStore');
 const { invalidateUserCache } = require('../middleware/auth');
 const { audit } = require('../utils/auditLog');
-const { toSessionDto } = require('./auth');
 const { C, fnt, al, sf, tb } = require('../utils/excelReportStyle');
 
 // Trang Nhật ký hệ thống — chỉ vai trò "Quản trị hệ thống" (routes/index.js).
@@ -112,14 +111,30 @@ async function exportExcel(req, res, next) {
 
 // ── Quản lý phiên đăng nhập toàn hệ thống ──────────────────────
 
+function toSessionDto(s, currentJti) {
+	return {
+		id: s.jti,
+		id_user: s.id_user,
+		username: s.username,
+		full_name: s.full_name,
+		name_role: s.name_role,
+		ip_address: s.ip_address,
+		user_agent: s.user_agent,
+		created_at: s.created_at,
+		last_used_at: s.last_seen_at ?? s.created_at,
+		expires_at: s.expires_at,
+		current: s.jti === currentJti,
+	};
+}
+
 // GET /api/admin/sessions?user_id=
 async function allSessions(req, res, next) {
 	try {
 		const id_user = req.query.user_id ? Number(req.query.user_id) : null;
 		if (id_user !== null && !Number.isInteger(id_user))
 			return res.status(400).json({ success: false, message: 'user_id không hợp lệ' });
-		const rows = await sessions.listActiveSessions({ id_user });
-		res.json({ success: true, data: rows.map((s) => toSessionDto(s, req.auth.sid)) });
+		const rows = await sessionStore.listActiveSessions({ id_user });
+		res.json({ success: true, data: rows.map((s) => toSessionDto(s, req.sessionJti)) });
 	} catch (err) {
 		next(err);
 	}
@@ -131,7 +146,7 @@ async function revokeAnySession(req, res, next) {
 		const sid = String(req.params.sid);
 		if (!/^[0-9a-f]{32}$/.test(sid))
 			return res.status(400).json({ success: false, message: 'Mã phiên không hợp lệ' });
-		const ok = await sessions.revokeSession(sid, 'admin_revoke');
+		const ok = await sessionStore.revokeSession(sid);
 		if (!ok) return res.status(404).json({ success: false, message: 'Không tìm thấy phiên đăng nhập' });
 		audit(req, 'session.revoke', { session_id: sid });
 		res.json({ success: true, message: 'Đã thu hồi phiên đăng nhập' });
@@ -154,8 +169,8 @@ async function revokeUserSessions(req, res, next) {
 		if (!u.recordset.length)
 			return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
 		// Không tự đá phiên đang dùng để thao tác
-		const exceptSid = id_user === req.user.id_user ? req.auth.sid : null;
-		const count = await sessions.revokeUserSessions(id_user, 'admin_revoke', exceptSid);
+		const exceptJti = id_user === req.user.id_user ? req.sessionJti : null;
+		const count = await sessionStore.revokeAllSessions(id_user, exceptJti);
 		invalidateUserCache(id_user);
 		audit(req, 'session.revoke_user', {
 			target_user_id: id_user,

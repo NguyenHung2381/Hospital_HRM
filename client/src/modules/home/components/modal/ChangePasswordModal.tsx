@@ -1,6 +1,11 @@
 import ModalForm from '@/components/common/ModalForm';
 import { useAuth } from '@/context/useAuth';
+import '@/styles/accountSecurity.css';
 import { useState } from 'react';
+import SessionsTab from './SessionsTab';
+import TwoFactorTab from './TwoFactorTab';
+
+type SecurityTab = 'password' | '2fa' | 'sessions';
 
 export interface ChangePasswordModalProps {
 	isOpen: boolean;
@@ -18,10 +23,12 @@ export default function ChangePasswordModal({
 	const [pwdError, setPwdError] = useState('');
 	const [pwdSuccess, setPwdSuccess] = useState('');
 	const [savingPwd, setSavingPwd] = useState(false);
+	const [tab, setTab] = useState<SecurityTab>('password');
 
 	if (!isOpen) return null;
 
 	const handleClose = () => {
+		setTab('password');
 		setPwdOld('');
 		setPwdNew('');
 		setPwdConfirm('');
@@ -84,9 +91,32 @@ export default function ChangePasswordModal({
 
 	return (
 		<ModalForm
-			title='🔑 Đổi mật khẩu'
+			title='🔐 Bảo mật tài khoản'
 			onClose={handleClose}
 		>
+			<div className='sec-tabs'>
+				{(
+					[
+						['password', 'Đổi mật khẩu'],
+						['2fa', 'Xác thực 2 lớp'],
+						['sessions', 'Thiết bị đăng nhập'],
+					] as const
+				).map(([key, label]) => (
+					<button
+						key={key}
+						type='button'
+						className={`sec-tab${tab === key ? ' sec-tab--active' : ''}`}
+						onClick={() => setTab(key)}
+					>
+						{label}
+					</button>
+				))}
+			</div>
+
+			{tab === '2fa' && <TwoFactorTab />}
+			{tab === 'sessions' && <SessionsTab />}
+
+			{tab === 'password' && (
 			<div className='mform'>
 				<div className='pwd-user-info'>
 					<span className='pwd-user-icon'>👤</span>
@@ -120,7 +150,7 @@ export default function ChangePasswordModal({
 						className='fi-input'
 						value={pwdNew}
 						autoComplete='new-password'
-						placeholder='Ít nhất 6 ký tự'
+						placeholder='Ít nhất 8 ký tự, gồm chữ và số'
 						onChange={(e) => {
 							setPwdNew(e.target.value);
 							setPwdError('');
@@ -160,6 +190,7 @@ export default function ChangePasswordModal({
 					</button>
 				</div>
 			</div>
+			)}
 		</ModalForm>
 	);
 }

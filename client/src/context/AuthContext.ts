@@ -4,8 +4,12 @@ import { createContext } from 'react';
 
 export type LoginResult =
 	| { status: 'ok'; user: UserAccount }
+	| { status: 'requires_2fa'; preAuthToken: string }
 	| { status: 'wrong_pass' }
-	| { status: 'rate_limited' }
+	| { status: 'wrong_code'; message: string }
+	| { status: 'pre_auth_expired' }
+	| { status: 'locked'; message: string }
+	| { status: 'rate_limited'; message?: string }
 	| { status: 'not_found' };
 
 // Quyền thao tác theo từng khoa
@@ -26,6 +30,8 @@ export interface AuthContextType {
 		matKhau: string,
 		remember: boolean,
 	) => Promise<LoginResult>;
+	/** Bước 2 của đăng nhập cho tài khoản đã bật 2FA */
+	verify2FA: (preAuthToken: string, code: string) => Promise<LoginResult>;
 	logout: () => void;
 	refresh: () => void;
 	loading: boolean;

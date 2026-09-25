@@ -54,6 +54,8 @@ export default function AccountPage() {
 		togglePerm,
 		handleDel,
 		handleReset,
+		handleReset2FA,
+		twoFaResetDone,
 		tempPassword,
 		closeReset,
 	} = useAccountActions(roles, refetchUsers);
@@ -206,6 +208,24 @@ export default function AccountPage() {
 												status={u.status}
 												inactiveLabel='Tạm khoá'
 											/>
+											{u.is_locked && (
+												<span
+													className='role-badge'
+													style={{ marginLeft: 6, background: '#fee2e2', color: '#b91c1c' }}
+													title='Đăng nhập sai nhiều lần — tự mở sau 15 phút, hoặc đặt lại mật khẩu để mở ngay'
+												>
+													Khoá tạm
+												</span>
+											)}
+											{u.totp_enabled && (
+												<span
+													className='role-badge'
+													style={{ marginLeft: 6, background: '#dcfce7', color: '#047857' }}
+													title='Đã bật xác thực 2 lớp'
+												>
+													2FA
+												</span>
+											)}
 										</td>
 										<td style={{ textAlign: 'right' }}>
 											<TableActions
@@ -360,13 +380,32 @@ export default function AccountPage() {
 								Đặt lại mật khẩu cho <strong>{target?.full_name}</strong>?
 								<br />
 								<br />
-								Hệ thống sẽ tạo một mật khẩu tạm ngẫu nhiên và đăng xuất tài khoản
-								khỏi mọi thiết bị.
+								Hệ thống sẽ tạo một mật khẩu tạm ngẫu nhiên, mở khoá tài khoản (nếu
+								đang bị khoá tạm) và đăng xuất tài khoản khỏi mọi thiết bị.
 								<br />
 								<span style={{ fontSize: '.78rem', color: '#64748b' }}>
 									Người dùng cần đổi mật khẩu sau khi đăng nhập lại.
 								</span>
 							</p>
+							{target?.totp_enabled && (
+								<p className='confirm-txt' style={{ fontSize: '.8rem' }}>
+									Tài khoản đang bật <strong>xác thực 2 lớp</strong>. Nếu người dùng
+									mất điện thoại/app xác thực, hãy tắt 2FA để họ đăng nhập bằng mật
+									khẩu rồi tự thiết lập lại.
+									<br />
+									<button
+										className='btn-ghost'
+										style={{ marginTop: 8 }}
+										onClick={handleReset2FA}
+										disabled={saving}
+									>
+										🛡️ Tắt xác thực 2 lớp
+									</button>
+								</p>
+							)}
+							{twoFaResetDone && (
+								<p className='pwd-success'>Đã tắt xác thực 2 lớp cho tài khoản này.</p>
+							)}
 							<div className='mfooter'>
 								<button
 									className='btn-ghost'

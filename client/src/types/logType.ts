@@ -130,8 +130,6 @@ export interface AuthSession {
 	username?: string;
 	full_name?: string;
 	name_role?: string | null;
-	client_type: 'web' | 'api';
-	remember: boolean;
 	ip_address: string | null;
 	user_agent: string | null;
 	created_at: string;

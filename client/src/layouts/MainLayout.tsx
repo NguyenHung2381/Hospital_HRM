@@ -135,7 +135,7 @@ export default function MainLayout({
 									onClick={handleChangePassword}
 								>
 									<KeyIcon size={15} />
-									Đổi mật khẩu
+									Bảo mật tài khoản
 								</button>
 
 								<button

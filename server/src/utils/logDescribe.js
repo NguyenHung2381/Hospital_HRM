@@ -23,11 +23,17 @@ const ACTION_LABELS = {
 	'auth.login_failed': 'Đăng nhập thất bại',
 	'auth.logout': 'Đăng xuất',
 	'auth.logout_all': 'Đăng xuất thiết bị khác',
-	'auth.refresh': 'Làm mới phiên',
-	'auth.refresh_failed': 'Làm mới phiên thất bại',
-	'auth.refresh_reuse': 'Phát hiện dùng lại refresh token',
-	'auth.token': 'Cấp token API',
-	'auth.token_failed': 'Cấp token API thất bại',
+	'auth.login_blocked_locked': 'Đăng nhập khi tài khoản đang khoá',
+	'security.login_2fa_failed': 'Sai mã xác thực 2 lớp',
+	'security.login_locked': 'Khoá tạm tài khoản',
+	'security.device_untrusted': 'Bỏ tin cậy thiết bị',
+	'security.2fa_enabled': 'Bật xác thực 2 lớp',
+	'security.2fa_disabled': 'Tắt xác thực 2 lớp',
+	'security.2fa_reset_by_admin': 'Đặt lại xác thực 2 lớp',
+	'security.password_changed': 'Đổi mật khẩu',
+	'security.password_reset_by_admin': 'Đặt lại mật khẩu',
+	'security.session_revoked': 'Đăng xuất thiết bị khác',
+	'security.logout_all_sessions': 'Đăng xuất mọi thiết bị khác',
 	'session.revoke': 'Thu hồi phiên đăng nhập',
 	'session.revoke_user': 'Thu hồi mọi phiên của tài khoản',
 	'user.reset_password': 'Đặt lại mật khẩu',
@@ -45,9 +51,14 @@ const ACTION_LABELS = {
 function actionKind(action) {
 	if (!action) return 'other';
 	if (action === 'auth.login') return 'login';
-	if (action === 'auth.login_failed' || action === 'auth.token_failed') return 'login_failed';
-	if (action.startsWith('auth.refresh')) return 'refresh';
-	if (action.startsWith('auth.') || action.startsWith('session.')) return 'auth';
+	if (
+		action === 'auth.login_failed' ||
+		action === 'auth.login_blocked_locked' ||
+		action === 'security.login_2fa_failed'
+	)
+		return 'login_failed';
+	if (action.startsWith('auth.') || action.startsWith('session.') || action.startsWith('security.'))
+		return 'auth';
 	if (action.startsWith('user.')) return 'update';
 	if (action === 'system.error') return 'error';
 	return action; // view | create | update | delete | export | denied

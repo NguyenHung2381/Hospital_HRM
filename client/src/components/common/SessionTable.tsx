@@ -74,10 +74,6 @@ export default function SessionTable({
 											{describeUserAgent(s.user_agent)}
 											{s.current && <span className='lg-chip lg-chip-ok'>Thiết bị này</span>}
 										</span>
-										<span className='lg-actor-sub'>
-											{s.client_type === 'api' ? 'Client API (Bearer token)' : 'Trình duyệt web'}
-											{s.remember && s.client_type === 'web' ? ' · Ghi nhớ đăng nhập' : ''}
-										</span>
 									</div>
 								</td>
 								<td className='lg-mono'>{s.ip_address ?? '—'}</td>

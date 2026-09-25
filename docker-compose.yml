@@ -3,8 +3,14 @@
 # Truy cập: http://localhost:${WEB_PORT:-8080}
 #
 # Database: dùng SQL Server có sẵn trên máy host (không nằm trong compose).
-# Cấu hình DB/JWT đọc từ server/.env; các biến dưới "environment" ghi đè
-# những giá trị chỉ đúng khi chạy trực tiếp trên Windows (HOST, DB_HOST...).
+# Cấu hình (DB, JWT_SECRET, COOKIE_SECURE...) đọc từ server/.env.production —
+# tạo từ server/.env.production.example. Nếu không có file đó thì dùng
+# server/.env (tiện chạy thử trên máy dev). Thiếu cả hai → server báo thiếu
+# biến và dừng.
+#
+# File này là PRODUCTION. Dev (hot reload) dùng docker-compose.dev.yml —
+# project riêng "hospital_hrm_dev", không đụng tới container/volume ở đây.
+# Giữ nguyên tên project: volume audit log thật là hospital_hrm_api-logs.
 
 name: hospital_hrm
 
@@ -15,20 +21,20 @@ services:
       dockerfile: server/Dockerfile
     image: hospital-hrm-api:latest
     restart: unless-stopped
+    # File sau ghi đè file trước. "environment" bên dưới ghi đè cả hai, nên
+    # chỉ để ở đó những giá trị cố định của container — mọi cấu hình còn lại
+    # (DB_HOST, COOKIE_SECURE...) đặt trong .env.production.
     env_file:
-      - server/.env
+      - path: server/.env
+        required: false
+      - path: server/.env.production
+        required: false
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: "3000"
-      # SQL Server trên máy host. Đổi DOCKER_DB_HOST nếu DB ở máy khác.
-      DB_HOST: ${DOCKER_DB_HOST:-host.docker.internal}
-      # true khi truy cập qua HTTPS (proxy/TLS phía trước nginx)
-      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       # Giờ Việt Nam: file log xoay theo ngày địa phương (giống khi chạy trực tiếp trên Windows)
       TZ: Asia/Ho_Chi_Minh
-      # Số ngày giữ nhật ký hệ thống (file cũ hơn tự xoá)
-      LOG_RETENTION_DAYS: ${LOG_RETENTION_DAYS:-90}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     # API không mở cổng ra ngoài — chỉ nginx (web) gọi tới qua mạng nội bộ

@@ -27,7 +27,14 @@ export default function SessionsModal({ isOpen, onClose }: SessionsModalProps) {
 		try {
 			const res = await fetch('/api/auth/sessions');
 			const data = await res.json();
-			if (data.success) setSessions(data.data);
+			// /api/auth/sessions trả last_seen_at → đổi về dạng dùng chung của SessionTable
+			if (data.success)
+				setSessions(
+					data.data.map((s: AuthSession & { last_seen_at?: string | null }) => ({
+						...s,
+						last_used_at: s.last_seen_at ?? s.created_at,
+					})),
+				);
 		} catch {
 			setMessage('Không tải được danh sách phiên đăng nhập');
 		} finally {

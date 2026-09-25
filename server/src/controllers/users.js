@@ -2,7 +2,7 @@ const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
 const { hashPassword, validatePasswordPolicy } = require('../utils/password');
 const { invalidateUserCache } = require('../middleware/auth');
-const { revokeUserSessions } = require('../services/sessions');
+const { revokeAllSessions } = require('../services/sessionStore');
 const { assertCanManageUser, assertCanAssignRole } = require('../services/accountGuard');
 
 // Lấy tài khoản kèm tên vai trò hiện tại (để kiểm tra quyền quản lý)
@@ -37,7 +37,8 @@ async function getAll(req, res, next) {
 		const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
 		const result = await request.query(`
 			SELECT u.id_user, u.full_name, u.username, u.user_code, u.position, u.status,
-				u.created_at, u.updated_at,
+				u.created_at, u.updated_at, u.totp_enabled,
+				CAST(CASE WHEN u.locked_until > SYSUTCDATETIME() THEN 1 ELSE 0 END AS BIT) AS is_locked,
 				d.id_department, d.name_department,
 				r.id_role, r.name_role, r.department_access_type
 			FROM Users u
@@ -59,7 +60,8 @@ async function getById(req, res, next) {
 		const result = await pool.request().input('id', sql.Int, req.params.id)
 			.query(`
 			SELECT u.id_user, u.full_name, u.username, u.user_code, u.position, u.status,
-				u.created_at, u.updated_at,
+				u.created_at, u.updated_at, u.totp_enabled,
+				CAST(CASE WHEN u.locked_until > SYSUTCDATETIME() THEN 1 ELSE 0 END AS BIT) AS is_locked,
 				d.id_department, d.name_department,
 				r.id_role, r.name_role, r.department_access_type
 			FROM Users u
@@ -189,7 +191,7 @@ async function update(req, res, next) {
 		invalidateUserCache(req.params.id);
 		// Khoá tài khoản → đăng xuất khỏi mọi thiết bị ngay
 		if ((status ?? 'active') !== 'active')
-			await revokeUserSessions(target.id_user, 'account_locked');
+			await revokeAllSessions(target.id_user);
 		appEmitter.emit('changed', {
 			resource: 'users',
 			action: 'updated',

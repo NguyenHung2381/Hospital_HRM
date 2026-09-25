@@ -37,7 +37,6 @@ export default function LogsSessionsTab() {
 	}, [sessions, keyword]);
 
 	const userCount = new Set(sessions.map((s) => s.id_user)).size;
-	const apiCount = sessions.filter((s) => s.client_type === 'api').length;
 
 	const revoke = async (s: AuthSession) => {
 		if (s.current) {
@@ -82,7 +81,7 @@ export default function LogsSessionsTab() {
 					/>
 				</label>
 				<span className='lg-note'>
-					{sessions.length} phiên · {userCount} tài khoản{apiCount ? ` · ${apiCount} client API` : ''}
+					{sessions.length} phiên · {userCount} tài khoản
 					{message ? ` — ${message}` : ''}
 				</span>
 				<button

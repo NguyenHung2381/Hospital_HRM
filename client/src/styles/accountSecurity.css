@@ -1,0 +1,104 @@
+/* Modal "Bảo mật tài khoản" (ChangePasswordModal): mật khẩu, 2FA, thiết bị */
+.sec-tabs {
+	display: flex;
+	gap: 4px;
+	background: #f1f5f9;
+	border-radius: 8px;
+	padding: 4px;
+	margin-bottom: 12px;
+}
+.sec-tab {
+	flex: 1;
+	padding: 0.44rem 0.6rem;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	font-family: inherit;
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: #64748b;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.sec-tab--active {
+	background: #fff;
+	color: #1d4ed8;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.sec-muted {
+	font-size: 0.78rem;
+	color: #64748b;
+	margin: 0;
+	line-height: 1.45;
+}
+.sec-status {
+	font-size: 0.85rem;
+}
+.sec-on {
+	color: #047857;
+}
+.sec-off {
+	color: #b45309;
+}
+.sec-qr {
+	display: flex;
+	gap: 14px;
+	align-items: flex-start;
+	flex-wrap: wrap;
+}
+.sec-qr img {
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #fff;
+}
+.sec-steps {
+	flex: 1;
+	min-width: 180px;
+	font-size: 0.8rem;
+}
+.sec-steps p {
+	margin: 0 0 8px;
+}
+.sec-secret {
+	display: block;
+	margin-top: 4px;
+	padding: 6px 8px;
+	background: #f1f5f9;
+	border-radius: 6px;
+	font-size: 0.78rem;
+	word-break: break-all;
+	user-select: all;
+}
+.sec-sessions {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	max-height: 320px;
+	overflow-y: auto;
+}
+.sec-session {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+}
+.sec-session-dev {
+	margin: 0 0 2px;
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+.sec-badge {
+	margin-left: 8px;
+	padding: 1px 8px;
+	border-radius: 999px;
+	background: #dcfce7;
+	color: #047857;
+	font-size: 0.7rem;
+	font-weight: 600;
+}

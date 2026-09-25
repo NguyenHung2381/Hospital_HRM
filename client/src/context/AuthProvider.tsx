@@ -142,34 +142,83 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		}
 	}, [user]);
 
+	// Đăng nhập xong (thường hoặc sau bước 2FA): lưu thông tin hiển thị.
+	// Token đã được server đặt vào cookie HttpOnly — không lưu ở đây.
+	const finishLogin = (rawUser: ApiUser): LoginResult => {
+		const loggedInUser = mapApiUser(rawUser);
+		setUser(loggedInUser);
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(loggedInUser));
+		return { status: 'ok', user: loggedInUser };
+	};
+
+	const readMessage = async (
+		res: Response,
+	): Promise<{ message?: string; code?: string }> => {
+		try {
+			return await res.json();
+		} catch {
+			return {};
+		}
+	};
+
 	// 🔥 LOGIN
 	const login = async (
 		taiKhoan: string,
 		matKhau: string,
-		remember = false,
 	): Promise<LoginResult> => {
 		try {
 			const res = await fetch(`/api/auth/login`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				// remember: giữ phiên sau khi đóng trình duyệt (refresh token dài hạn)
-				body: JSON.stringify({ username: taiKhoan, password: matKhau, remember }),
+				body: JSON.stringify({ username: taiKhoan, password: matKhau }),
 			});
 
 			if (res.status === 404) return { status: 'not_found' };
 			if (res.status === 401) return { status: 'wrong_pass' };
-			if (res.status === 429) return { status: 'rate_limited' };
+			if (res.status === 429) {
+				const body = await readMessage(res);
+				if (body.code === 'ACCOUNT_LOCKED')
+					return { status: 'locked', message: body.message ?? '' };
+				return { status: 'rate_limited', message: body.message };
+			}
 			if (!res.ok) return { status: 'not_found' };
 
 			const data = await res.json();
-			const loggedInUser = mapApiUser(data.data.user);
+			if (data.data?.requires_2fa)
+				return { status: 'requires_2fa', preAuthToken: data.data.pre_auth_token };
 
-			setUser(loggedInUser);
+			return finishLogin(data.data.user);
+		} catch {
+			return { status: 'not_found' };
+		}
+	};
 
-			// Access + refresh token đã được server đặt vào cookie HttpOnly — chỉ lưu thông tin hiển thị
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(loggedInUser));
-
-			return { status: 'ok', user: loggedInUser };
+	// 🔥 BƯỚC 2 — XÁC MINH MÃ 2FA
+	const verify2FA = async (
+		preAuthToken: string,
+		code: string,
+	): Promise<LoginResult> => {
+		try {
+			const res = await fetch(`/api/auth/2fa/verify`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ pre_auth_token: preAuthToken, code }),
+			});
+			if (res.ok) {
+				const data = await res.json();
+				return finishLogin(data.data.user);
+			}
+			const body = await readMessage(res);
+			if (res.status === 401) return { status: 'pre_auth_expired' };
+			if (res.status === 429) {
+				if (body.code === 'ACCOUNT_LOCKED')
+					return { status: 'locked', message: body.message ?? '' };
+				return { status: 'rate_limited', message: body.message };
+			}
+			return {
+				status: 'wrong_code',
+				message: body.message ?? 'Mã xác thực không đúng',
+			};
 		} catch {
 			return { status: 'not_found' };
 		}
@@ -200,6 +249,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				khoaList,
 				deptPermissions,
 				login,
+				verify2FA,
 				logout,
 				refresh, // 👈 thêm cái này
 				loading, // 👈 optional

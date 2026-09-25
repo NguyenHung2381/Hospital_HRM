@@ -1,16 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-// Token được lưu trong cookie HttpOnly (JavaScript trên trang không đọc được)
-// thay vì localStorage — nếu trang có lỗi XSS thì kẻ tấn công cũng không lấy
-// được token để dùng ở nơi khác.
-//  - hrm_session: access token ngắn hạn, gửi kèm mọi request /api.
-//  - hrm_refresh: refresh token, CHỈ gửi tới /api/auth (làm mới / đăng xuất)
-//    → không đi kèm các request nghiệp vụ, giảm bề mặt lộ.
+// Token đăng nhập được lưu trong cookie HttpOnly (JavaScript trên trang không
+// đọc được) thay vì localStorage — nếu trang có lỗi XSS thì kẻ tấn công cũng
+// không lấy được token để dùng ở nơi khác.
 const SESSION_COOKIE = 'hrm_session';
-const REFRESH_COOKIE = 'hrm_refresh';
-const REFRESH_PATH = '/api/auth';
 
-// Secure = chỉ gửi qua HTTPS. Reverse proxy thường không chuyển tiếp
+// Secure = chỉ gửi qua HTTPS. Apache thường không chuyển tiếp
 // X-Forwarded-Proto nên Node không tự biết request là HTTPS → khi site chạy
 // HTTPS hãy đặt COOKIE_SECURE=true trong .env.
 function isSecure(req) {
@@ -19,35 +14,25 @@ function isSecure(req) {
 	return req.secure;
 }
 
-function baseOptions(req, path) {
+function cookieOptions(req) {
 	return {
 		httpOnly: true,
 		secure: isSecure(req),
 		sameSite: 'strict',
-		path,
+		path: '/api',
 	};
 }
 
-function setSessionCookie(req, res, accessToken) {
-	const { exp } = jwt.decode(accessToken);
-	res.cookie(SESSION_COOKIE, accessToken, {
-		...baseOptions(req, '/api'),
+function setSessionCookie(req, res, token) {
+	const { exp } = jwt.decode(token);
+	res.cookie(SESSION_COOKIE, token, {
+		...cookieOptions(req),
 		expires: new Date(exp * 1000),
 	});
 }
 
-// Phiên không "ghi nhớ" → cookie phiên trình duyệt (mất khi đóng trình duyệt);
-// phía server phiên vẫn tự hết hạn theo REFRESH_TOKEN_TTL.
-function setRefreshCookie(req, res, refreshToken, { expiresAt, remember }) {
-	res.cookie(REFRESH_COOKIE, refreshToken, {
-		...baseOptions(req, REFRESH_PATH),
-		...(remember ? { expires: expiresAt } : {}),
-	});
-}
-
-function clearAuthCookies(req, res) {
-	res.clearCookie(SESSION_COOKIE, baseOptions(req, '/api'));
-	res.clearCookie(REFRESH_COOKIE, baseOptions(req, REFRESH_PATH));
+function clearSessionCookie(req, res) {
+	res.clearCookie(SESSION_COOKIE, cookieOptions(req));
 }
 
 function readCookie(req, name) {
@@ -67,13 +52,32 @@ function readCookie(req, name) {
 	return null;
 }
 
-const readSessionCookie = (req) => readCookie(req, SESSION_COOKIE);
-const readRefreshCookie = (req) => readCookie(req, REFRESH_COOKIE);
+function readSessionCookie(req) {
+	return readCookie(req, SESSION_COOKIE);
+}
+
+// Cookie "thiết bị quen" (xem services/trustedDevice.js): mã ngẫu nhiên của
+// trình duyệt, KHÔNG bị xoá khi đăng xuất — chỉ gửi kèm các API /api/auth.
+const DEVICE_COOKIE = 'hrm_device';
+const DEVICE_ID_PATTERN = /^[a-f0-9]{32}$/;
+
+function setDeviceCookie(req, res, deviceId, maxAgeMs) {
+	res.cookie(DEVICE_COOKIE, deviceId, {
+		...cookieOptions(req),
+		path: '/api/auth',
+		maxAge: maxAgeMs,
+	});
+}
+
+function readDeviceCookie(req) {
+	const value = readCookie(req, DEVICE_COOKIE);
+	return value && DEVICE_ID_PATTERN.test(value) ? value : null;
+}
 
 module.exports = {
 	setSessionCookie,
-	setRefreshCookie,
-	clearAuthCookies,
+	clearSessionCookie,
 	readSessionCookie,
-	readRefreshCookie,
+	setDeviceCookie,
+	readDeviceCookie,
 };

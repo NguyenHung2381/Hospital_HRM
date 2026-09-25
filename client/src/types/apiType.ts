@@ -23,6 +23,10 @@ export interface ApiUser {
 	id_role: number;
 	name_role: string;
 	department_access_type: DepartmentAccessType;
+	/** Đã bật xác thực 2 lớp (chỉ có trong API quản lý tài khoản) */
+	totp_enabled?: boolean;
+	/** Đang bị khoá tạm do đăng nhập sai nhiều lần */
+	is_locked?: boolean;
 }
 
 export interface ApiRole {

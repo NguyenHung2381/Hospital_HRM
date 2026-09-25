@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { refreshSession } from '@/lib/httpInterceptor';
 
 type SSEPayload = {
 	resource: 'reports' | 'departments' | 'users' | 'roles' | 'coordination';
@@ -30,17 +29,16 @@ function connectSSE() {
 		const payload: SSEPayload = JSON.parse(e.data);
 		handlers.forEach((h) => h(payload));
 	};
-	// Lỗi mạng tạm thời → trình duyệt tự kết nối lại. Server trả lỗi (vd 401
-	// khi access token hết hạn) → EventSource đóng hẳn: làm mới phiên rồi tự
-	// kết nối lại, giãn dần thời gian chờ.
+	// Lỗi mạng tạm thời → trình duyệt tự kết nối lại. Server trả lỗi (vd 401,
+	// 429) → EventSource đóng hẳn: tự kết nối lại, giãn dần thời gian chờ.
+	// (Phiên hết hạn thật thì request fetch kế tiếp sẽ bị interceptor đăng xuất.)
 	source.onerror = () => {
 		if (source.readyState !== EventSource.CLOSED || refCount === 0) return;
 		if (reconnectTimer) return;
 		const delay = Math.min(30000, 1000 * 2 ** failures++);
-		reconnectTimer = setTimeout(async () => {
+		reconnectTimer = setTimeout(() => {
 			reconnectTimer = null;
 			if (refCount === 0 || es !== source) return;
-			await refreshSession();
 			if (refCount > 0 && es === source) connectSSE();
 		}, delay);
 	};

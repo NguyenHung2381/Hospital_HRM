@@ -151,40 +151,36 @@ Ghi bằng **pino + pino-roll** (giống dự án RMS): mỗi request `/api` là
 - File cũ hơn `LOG_RETENTION_DAYS` (mặc định 90) và phiên hết hạn quá `SESSION_RETENTION_DAYS` tự xoá (kiểm tra mỗi 6 giờ).
 - Người dùng tự xem/thu hồi thiết bị đang đăng nhập ở menu tài khoản → **Phiên đăng nhập**.
 
+### Dev bằng Docker (hot reload)
+
+`docker-compose.dev.yml` chạy môi trường dev trong project Compose riêng `hospital_hrm_dev`: container, network, image và volume tách hẳn khỏi production (`hospital_hrm`), nên hai môi trường chạy song song được và `down` bên này không ảnh hưởng bên kia.
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build   # lần đầu / sau khi sửa Dockerfile, package.json
+docker compose -f docker-compose.dev.yml logs -f api
+docker compose -f docker-compose.dev.yml down
+```
+
+- Giao diện: `http://localhost:5174` (Vite, sửa code tự nạp lại). API: `http://127.0.0.1:3002`. Đổi bằng `DEV_WEB_PORT` / `DEV_API_PORT`.
+- Cấu hình đọc từ `server/.env`. Compose tự ghi đè `HOST=0.0.0.0` và `DB_HOST=host.docker.internal` (giữ `DB_PORT`), vì `localhost\SQLEXPRESS` bên trong container là chính container. SQL Server phải bật TCP/IP ở cổng cố định.
+- Thêm dependency mới: chạy lại với `--build --renew-anon-volumes` để cài lại `node_modules` trong container.
+
 ## API
 
 Base URL: `http://localhost:3000/api`
 
-Các endpoint (trừ nhóm đăng nhập / làm mới token) yêu cầu **access token** hợp lệ, gửi theo 1 trong 2 cách:
-
-- **Web (trình duyệt)** — cookie HttpOnly do `/auth/login` đặt: `hrm_session` (access token, mặc định 15 phút) và `hrm_refresh` (refresh token, chỉ gửi tới `/api/auth/*`). Client tự gọi `/auth/refresh` khi gặp 401. Mọi request POST/PUT/DELETE phải kèm header `X-Requested-With: XMLHttpRequest` (chống CSRF).
-- **Client API (Postman, ứng dụng, hệ thống khác)** — header `Authorization: Bearer <access_token>`, lấy token qua `/auth/token`. Không cần header chống CSRF.
-
-Refresh token được **xoay vòng** mỗi lần dùng và lưu dạng hash trong bảng `Auth_Sessions` (server tự tạo khi khởi động). Gửi lại refresh token cũ (dấu hiệu bị đánh cắp) → cả phiên bị thu hồi. Đổi/đặt lại mật khẩu, khoá tài khoản → mọi phiên của tài khoản bị thu hồi.
-
-```bash
-# Lấy token
-curl -X POST http://localhost:8080/api/auth/token -H "Content-Type: application/json"   -d '{"username":"admin","password":"..."}'
-# → { data: { access_token, expires_in, refresh_token, refresh_expires_at, session_id } }
-
-# Gọi API
-curl http://localhost:8080/api/departments -H "Authorization: Bearer <access_token>"
-
-# Làm mới (trả cặp token MỚI — refresh token cũ hết giá trị)
-curl -X POST http://localhost:8080/api/auth/token/refresh -H "Content-Type: application/json"   -d '{"refresh_token":"<refresh_token>"}'
-
-# Đăng xuất client API
-curl -X POST http://localhost:8080/api/auth/token/revoke -H "Content-Type: application/json"   -d '{"refresh_token":"<refresh_token>"}'
-```
+Các endpoint (trừ nhóm đăng nhập) yêu cầu phiên đăng nhập hợp lệ: cookie HttpOnly `hrm_session` do `/auth/login` đặt (JWT, mặc định 8 giờ — `JWT_EXPIRES`). Mỗi phiên được lưu trong bảng `UserSessions` (server tự tạo khi khởi động) nên có thể xem và đăng xuất từ xa. Mọi request POST/PUT/DELETE phải kèm header `X-Requested-With: XMLHttpRequest` (chống CSRF). Đổi/đặt lại mật khẩu, khoá tài khoản → mọi phiên của tài khoản bị thu hồi.
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| POST | `/api/auth/login` | Đăng nhập web — `{ username, password, remember }` (rate limit chống brute-force) |
-| POST | `/api/auth/refresh` \| `/api/auth/logout` | Làm mới access token / đăng xuất (web, cookie) |
-| POST | `/api/auth/token` \| `/token/refresh` \| `/token/revoke` | Cấp / làm mới / thu hồi token cho client API |
+| POST | `/api/auth/login` | Đăng nhập web — `{ username, password }` (rate limit + khoá tạm tài khoản khi sai nhiều lần) |
+| POST | `/api/auth/2fa/verify` | Bước 2 cho tài khoản đã bật 2FA — `{ pre_auth_token, code }` |
+| POST | `/api/auth/logout` | Đăng xuất (thu hồi phiên hiện tại) |
 | GET | `/api/auth/me` | Tài khoản đang đăng nhập |
-| GET / DELETE | `/api/auth/sessions` \| `/api/auth/sessions/:sid` | Phiên đăng nhập của chính mình / thu hồi 1 phiên |
+| GET / POST | `/api/auth/2fa/status` \| `/2fa/setup` \| `/2fa/verify-setup` \| `/2fa/disable` | Quản lý xác thực 2 lớp của chính mình |
+| GET / DELETE | `/api/auth/sessions` \| `/api/auth/sessions/:sessionId` | Phiên đăng nhập của chính mình / đăng xuất 1 thiết bị khác |
 | POST | `/api/auth/logout-all` | Đăng xuất mọi thiết bị khác |
+| GET | `/api/security-events` | Nhật ký sự kiện bảo mật (chỉ Quản trị hệ thống) |
 | GET | `/api/logs` \| `/logs/stats` \| `/logs/export` \| `/logs/meta` | Nhật ký hệ thống: danh sách, thống kê, xuất Excel (chỉ Quản trị hệ thống) |
 | GET / DELETE | `/api/admin/sessions` \| `/api/admin/sessions/:sid` | Mọi phiên đang hoạt động / thu hồi (chỉ Quản trị hệ thống) |
 | POST | `/api/admin/users/:id/revoke-sessions` | Buộc 1 tài khoản đăng xuất khỏi mọi thiết bị |

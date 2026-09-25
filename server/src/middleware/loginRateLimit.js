@@ -1,3 +1,5 @@
+const { readDeviceCookie } = require('../utils/sessionCookie');
+
 // Chặn brute-force đăng nhập: giới hạn số lần sai mật khẩu trong 1 cửa sổ
 // thời gian theo 2 mức:
 //  - cặp (IP + username): chống dò mật khẩu của 1 tài khoản cụ thể;
@@ -15,9 +17,12 @@ function ipOf(req) {
 	return req.ip || req.socket?.remoteAddress || 'unknown';
 }
 
+// Kèm mã thiết bị (cookie hrm_device) để người khác cùng IP (NAT bệnh viện)
+// cố tình nhập sai không làm cạn lượt thử của thiết bị quen. Tự bịa mã thiết
+// bị để lách bộ đếm này vẫn bị chặn bởi bộ đếm theo IP + khoá tài khoản ở DB.
 function accountKey(req) {
 	const username = String(req.body?.username || '').toLowerCase().slice(0, 100);
-	return `acc:${ipOf(req)}:${username}`;
+	return `acc:${ipOf(req)}:${username}:${readDeviceCookie(req) || '-'}`;
 }
 
 function ipKey(req) {

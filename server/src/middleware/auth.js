@@ -1,7 +1,23 @@
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const { getPool, sql } = require('../config/db');
 const { readSessionCookie } = require('../utils/sessionCookie');
-const { JWT_SECRET, passwordFingerprint, verifyAccessToken } = require('../utils/tokens');
-const { isSessionActive, touchSession } = require('../services/sessions');
+const sessionStore = require('../services/sessionStore');
+
+// KHÔNG được fallback về 1 chuỗi cố định hay secret ngẫu nhiên — nếu thiếu,
+// kẻ tấn công biết trước giá trị mặc định có thể tự ký JWT hợp lệ (kể cả
+// token admin). Giống RMS: thiếu JWT_SECRET thì server không khởi động (kiểm
+// tra ở index.js trước khi nạp module này); ở đây kiểm tra lại cho chắc.
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+	throw new Error(
+		`JWT_SECRET chưa được cấu hình hoặc quá ngắn (< 32 ký tự). Tạo bằng: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`,
+	);
+}
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// Cố định thuật toán — không để thư viện tự suy ra từ header của token.
+const JWT_ALGORITHM = 'HS256';
+const JWT_EXPIRES = process.env.JWT_EXPIRES || '8h';
 
 // Vai trò "Quản trị hệ thống" — quyền cao nhất, khớp CoordinationPage.tsx
 // (client chỉ cho riêng role này quản lý điều phối nhân lực giữa các khoa).
@@ -15,9 +31,98 @@ const DASHBOARD_ROLE_NAMES = [
 	'Điều dưỡng trưởng BV',
 ];
 
+// Dấu vân tay của hash mật khẩu hiện tại, nhúng vào token. Khi mật khẩu bị
+// đổi/đặt lại, dấu vân tay thay đổi → mọi token cũ (kể cả token bị lộ) mất
+// hiệu lực ngay, không phải chờ hết hạn. Dùng HMAC để token không chứa bất
+// kỳ thông tin nào suy ra được từ hash.
+function passwordFingerprint(passwordHash) {
+	return crypto
+		.createHmac('sha256', JWT_SECRET)
+		.update(String(passwordHash || ''))
+		.digest('base64url')
+		.slice(0, 16);
+}
+
+// Mục đích đặc biệt của token (vd bước trung gian 2FA) — token có "purpose"
+// KHÔNG bao giờ được chấp nhận làm phiên đăng nhập.
+const PRE_AUTH_2FA_PURPOSE = '2fa_pre_auth';
+const PRE_AUTH_2FA_TTL = '5m';
+
+function tokenExpiresAt(token) {
+	const { exp } = jwt.decode(token);
+	return new Date(exp * 1000);
+}
+
+// Tạo phiên đăng nhập mới: ký JWT (jti ngẫu nhiên) + ghi phiên vào
+// UserSessions kèm IP/thiết bị. Trả về token để đặt vào cookie HttpOnly.
+async function createAuthSession(req, user) {
+	const jti = crypto.randomBytes(16).toString('hex');
+	const token = jwt.sign(
+		{
+			id_user: user.id_user,
+			username: user.username,
+			pwf: passwordFingerprint(user.password),
+		},
+		JWT_SECRET,
+		{
+			algorithm: JWT_ALGORITHM,
+			expiresIn: JWT_EXPIRES,
+			jwtid: jti,
+		},
+	);
+	await sessionStore.createSession({
+		jti,
+		id_user: user.id_user,
+		expiresAt: tokenExpiresAt(token),
+		ip: req.ip,
+		userAgent: req.get('user-agent'),
+	});
+	return token;
+}
+
+// Token trung gian giữa bước 1 (mật khẩu đúng) và bước 2 (mã OTP) của tài
+// khoản đã bật 2FA — không mang quyền truy cập, chỉ xác nhận "đã qua bước mật
+// khẩu cho user này" trong 5 phút. Gắn pwf để đổi mật khẩu giữa chừng là vô hiệu.
+function signPreAuthToken(user) {
+	return jwt.sign(
+		{
+			sub: String(user.id_user),
+			purpose: PRE_AUTH_2FA_PURPOSE,
+			pwf: passwordFingerprint(user.password),
+		},
+		JWT_SECRET,
+		{ algorithm: JWT_ALGORITHM, expiresIn: PRE_AUTH_2FA_TTL },
+	);
+}
+
+// Trả về { id_user, pwf } nếu pre-auth token hợp lệ, ngược lại null.
+function verifyPreAuthToken(token) {
+	if (typeof token !== 'string' || token.length > 2000) return null;
+	try {
+		const payload = jwt.verify(token, JWT_SECRET, { algorithms: [JWT_ALGORITHM] });
+		if (payload.purpose !== PRE_AUTH_2FA_PURPOSE) return null;
+		const id_user = Number(payload.sub);
+		if (!Number.isInteger(id_user)) return null;
+		return { id_user, pwf: payload.pwf };
+	} catch {
+		return null;
+	}
+}
+
+// Thu hồi phiên gắn với token (đăng xuất). Token không hợp lệ thì bỏ qua.
+async function revokeToken(token) {
+	const payload = jwt.decode(token);
+	if (!payload?.jti) return;
+	await sessionStore.revokeSession(payload.jti, Number.isInteger(payload.id_user) ? payload.id_user : null);
+}
+
 // ── Nạp trạng thái tài khoản từ DB (có cache ngắn) ─────────────
 // Vai trò và trạng thái KHÔNG lấy từ token mà đọc lại từ DB: tài khoản bị
-// khoá/xoá hoặc bị hạ quyền sẽ mất quyền ngay (tối đa sau USER_CACHE_TTL_MS).
+// vô hiệu hoá (status)/xoá hoặc bị hạ quyền sẽ mất quyền ngay (tối đa sau
+// USER_CACHE_TTL_MS), thay vì vẫn dùng được token cũ tới 8 tiếng.
+// Cố ý KHÔNG xét locked_until (khoá tạm do đăng nhập sai) — khác RMS: nếu đá
+// phiên đang mở ra thì kẻ tấn công chỉ cần cố tình nhập sai mật khẩu là đẩy
+// được người dùng thật ra khỏi hệ thống. Khoá tạm chỉ chặn đăng nhập MỚI.
 const USER_CACHE_TTL_MS = 15 * 1000;
 const userCache = new Map(); // id_user -> { user, expiresAt }
 
@@ -57,53 +162,34 @@ function invalidateUserCache(id_user) {
 	else userCache.delete(Number(id_user));
 }
 
-function unauthorized(res, message = 'Token không hợp lệ hoặc đã hết hạn', code = 'TOKEN_INVALID') {
-	return res.status(401).json({ success: false, code, message });
+function unauthorized(res, message = 'Token không hợp lệ hoặc đã hết hạn') {
+	return res.status(401).json({ success: false, message });
 }
 
-// "Authorization: Bearer <token>" → token (client API: Postman, app, hệ thống khác)
-function readBearerToken(req) {
-	const header = req.get('Authorization');
-	if (!header) return null;
-	const m = /^Bearer\s+(\S+)$/i.exec(header);
-	return m ? m[1] : '';
-}
-
-// Chỉ cập nhật last_used_at của phiên tối đa 1 lần / phút / phiên
-const TOUCH_INTERVAL_MS = 60 * 1000;
-const lastTouched = new Map();
-
-function touchLater(sid) {
-	const now = Date.now();
-	if ((lastTouched.get(sid) || 0) > now - TOUCH_INTERVAL_MS) return;
-	if (lastTouched.size > 10000) lastTouched.clear();
-	lastTouched.set(sid, now);
-	touchSession(sid).catch(() => {});
-}
-
-// Xác thực access token — 2 nguồn:
-//  - header Authorization: Bearer (client API). Có header này thì KHÔNG đọc
-//    cookie, để request mang header lạ không "mượn" được cookie phiên.
-//  - cookie HttpOnly hrm_session (web; trình duyệt tự gửi cho cả fetch lẫn SSE).
-// Sau chữ ký còn kiểm tra: tài khoản còn hoạt động, mật khẩu chưa đổi, phiên
-// (sid) chưa bị thu hồi / đăng xuất.
+// Xác thực JWT lấy từ cookie phiên HttpOnly (xem utils/sessionCookie.js).
+// Trình duyệt tự gửi cookie cho cả fetch lẫn EventSource (SSE), nên không
+// cần truyền token qua header hay URL.
 function authenticate(req, res, next) {
-	const bearer = readBearerToken(req);
-	const via = bearer !== null ? 'bearer' : 'cookie';
-	const token = bearer !== null ? bearer : readSessionCookie(req);
-	if (!token) return unauthorized(res, 'Chưa đăng nhập', 'NO_TOKEN');
+	const token = readSessionCookie(req);
+	if (!token) return unauthorized(res, 'Chưa đăng nhập');
 
-	const payload = verifyAccessToken(token);
-	if (!payload) return unauthorized(res, 'Token không hợp lệ hoặc đã hết hạn', 'TOKEN_EXPIRED');
+	let payload;
+	try {
+		payload = jwt.verify(token, JWT_SECRET, { algorithms: [JWT_ALGORITHM] });
+	} catch {
+		return unauthorized(res);
+	}
+	// Token có purpose (vd pre-auth 2FA) không phải phiên đăng nhập
+	if (payload.purpose || !Number.isInteger(payload.id_user) || !payload.jti)
+		return unauthorized(res);
 
-	Promise.all([loadAuthUser(payload.id_user), isSessionActive(payload.sid)])
+	Promise.all([
+		loadAuthUser(payload.id_user),
+		sessionStore.isSessionActive(payload.jti, payload.id_user),
+	])
 		.then(([user, sessionActive]) => {
 			if (!user || user.pwf !== payload.pwf || !sessionActive) {
-				return unauthorized(
-					res,
-					'Phiên đăng nhập không còn hiệu lực, vui lòng đăng nhập lại',
-					'SESSION_REVOKED',
-				);
+				return unauthorized(res, 'Phiên đăng nhập không còn hiệu lực, vui lòng đăng nhập lại');
 			}
 			req.user = {
 				id_user: user.id_user,
@@ -111,8 +197,8 @@ function authenticate(req, res, next) {
 				id_role: user.id_role,
 				name_role: user.name_role,
 			};
-			req.auth = { sid: payload.sid, pwf: payload.pwf, via, exp: payload.exp };
-			touchLater(payload.sid);
+			req.sessionToken = token;
+			req.sessionJti = payload.jti;
 			next();
 		})
 		.catch(next);
@@ -124,14 +210,10 @@ function authenticate(req, res, next) {
 // request thay đổi dữ liệu phải có header X-Requested-With — form HTML của
 // trang lạ không đặt được header này, còn fetch từ origin khác sẽ bị CORS
 // preflight chặn. Client gắn header tự động (lib/httpInterceptor.ts).
-// Miễn kiểm tra cho request dùng Bearer token và các endpoint cấp token API:
-// chúng không dựa vào cookie nên không có rủi ro CSRF.
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
-const CSRF_EXEMPT_PATHS = new Set(['/auth/token', '/auth/token/refresh', '/auth/token/revoke']);
 
 function requireCsrfHeader(req, res, next) {
 	if (SAFE_METHODS.has(req.method)) return next();
-	if (readBearerToken(req) !== null || CSRF_EXEMPT_PATHS.has(req.path)) return next();
 	if (req.get('X-Requested-With') !== 'XMLHttpRequest') {
 		return res
 			.status(403)
@@ -196,6 +278,11 @@ module.exports = {
 	JWT_SECRET,
 	ADMIN_ROLE_NAME,
 	DASHBOARD_ROLE_NAMES,
+	createAuthSession,
+	signPreAuthToken,
+	verifyPreAuthToken,
+	revokeToken,
+	passwordFingerprint,
 	invalidateUserCache,
 	loadAuthUser,
 	authenticate,
