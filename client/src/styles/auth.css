@@ -23,7 +23,7 @@
 .bg-blob-1 {
 	width: 600px;
 	height: 600px;
-	background: radial-gradient(circle, rgba(7, 147, 65, 0.2) 0%, rgba(7, 147, 65, 0.05) 70%);
+	background: radial-gradient(circle, rgba(10, 155, 74, 0.2) 0%, rgba(10, 155, 74, 0.05) 70%);
 	top: -200px;
 	left: -200px;
 }
@@ -471,7 +471,7 @@
 	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 	position: relative;
 	overflow: hidden;
-	box-shadow: 0 4px 14px rgba(7, 147, 65, 0.3);
+	box-shadow: 0 4px 14px rgba(10, 155, 74, 0.3);
 }
 
 .submit-btn::before {
@@ -485,7 +485,7 @@
 
 .submit-btn:hover:not(:disabled) {
 	transform: translateY(-1.5px);
-	box-shadow: 0 8px 24px rgba(7, 147, 65, 0.45);
+	box-shadow: 0 8px 24px rgba(10, 155, 74, 0.45);
 }
 
 .submit-btn:hover::before {

@@ -16,7 +16,7 @@
 .nav {
 	width: var(--nav-w);
 	flex-shrink: 0;
-	background: linear-gradient(175deg, #043819 0%, #055426 60%, #067c37 100%);
+	background: linear-gradient(175deg, #043b1c 0%, #065c2c 60%, #087c3b 100%);
 	display: flex;
 	flex-direction: column;
 	position: sticky;
@@ -302,7 +302,7 @@
 	gap: 6px;
 	padding: 5px 13px;
 	background: #f0fdf4;
-	color: #065f2b;
+	color: #087c3b;
 	border: 1.5px solid #bbf7d0;
 	border-radius: var(--rs);
 	font-family: inherit;
@@ -313,10 +313,10 @@
 	white-space: nowrap;
 }
 .topbar-home-btn:hover {
-	background: #d1fae5;
+	background: #d3f1df;
 	border-color: #86efac;
 	transform: translateY(-1px);
-	box-shadow: 0 3px 8px rgba(7, 147, 65, 0.12);
+	box-shadow: 0 3px 8px rgba(10, 155, 74, 0.12);
 }
 .topbar-badge {
 	font-size: 0.72rem;
@@ -325,7 +325,7 @@
 	color: white;
 	padding: 5px 13px;
 	border-radius: 9999px;
-	box-shadow: 0 2px 8px rgba(7, 147, 65, 0.25);
+	box-shadow: 0 2px 8px rgba(10, 155, 74, 0.25);
 	white-space: nowrap;
 }
 .main-inner {
@@ -361,7 +361,7 @@
 	justify-content: center;
 	font-size: 1.35rem;
 	flex-shrink: 0;
-	background: linear-gradient(135deg, #f0faf4, #dcfce7);
+	background: linear-gradient(135deg, #eef8f2, #dcfce7);
 	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 .pg-title {
@@ -507,7 +507,7 @@
 	height: 32px;
 	border-radius: 50%;
 	flex-shrink: 0;
-	background: linear-gradient(135deg, #065f2b, #079341);
+	background: linear-gradient(135deg, #087c3b, #0a9b4a);
 	color: white;
 	font-size: 0.78rem;
 	font-weight: 750;
@@ -572,8 +572,8 @@
 	white-space: nowrap;
 }
 .badge-green {
-	background: #d1fae5;
-	color: #065f2b;
+	background: #d3f1df;
+	color: #087c3b;
 }
 .badge-gray {
 	background: #f1f5f9;

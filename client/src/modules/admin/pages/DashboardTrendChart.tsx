@@ -65,7 +65,7 @@ export default function DashboardTrendChart({
 											maxTrendNL > 0
 												? `${Math.max(4, (t.nl / maxTrendNL) * 52)}px`
 												: '4px',
-										background: '#079341',
+										background: '#0a9b4a',
 										borderRadius: '4px 4px 0 0',
 										width: 10,
 										transition: 'height .3s',
@@ -98,7 +98,7 @@ export default function DashboardTrendChart({
 			>
 				{[
 					{ lbl: 'Người bệnh', col: '#3b82f6' },
-					{ lbl: 'NL đi làm', col: '#079341' },
+					{ lbl: 'NL đi làm', col: '#0a9b4a' },
 				].map((leg) => (
 					<span
 						key={leg.lbl}
@@ -141,8 +141,8 @@ export default function DashboardTrendChart({
 							lbl: 'Đề xuất giảm (-)',
 							val: rows.filter((r) => r.dieuPhoi !== null && r.dieuPhoi > 0)
 								.length,
-							col: '#079341',
-							bg: '#f0faf4',
+							col: '#0a9b4a',
+							bg: '#eef8f2',
 						},
 						{
 							lbl: 'Cần điều phối (+)',

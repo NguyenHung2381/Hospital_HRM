@@ -12,6 +12,7 @@ import {
 	DepartmentPage,
 	HomePage,
 	LoginPage,
+	LogsPage,
 	NotFoundPage,
 	PermissionPage,
 	ReportPage,
@@ -58,6 +59,11 @@ export const router = createBrowserRouter([
 					{ path: 'reports', element: withSuspense(<ReportPage />) },
 					{ path: 'data', element: withSuspense(<DataPage />) },
 					{ path: 'coordination', element: withSuspense(<CoordinationPage />) },
+					// Nhật ký hệ thống: chỉ Quản trị hệ thống
+					{
+						element: <ProtectedRoute requireAdmin />,
+						children: [{ path: 'logs', element: withSuspense(<LogsPage />) }],
+					},
 				],
 			},
 		],

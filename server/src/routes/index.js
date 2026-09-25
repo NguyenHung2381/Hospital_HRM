@@ -3,7 +3,6 @@ const router = express.Router();
 const appEmitter = require('../events/appEmitter');
 const {
 	authenticate,
-	isTokenRevoked,
 	loadAuthUser,
 	requireCsrfHeader,
 	requireAdmin,
@@ -12,8 +11,7 @@ const {
 	requireSelfOrAdmin,
 } = require('../middleware/auth');
 const { loginRateLimit } = require('../middleware/loginRateLimit');
-const { auditWrites } = require('../utils/auditLog');
-const jwt = require('jsonwebtoken');
+const { isSessionActive } = require('../services/sessions');
 
 router.get('/', (req, res) => {
 	res.send('OK');
@@ -33,18 +31,37 @@ const tt03 = require('../controllers/tt03');
 const coordination = require('../controllers/coordination');
 const { exportToExcel } = require('../controllers/exportReports');
 const { exportClsToExcel } = require('../controllers/exportCls');
+const logs = require('../controllers/logs');
 
 router.use(requireCsrfHeader);
 
+// ── Xác thực ──────────────────────────────────────────────────
+// Web: token trong cookie HttpOnly (access 15 phút + refresh xoay vòng).
 router.post('/auth/login', loginRateLimit, auth.login);
+router.post('/auth/refresh', auth.refresh);
 router.post('/auth/logout', auth.logout);
+// Client API (Postman/app/hệ thống khác): token trong body, gọi API bằng
+// header "Authorization: Bearer <access_token>".
+router.post('/auth/token', loginRateLimit, auth.issueToken);
+router.post('/auth/token/refresh', auth.refreshToken);
+router.post('/auth/token/revoke', auth.revokeToken);
 
-// ── Từ đây trở xuống: bắt buộc phải đăng nhập (JWT hợp lệ) ─────
+// ── Từ đây trở xuống: bắt buộc phải đăng nhập (access token hợp lệ) ─────
 router.use(authenticate);
-// Ghi audit log cho mọi request ghi dữ liệu thành công
-router.use(auditWrites);
 
 router.get('/auth/me', auth.me);
+router.get('/auth/sessions', auth.mySessions);
+router.delete('/auth/sessions/:sid', auth.revokeMySession);
+router.post('/auth/logout-all', auth.logoutOthers);
+
+// ── Nhật ký hệ thống & phiên đăng nhập toàn hệ thống (chỉ Quản trị hệ thống) ─
+router.get('/logs', requireAdmin, logs.list);
+router.get('/logs/stats', requireAdmin, logs.stats);
+router.get('/logs/meta', requireAdmin, logs.meta);
+router.get('/logs/export', requireAdmin, logs.exportExcel);
+router.get('/admin/sessions', requireAdmin, logs.allSessions);
+router.delete('/admin/sessions/:sid', requireAdmin, logs.revokeAnySession);
+router.post('/admin/users/:id/revoke-sessions', requireAdmin, logs.revokeUserSessions);
 
 // ── SSE: global realtime subscribe ───────────────────────────
 // Xác thực bằng cookie phiên HttpOnly (EventSource tự gửi cookie cùng origin).
@@ -54,7 +71,7 @@ const sseCountByUser = new Map();
 
 router.get('/subscribe', (req, res) => {
 	const userId = req.user.id_user;
-	const { pwf, jti } = jwt.decode(req.sessionToken);
+	const { pwf, sid } = req.auth;
 	const current = sseCountByUser.get(userId) || 0;
 	if (current >= MAX_SSE_PER_USER) {
 		return res
@@ -72,12 +89,13 @@ router.get('/subscribe', (req, res) => {
 	res.flushHeaders();
 
 	// Giữ kết nối mỗi 30s để không bị proxy/browser timeout; đồng thời kiểm
-	// tra lại phiên — tài khoản bị khoá/xoá, đổi mật khẩu hoặc đã đăng xuất
-	// thì ngắt luồng realtime.
+	// tra lại phiên — tài khoản bị khoá/xoá, đổi mật khẩu hoặc phiên bị thu
+	// hồi/đăng xuất thì ngắt luồng realtime. (Access token hết hạn giữa chừng
+	// không ngắt — phiên vẫn được kiểm tra trực tiếp ở đây.)
 	const keepAlive = setInterval(() => {
-		loadAuthUser(userId)
-			.then((user) =>
-				user && user.pwf === pwf && !isTokenRevoked(jti)
+		Promise.all([loadAuthUser(userId), isSessionActive(sid)])
+			.then(([user, active]) =>
+				user && user.pwf === pwf && active
 					? res.write(': ping\n\n')
 					: res.end(),
 			)

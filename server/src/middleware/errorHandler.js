@@ -2,10 +2,20 @@
  * Middleware xử lý lỗi tập trung
  * Đặt cuối cùng trong app.use() ở index.js
  */
+const { logError } = require('../utils/auditLog');
+
 function errorHandler(err, req, res, next) {
-	// Log chi tiết ra console (server side)
-	console.error(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+	// Log chi tiết ra console (server side) + gắn message/stack vào dòng nhật
+	// ký của request (tra trên trang Nhật ký hệ thống theo mã request)
+	console.error(`[${new Date().toISOString()}] ${req.id ?? ''} ${req.method} ${req.url}`);
 	console.error(err);
+	logError(err, req);
+
+	// Trả kèm mã request — người dùng báo lỗi kèm mã này là tra được log
+	if (req.id) {
+		const json = res.json.bind(res);
+		res.json = (body) => json({ ...body, request_id: req.id });
+	}
 
 	// ── SQL Server errors (err.number) ──────────────────────────
 	if (err.number) {

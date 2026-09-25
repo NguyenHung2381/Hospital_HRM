@@ -110,8 +110,8 @@ export default function DashboardPage() {
 			val: totalNB,
 			lbl: 'Tổng người bệnh',
 			sub: `${totalNBKham} NB khám/PT KH`,
-			col: '#079341',
-			bg: '#f0faf4',
+			col: '#0a9b4a',
+			bg: '#eef8f2',
 		},
 		{
 			icon: '👥',

@@ -1,32 +1,7 @@
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
 const { getPool, sql } = require('../config/db');
 const { readSessionCookie } = require('../utils/sessionCookie');
-
-// KHÔNG được fallback về 1 chuỗi cố định — nếu thiếu, kẻ tấn công biết trước
-// giá trị mặc định có thể tự ký JWT hợp lệ (kể cả token admin) mà không cần
-// đăng nhập. Production bắt buộc phải cấu hình JWT_SECRET; môi trường khác
-// (dev/local) tự sinh secret ngẫu nhiên mỗi lần khởi động — token cũ sẽ mất
-// hiệu lực sau mỗi lần restart, nhưng không bao giờ dùng giá trị đoán được.
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
-	throw new Error(
-		'Thiếu biến môi trường JWT_SECRET — bắt buộc phải cấu hình trước khi chạy production.',
-	);
-}
-if (!process.env.JWT_SECRET) {
-	console.warn(
-		'⚠️  JWT_SECRET chưa được cấu hình — dùng secret ngẫu nhiên tạm thời cho phiên chạy này (token sẽ mất hiệu lực khi restart server). Hãy đặt JWT_SECRET trong .env.',
-	);
-} else if (process.env.JWT_SECRET.length < 32) {
-	console.warn(
-		'⚠️  JWT_SECRET quá ngắn (< 32 ký tự) — dễ bị dò ngược. Hãy dùng chuỗi ngẫu nhiên dài, vd: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"',
-	);
-}
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
-
-// Cố định thuật toán — không để thư viện tự suy ra từ header của token.
-const JWT_ALGORITHM = 'HS256';
-const JWT_EXPIRES = process.env.JWT_EXPIRES || '8h';
+const { JWT_SECRET, passwordFingerprint, verifyAccessToken } = require('../utils/tokens');
+const { isSessionActive, touchSession } = require('../services/sessions');
 
 // Vai trò "Quản trị hệ thống" — quyền cao nhất, khớp CoordinationPage.tsx
 // (client chỉ cho riêng role này quản lý điều phối nhân lực giữa các khoa).
@@ -40,57 +15,9 @@ const DASHBOARD_ROLE_NAMES = [
 	'Điều dưỡng trưởng BV',
 ];
 
-// Dấu vân tay của hash mật khẩu hiện tại, nhúng vào token. Khi mật khẩu bị
-// đổi/đặt lại, dấu vân tay thay đổi → mọi token cũ (kể cả token bị lộ) mất
-// hiệu lực ngay, không phải chờ hết hạn. Dùng HMAC để token không chứa bất
-// kỳ thông tin nào suy ra được từ hash.
-function passwordFingerprint(passwordHash) {
-	return crypto
-		.createHmac('sha256', JWT_SECRET)
-		.update(String(passwordHash || ''))
-		.digest('base64url')
-		.slice(0, 16);
-}
-
-function signAuthToken(user) {
-	return jwt.sign(
-		{
-			id_user: user.id_user,
-			username: user.username,
-			pwf: passwordFingerprint(user.password),
-		},
-		JWT_SECRET,
-		{
-			algorithm: JWT_ALGORITHM,
-			expiresIn: JWT_EXPIRES,
-			jwtid: crypto.randomBytes(16).toString('hex'),
-		},
-	);
-}
-
-// ── Thu hồi token khi đăng xuất ────────────────────────────────
-// Lưu jti của token đã đăng xuất tới khi token hết hạn, để token (nếu từng
-// bị sao chép) không dùng lại được sau khi người dùng bấm Đăng xuất.
-// Lưu trong bộ nhớ: restart server thì danh sách mất, nhưng mật khẩu đổi/
-// tài khoản khoá vẫn luôn chặn được token cũ (xem passwordFingerprint).
-const revokedTokens = new Map(); // jti -> exp (giây)
-
-function revokeToken(token) {
-	const payload = jwt.decode(token);
-	if (!payload?.jti || !payload.exp) return;
-	const nowSec = Date.now() / 1000;
-	for (const [jti, exp] of revokedTokens) if (exp < nowSec) revokedTokens.delete(jti);
-	revokedTokens.set(payload.jti, payload.exp);
-}
-
-function isTokenRevoked(jti) {
-	return revokedTokens.has(jti);
-}
-
 // ── Nạp trạng thái tài khoản từ DB (có cache ngắn) ─────────────
 // Vai trò và trạng thái KHÔNG lấy từ token mà đọc lại từ DB: tài khoản bị
-// khoá/xoá hoặc bị hạ quyền sẽ mất quyền ngay (tối đa sau USER_CACHE_TTL_MS),
-// thay vì vẫn dùng được token cũ tới 8 tiếng.
+// khoá/xoá hoặc bị hạ quyền sẽ mất quyền ngay (tối đa sau USER_CACHE_TTL_MS).
 const USER_CACHE_TTL_MS = 15 * 1000;
 const userCache = new Map(); // id_user -> { user, expiresAt }
 
@@ -130,30 +57,53 @@ function invalidateUserCache(id_user) {
 	else userCache.delete(Number(id_user));
 }
 
-function unauthorized(res, message = 'Token không hợp lệ hoặc đã hết hạn') {
-	return res.status(401).json({ success: false, message });
+function unauthorized(res, message = 'Token không hợp lệ hoặc đã hết hạn', code = 'TOKEN_INVALID') {
+	return res.status(401).json({ success: false, code, message });
 }
 
-// Xác thực JWT lấy từ cookie phiên HttpOnly (xem utils/sessionCookie.js).
-// Trình duyệt tự gửi cookie cho cả fetch lẫn EventSource (SSE), nên không
-// cần truyền token qua header hay URL.
+// "Authorization: Bearer <token>" → token (client API: Postman, app, hệ thống khác)
+function readBearerToken(req) {
+	const header = req.get('Authorization');
+	if (!header) return null;
+	const m = /^Bearer\s+(\S+)$/i.exec(header);
+	return m ? m[1] : '';
+}
+
+// Chỉ cập nhật last_used_at của phiên tối đa 1 lần / phút / phiên
+const TOUCH_INTERVAL_MS = 60 * 1000;
+const lastTouched = new Map();
+
+function touchLater(sid) {
+	const now = Date.now();
+	if ((lastTouched.get(sid) || 0) > now - TOUCH_INTERVAL_MS) return;
+	if (lastTouched.size > 10000) lastTouched.clear();
+	lastTouched.set(sid, now);
+	touchSession(sid).catch(() => {});
+}
+
+// Xác thực access token — 2 nguồn:
+//  - header Authorization: Bearer (client API). Có header này thì KHÔNG đọc
+//    cookie, để request mang header lạ không "mượn" được cookie phiên.
+//  - cookie HttpOnly hrm_session (web; trình duyệt tự gửi cho cả fetch lẫn SSE).
+// Sau chữ ký còn kiểm tra: tài khoản còn hoạt động, mật khẩu chưa đổi, phiên
+// (sid) chưa bị thu hồi / đăng xuất.
 function authenticate(req, res, next) {
-	const token = readSessionCookie(req);
-	if (!token) return unauthorized(res, 'Chưa đăng nhập');
+	const bearer = readBearerToken(req);
+	const via = bearer !== null ? 'bearer' : 'cookie';
+	const token = bearer !== null ? bearer : readSessionCookie(req);
+	if (!token) return unauthorized(res, 'Chưa đăng nhập', 'NO_TOKEN');
 
-	let payload;
-	try {
-		payload = jwt.verify(token, JWT_SECRET, { algorithms: [JWT_ALGORITHM] });
-	} catch {
-		return unauthorized(res);
-	}
-	if (!Number.isInteger(payload.id_user) || isTokenRevoked(payload.jti))
-		return unauthorized(res);
+	const payload = verifyAccessToken(token);
+	if (!payload) return unauthorized(res, 'Token không hợp lệ hoặc đã hết hạn', 'TOKEN_EXPIRED');
 
-	loadAuthUser(payload.id_user)
-		.then((user) => {
-			if (!user || user.pwf !== payload.pwf) {
-				return unauthorized(res, 'Phiên đăng nhập không còn hiệu lực, vui lòng đăng nhập lại');
+	Promise.all([loadAuthUser(payload.id_user), isSessionActive(payload.sid)])
+		.then(([user, sessionActive]) => {
+			if (!user || user.pwf !== payload.pwf || !sessionActive) {
+				return unauthorized(
+					res,
+					'Phiên đăng nhập không còn hiệu lực, vui lòng đăng nhập lại',
+					'SESSION_REVOKED',
+				);
 			}
 			req.user = {
 				id_user: user.id_user,
@@ -161,7 +111,8 @@ function authenticate(req, res, next) {
 				id_role: user.id_role,
 				name_role: user.name_role,
 			};
-			req.sessionToken = token;
+			req.auth = { sid: payload.sid, pwf: payload.pwf, via, exp: payload.exp };
+			touchLater(payload.sid);
 			next();
 		})
 		.catch(next);
@@ -173,10 +124,14 @@ function authenticate(req, res, next) {
 // request thay đổi dữ liệu phải có header X-Requested-With — form HTML của
 // trang lạ không đặt được header này, còn fetch từ origin khác sẽ bị CORS
 // preflight chặn. Client gắn header tự động (lib/httpInterceptor.ts).
+// Miễn kiểm tra cho request dùng Bearer token và các endpoint cấp token API:
+// chúng không dựa vào cookie nên không có rủi ro CSRF.
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+const CSRF_EXEMPT_PATHS = new Set(['/auth/token', '/auth/token/refresh', '/auth/token/revoke']);
 
 function requireCsrfHeader(req, res, next) {
 	if (SAFE_METHODS.has(req.method)) return next();
+	if (readBearerToken(req) !== null || CSRF_EXEMPT_PATHS.has(req.path)) return next();
 	if (req.get('X-Requested-With') !== 'XMLHttpRequest') {
 		return res
 			.status(403)
@@ -241,9 +196,6 @@ module.exports = {
 	JWT_SECRET,
 	ADMIN_ROLE_NAME,
 	DASHBOARD_ROLE_NAMES,
-	signAuthToken,
-	revokeToken,
-	isTokenRevoked,
 	invalidateUserCache,
 	loadAuthUser,
 	authenticate,

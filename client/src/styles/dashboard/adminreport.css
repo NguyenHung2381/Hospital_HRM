@@ -53,7 +53,7 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	box-shadow: 0 2px 6px rgba(7, 147, 65, 0.2);
+	box-shadow: 0 2px 6px rgba(10, 155, 74, 0.2);
 }
 .rp-step-title {
 	font-size: 0.82rem;
@@ -88,13 +88,13 @@
 .rp-tab:hover {
 	border-color: var(--p);
 	color: var(--p);
-	background: #f0faf4;
+	background: #eef8f2;
 }
 .rp-tab--active {
 	border-color: var(--p);
 	background: var(--p);
 	color: #fff;
-	box-shadow: 0 3px 8px rgba(7, 147, 65, 0.2);
+	box-shadow: 0 3px 8px rgba(10, 155, 74, 0.2);
 }
 .rp-tab-icon {
 	font-size: 1rem;
@@ -155,7 +155,7 @@
 }
 .rp-input:focus {
 	border-color: var(--p);
-	box-shadow: 0 0 0 3px rgba(7, 147, 65, 0.1);
+	box-shadow: 0 0 0 3px rgba(10, 155, 74, 0.1);
 	background: #fff;
 }
 .rp-select {
@@ -169,8 +169,8 @@
 .rp-date-badge {
 	margin-top: 10px;
 	font-size: 0.74rem;
-	color: var(--pd, #065f2b);
-	background: #f0faf4;
+	color: var(--pd, #087c3b);
+	background: #eef8f2;
 	border: 1px solid #a7f3d0;
 	border-radius: 6px;
 	padding: 5px 10px;
@@ -207,7 +207,7 @@
 	border-color: var(--p);
 	background: var(--p);
 	color: #fff;
-	box-shadow: 0 3px 8px rgba(7, 147, 65, 0.2);
+	box-shadow: 0 3px 8px rgba(10, 155, 74, 0.2);
 }
 
 /* ── Lỗi ── */
@@ -243,10 +243,10 @@
 	border: none;
 	background: linear-gradient(135deg, var(--p) 0%, var(--pd) 100%);
 	color: #fff;
-	box-shadow: 0 4px 12px rgba(7, 147, 65, 0.25);
+	box-shadow: 0 4px 12px rgba(10, 155, 74, 0.25);
 }
 .rp-export-btn:hover:not(:disabled) {
-	box-shadow: 0 6px 18px rgba(7, 147, 65, 0.35);
+	box-shadow: 0 6px 18px rgba(10, 155, 74, 0.35);
 	transform: translateY(-1.5px);
 }
 .rp-export-btn:disabled {
@@ -263,7 +263,7 @@
 .rp-export-btn--outline:hover:not(:disabled) {
 	border-color: var(--p);
 	color: var(--p);
-	background: #f0faf4;
+	background: #eef8f2;
 	box-shadow: none;
 	transform: none;
 }
@@ -463,7 +463,7 @@
 .rp-range-block-lbl {
 	font-size: 0.7rem;
 	font-weight: 700;
-	color: var(--pd, #065f2b);
+	color: var(--pd, #087c3b);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	margin: 0 0 6px;

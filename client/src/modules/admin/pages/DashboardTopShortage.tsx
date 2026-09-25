@@ -66,7 +66,7 @@ export default function DashboardTopShortage({
 									<MiniBar
 										val={r.diLam ?? 0}
 										max={r.nlTong ?? 1}
-										color='#079341'
+										color='#0a9b4a'
 									/>
 									<span
 										style={{

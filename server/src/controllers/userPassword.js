@@ -5,9 +5,11 @@ const {
 	validatePasswordPolicy,
 	generateTempPassword,
 } = require('../utils/password');
-const { invalidateUserCache, signAuthToken } = require('../middleware/auth');
+const { invalidateUserCache } = require('../middleware/auth');
 const { assertCanManageUser } = require('../services/accountGuard');
 const { setSessionCookie } = require('../utils/sessionCookie');
+const { signAccessToken, passwordFingerprint } = require('../utils/tokens');
+const sessions = require('../services/sessions');
 const { audit } = require('../utils/auditLog');
 
 // PUT /api/users/:id/reset-password
@@ -44,10 +46,11 @@ async function resetPassword(req, res, next) {
 				`UPDATE Users SET password = @password, updated_at = SYSDATETIMEOFFSET() WHERE id_user = @id`,
 			);
 		invalidateUserCache(target.id_user);
-		req.auditLogged = true;
+		const revoked = await sessions.revokeUserSessions(target.id_user, 'password_reset');
 		audit(req, 'user.reset_password', {
 			target_user_id: target.id_user,
 			target_username: target.username,
+			revoked_sessions: revoked,
 		});
 
 		res.set('Cache-Control', 'no-store');
@@ -111,13 +114,26 @@ async function changePassword(req, res, next) {
 			);
 		invalidateUserCache(found.id_user);
 
-		// Token cũ (của mọi thiết bị) mất hiệu lực vì mật khẩu đã đổi → cấp
-		// cookie phiên mới cho thiết bị hiện tại để người dùng không bị đăng xuất.
-		setSessionCookie(req, res, signAuthToken({ ...found, password: hashedNewPassword }));
-		req.auditLogged = true;
-		audit(req, 'user.change_password', { target_user_id: found.id_user });
+		// Mọi thiết bị khác bị đăng xuất; phiên hiện tại được giữ, cập nhật
+		// dấu vân tay mật khẩu mới và cấp access token mới (token cũ mang dấu
+		// vân tay cũ nên hết hiệu lực) để người dùng không bị đăng xuất.
+		const revoked = await sessions.revokeUserSessions(found.id_user, 'password_changed', req.auth.sid);
+		await sessions.updateSessionFingerprint(req.auth.sid, hashedNewPassword);
+		const accessToken = signAccessToken({
+			id_user: found.id_user,
+			username: found.username,
+			pwf: passwordFingerprint(hashedNewPassword),
+			sid: req.auth.sid,
+		});
+		// Client web nhận cookie mới; client API (Bearer) nhận token trong body
+		if (req.auth.via === 'cookie') setSessionCookie(req, res, accessToken);
+		audit(req, 'user.change_password', { target_user_id: found.id_user, revoked_sessions: revoked });
 
-		res.json({ success: true, message: 'Đổi mật khẩu thành công' });
+		res.json({
+			success: true,
+			message: 'Đổi mật khẩu thành công',
+			...(req.auth.via === 'bearer' ? { data: { access_token: accessToken } } : {}),
+		});
 	} catch (err) {
 		next(err);
 	}

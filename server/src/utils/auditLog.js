@@ -1,76 +1,136 @@
-const fs = require('fs');
-const path = require('path');
+const crypto = require('crypto');
+const { logger } = require('../config/logger');
+const { moduleOf, methodVerb, normalizeIp } = require('./logDescribe');
 
-// Nhật ký thao tác (audit log): ghi lại AI làm GÌ, LÚC NÀO, TỪ ĐÂU với các
-// hành động nhạy cảm (đăng nhập, quản lý tài khoản/vai trò/phân quyền, xoá dữ
-// liệu...) để truy vết khi có sự cố. Mỗi dòng là 1 JSON, mỗi ngày 1 file:
-//   server/logs/audit-YYYY-MM-DD.log   (thư mục logs/ đã nằm trong .gitignore)
-// Đổi thư mục bằng biến môi trường AUDIT_LOG_DIR. KHÔNG bao giờ ghi mật khẩu
-// hay token vào đây.
-const LOG_DIR = process.env.AUDIT_LOG_DIR || path.join(__dirname, '..', '..', 'logs');
+// Nhật ký hoạt động: ghi lại AI làm GÌ, LÚC NÀO, TỪ ĐÂU, KẾT QUẢ ra sao — mỗi
+// request tới /api là đúng 1 dòng JSON (config/logger.js, pino + pino-roll).
+//  - requestLogger: middleware đặt đầu /api, ghi khi response kết thúc.
+//  - audit(req, action, details): controller gắn tên hành động nghiệp vụ
+//    (vd 'auth.login', 'user.reset_password') vào dòng log của request đó.
+//  - logError(err, req): lỗi 5xx — gắn message + stack vào dòng log.
+// Chỉ ghi method + đường dẫn + tham số, KHÔNG ghi body (có thể chứa mật khẩu
+// / dữ liệu nhân sự) và KHÔNG ghi token/cookie.
 
-let dirReady = false;
+const MAX_UA_LEN = 300;
+const MAX_QUERY_LEN = 500;
 
-function localDate(d) {
-	const pad = (n) => String(n).padStart(2, '0');
-	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+// Mặc định ghi mọi method. Thu hẹp bằng LOG_REQUEST_METHODS=POST,PUT,DELETE
+const ONLY_METHODS = new Set(
+	(process.env.LOG_REQUEST_METHODS || '')
+		.split(',')
+		.map((m) => m.trim().toUpperCase())
+		.filter(Boolean),
+);
+
+// Luồng realtime (SSE) mở hàng giờ — không phải thao tác người dùng.
+const SKIP_PATHS = new Set(['/api/subscribe']);
+
+function actorFields(req) {
+	return {
+		actor_id: req?.user?.id_user ?? null,
+		actor_username: req?.user?.username ?? null,
+		actor_role: req?.user?.name_role ?? null,
+	};
+}
+
+function queryString(req) {
+	if (!req.query || !Object.keys(req.query).length) return undefined;
+	const s = JSON.stringify(req.query);
+	return s.length > MAX_QUERY_LEN ? `${s.slice(0, MAX_QUERY_LEN)}…` : s;
 }
 
 /**
- * @param {import('express').Request | null} req  request hiện tại (lấy user + IP)
- * @param {string} action   vd 'auth.login', 'user.delete', 'report.delete'
- * @param {object} [details] thông tin thêm (id đối tượng, kết quả...)
+ * Gắn hành động nghiệp vụ vào dòng log của request hiện tại. Không có req
+ * (tác vụ nền) → ghi ngay thành 1 dòng riêng.
+ * @param {import('express').Request | null} req
+ * @param {string} action  vd 'auth.login', 'user.reset_password'
+ * @param {object} [details] thông tin thêm (id đối tượng...) — không chứa bí mật
  */
 function audit(req, action, details = {}) {
-	const now = new Date();
-	const entry = {
-		time: now.toISOString(),
-		action,
-		user_id: req?.user?.id_user ?? null,
-		username: req?.user?.username ?? null,
-		ip: req?.ip ?? null,
-		...details,
-	};
-	const line = JSON.stringify(entry) + '\n';
-	const file = path.join(LOG_DIR, `audit-${localDate(now)}.log`);
-
-	try {
-		if (!dirReady) {
-			fs.mkdirSync(LOG_DIR, { recursive: true });
-			dirReady = true;
-		}
-	} catch (err) {
-		console.error('[audit] Không tạo được thư mục log:', err.message);
+	if (req && req.logCtx) {
+		req.logCtx.action = action;
+		Object.assign(req.logCtx.details, details);
 		return;
 	}
-	fs.appendFile(file, line, (err) => {
-		if (err) console.error('[audit] Không ghi được audit log:', err.message);
-	});
+	try {
+		logger.info(
+			{ kind: 'event', action, ...actorFields(req), ip: normalizeIp(req?.ip), details },
+			action,
+		);
+	} catch {
+		// ghi log hỏng không được làm hỏng nghiệp vụ
+	}
 }
 
-// Middleware: tự ghi audit (nếu controller chưa ghi riêng) cho
-//  - request ghi dữ liệu (POST/PUT/DELETE) thành công (2xx);
-//  - mọi request bị từ chối quyền (403) — dấu hiệu dò quyền;
-//  - xuất Excel (tải dữ liệu hàng loạt).
-// Chỉ ghi method + đường dẫn + tham số, KHÔNG ghi body (có thể chứa mật khẩu
-// / dữ liệu bệnh nhân).
-const READ_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+function logError(err, req) {
+	const error = {
+		message: String(err?.message || err).slice(0, 1000),
+		code: err?.code ?? err?.number ?? undefined,
+		stack: err?.stack ? String(err.stack).split('\n').slice(0, 15).join('\n') : undefined,
+	};
+	if (req && req.logCtx) {
+		req.logCtx.error = error;
+		return;
+	}
+	try {
+		logger.error({ kind: 'system', action: 'system.error', error }, 'system error');
+	} catch {
+		// bỏ qua
+	}
+}
 
-function auditWrites(req, res, next) {
-	res.on('finish', () => {
-		if (req.auditLogged) return;
-		const ok = res.statusCode >= 200 && res.statusCode < 300;
-		const isWrite = !READ_METHODS.has(req.method);
-		const isExport = req.method === 'GET' && /export/.test(req.path);
-		if ((ok && (isWrite || isExport)) || res.statusCode === 403) {
-			audit(req, `${req.method} ${req.baseUrl}${req.route?.path ?? req.path}`, {
-				params: req.params,
-				...(isExport ? { query: req.query } : {}),
-				status: res.statusCode,
-			});
+// Gắn request id (trả về header X-Request-Id — người dùng báo lỗi kèm mã này
+// là tra được đúng dòng log) và ghi 1 dòng log khi request kết thúc.
+function requestLogger(req, res, next) {
+	req.id = crypto.randomUUID();
+	res.set('X-Request-Id', req.id);
+	req.logCtx = { action: null, details: {}, error: null };
+
+	if (SKIP_PATHS.has(req.originalUrl.split('?')[0])) return next();
+	if (ONLY_METHODS.size && !ONLY_METHODS.has(req.method)) return next();
+
+	const startedAt = process.hrtime.bigint();
+
+	// 'close' luôn bắn, kể cả khi client huỷ giữa chừng.
+	res.on('close', () => {
+		try {
+			const durationMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
+			const aborted = !res.writableFinished;
+			const status = aborted ? 499 : res.statusCode;
+			const route = req.route?.path ? `${req.baseUrl || ''}${req.route.path}` : undefined;
+			const ctx = req.logCtx;
+			const action =
+				ctx.action ||
+				(status === 403 ? 'denied' : methodVerb(req.method, route || req.path));
+			const entry = {
+				kind: 'request',
+				request_id: req.id,
+				action,
+				module: moduleOf(route || req.originalUrl),
+				...actorFields(req),
+				session_id: req.auth?.sid ?? undefined,
+				auth_via: req.auth?.via ?? undefined,
+				method: req.method,
+				path: req.originalUrl.split('?')[0].slice(0, 300),
+				route,
+				params: req.params && Object.keys(req.params).length ? req.params : undefined,
+				query: queryString(req),
+				status_code: status,
+				duration_ms: Math.round(durationMs * 10) / 10,
+				ip: normalizeIp(req.ip),
+				user_agent: (req.headers['user-agent'] || '').slice(0, MAX_UA_LEN) || undefined,
+				details: Object.keys(ctx.details).length ? ctx.details : undefined,
+				error: ctx.error || undefined,
+			};
+			if (status >= 500) logger.error(entry, action);
+			else if (status >= 400) logger.warn(entry, action);
+			else logger.info(entry, action);
+		} catch {
+			// ghi log hỏng không được làm sập tiến trình
 		}
 	});
+
 	next();
 }
 
-module.exports = { audit, auditWrites };
+module.exports = { audit, logError, requestLogger };

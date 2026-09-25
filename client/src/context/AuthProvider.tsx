@@ -146,12 +146,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const login = async (
 		taiKhoan: string,
 		matKhau: string,
+		remember = false,
 	): Promise<LoginResult> => {
 		try {
 			const res = await fetch(`/api/auth/login`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ username: taiKhoan, password: matKhau }),
+				// remember: giữ phiên sau khi đóng trình duyệt (refresh token dài hạn)
+				body: JSON.stringify({ username: taiKhoan, password: matKhau, remember }),
 			});
 
 			if (res.status === 404) return { status: 'not_found' };
@@ -164,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 			setUser(loggedInUser);
 
-			// Token đã được server đặt vào cookie HttpOnly — chỉ lưu thông tin hiển thị
+			// Access + refresh token đã được server đặt vào cookie HttpOnly — chỉ lưu thông tin hiển thị
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(loggedInUser));
 
 			return { status: 'ok', user: loggedInUser };

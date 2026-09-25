@@ -2,6 +2,7 @@ const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
 const { hashPassword, validatePasswordPolicy } = require('../utils/password');
 const { invalidateUserCache } = require('../middleware/auth');
+const { revokeUserSessions } = require('../services/sessions');
 const { assertCanManageUser, assertCanAssignRole } = require('../services/accountGuard');
 
 // Lấy tài khoản kèm tên vai trò hiện tại (để kiểm tra quyền quản lý)
@@ -186,6 +187,9 @@ async function update(req, res, next) {
 				SELECT * FROM @uout;
 			`);
 		invalidateUserCache(req.params.id);
+		// Khoá tài khoản → đăng xuất khỏi mọi thiết bị ngay
+		if ((status ?? 'active') !== 'active')
+			await revokeUserSessions(target.id_user, 'account_locked');
 		appEmitter.emit('changed', {
 			resource: 'users',
 			action: 'updated',

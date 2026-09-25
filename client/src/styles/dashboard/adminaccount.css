@@ -74,4 +74,4 @@
 }
 
 /* Ví dụ: highlight row active theo trạng thái */
-/* .tbl tbody tr:has(.badge-green):hover td { background: #f0faf4; } */
+/* .tbl tbody tr:has(.badge-green):hover td { background: #eef8f2; } */

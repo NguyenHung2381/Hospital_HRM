@@ -96,7 +96,7 @@ export default function DashboardSystemInfo({
 								alignItems: 'center',
 								justifyContent: 'center',
 								padding: '12px 10px',
-								background: '#f0faf4',
+								background: '#eef8f2',
 								borderRadius: 10,
 								border: '1px solid #bbf7d0',
 								textAlign: 'center',

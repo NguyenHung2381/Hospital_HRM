@@ -40,7 +40,7 @@ export default function DashboardStaffStatus({
 							cy='40'
 							r='32'
 							fill='none'
-							stroke='#079341'
+							stroke='#0a9b4a'
 							strokeWidth='10'
 							strokeDasharray={`${2 * Math.PI * 32 * rateDiLam} ${2 * Math.PI * 32 * (1 - rateDiLam)}`}
 							strokeLinecap='round'
@@ -56,7 +56,7 @@ export default function DashboardStaffStatus({
 				<div className='ov-nl-stats'>
 					{[
 						{ lbl: 'Tổng NL', val: totalNL, col: '#1e293b' },
-						{ lbl: 'Đi làm', val: totalDiLam, col: '#079341' },
+						{ lbl: 'Đi làm', val: totalDiLam, col: '#0a9b4a' },
 						{ lbl: 'Nghỉ trực', val: totalNghiTruc, col: '#d97706' },
 						{ lbl: 'Nghỉ > 2 ngày', val: totalNghiDai, col: '#dc2626' },
 					].map((s) => (

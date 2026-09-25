@@ -2,6 +2,8 @@ import logo from '@/assets/images/logo.png';
 import ArrowIcon from '@/assets/svg/AngleArrowIcon';
 import EditIcon from '@/assets/svg/EditIcon';
 import KeyIcon from '@/assets/svg/KeyIcon';
+import LockIcon from '@/assets/svg/LockIcon';
+import SessionsModal from '@/components/common/SessionsModal';
 import LogoutIcon from '@/assets/svg/LogoutIcon';
 import UserIcon from '@/assets/svg/UserIcon';
 import { useAuth } from '@/context/useAuth';
@@ -26,6 +28,7 @@ export default function MainLayout({
 	const currentUser = user! ?? currentUserProp;
 	const navigate = useNavigate();
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
+	const [showSessions, setShowSessions] = useState(false);
 
 	const handleLogout = () => {
 		setUserMenuOpen(false);
@@ -135,6 +138,17 @@ export default function MainLayout({
 									Đổi mật khẩu
 								</button>
 
+								<button
+									className='user-dd-item'
+									onClick={() => {
+										setUserMenuOpen(false);
+										setShowSessions(true);
+									}}
+								>
+									<LockIcon size={15} />
+									Phiên đăng nhập
+								</button>
+
 								<div className='user-dd-divider' />
 
 								<button
@@ -155,6 +169,11 @@ export default function MainLayout({
 
 			{/* ── Page Body ── */}
 			<div className='main-layout'>{children}</div>
+
+			<SessionsModal
+				isOpen={showSessions}
+				onClose={() => setShowSessions(false)}
+			/>
 		</div>
 	);
 }

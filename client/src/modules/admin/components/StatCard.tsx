@@ -5,8 +5,8 @@ interface StatCardProps {
 	value: string | number;
 	icon?: ReactNode;
 	subText?: string;
-	textColor: string; // VD: '#065f2b'
-	bgColor?: string; // VD: '#f0faf4'
+	textColor: string; // VD: '#087c3b'
+	bgColor?: string; // VD: '#eef8f2'
 	className?: string;
 }
 

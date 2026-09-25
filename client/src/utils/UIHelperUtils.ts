@@ -21,10 +21,10 @@ export const buildStripItems = (
 			? '#dc2626' // đỏ — thiếu
 			: totalDL === totalKC
 				? '#2563eb' // xanh — đúng chuẩn
-				: '#079341'; // xanh lá — dư
+				: '#0a9b4a'; // xanh lá — dư
 
 	const diLamBg =
-		totalDL < totalKC ? '#fef2f2' : totalDL === totalKC ? '#eff6ff' : '#f0faf4';
+		totalDL < totalKC ? '#fef2f2' : totalDL === totalKC ? '#eff6ff' : '#eef8f2';
 
 	return [
 		{ label: '🛏️ Người bệnh', val: totalNB, color: '#2563eb', bg: '#eff6ff' },

@@ -44,10 +44,11 @@ body {
 /* CSS Variables (Design Tokens) */
 /* ============================= */
 :root {
-	--p: #079341;       /* Original brand green */
-	--pd: #065f2b;      /* Original brand dark green */
-	--pl: #d1fae5;      /* Original brand light green */
-	--acc: #e14395;     /* Original pink accent */
+	--p: #0a9b4a;       /* Xanh Tây Ban Nha (màu chủ đạo) */
+	--color-primary: var(--p);
+	--pd: #087c3b;      /* Xanh Tây Ban Nha đậm */
+	--pl: #d3f1df;      /* Xanh Tây Ban Nha nhạt */
+	--acc: #df0984;     /* Hồng tím (màu bổ trợ) */
 	--bg: #f0f4f8;      /* Original background color */
 	--sur: #ffffff;     /* Surface color */
 	--bdr: #e2e8f0;     /* Border slate */
@@ -65,7 +66,7 @@ body {
 	--red-l: #fee2e2;
 	--yellow: #d97706;
 	--yellow-l: #fef3c7;
-	--green: #079341;
+	--green: #0a9b4a;
 	--gray-l: #f1f5f9;
 
 	/* Layout */
@@ -113,12 +114,12 @@ body {
 	font-weight: 600;
 	cursor: pointer;
 	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-	box-shadow: 0 4px 12px rgba(7, 147, 65, 0.25);
+	box-shadow: 0 4px 12px rgba(10, 155, 74, 0.25);
 	white-space: nowrap;
 }
 .btn-primary:hover:not(:disabled) {
 	transform: translateY(-1.5px);
-	box-shadow: 0 6px 18px rgba(7, 147, 65, 0.4);
+	box-shadow: 0 6px 18px rgba(10, 155, 74, 0.4);
 }
 .btn-primary:active:not(:disabled) {
 	transform: translateY(0);
@@ -147,9 +148,9 @@ body {
 	white-space: nowrap;
 }
 .btn-outline:hover:not(:disabled) {
-	background: #f0faf4;
+	background: #eef8f2;
 	transform: translateY(-1px);
-	box-shadow: 0 4px 10px rgba(7, 147, 65, 0.1);
+	box-shadow: 0 4px 10px rgba(10, 155, 74, 0.1);
 }
 .btn-outline:active:not(:disabled) {
 	transform: translateY(0);
@@ -256,8 +257,8 @@ body {
 	align-items: center;
 }
 .tag-green {
-	background: #d1fae5;
-	color: #065f2b;
+	background: #d3f1df;
+	color: #087c3b;
 }
 .tag-red {
 	background: #fee2e2;

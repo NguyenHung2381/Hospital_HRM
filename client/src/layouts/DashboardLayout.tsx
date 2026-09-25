@@ -2,6 +2,7 @@
 import '@/styles/dashboard.css';
 
 import { useAuth } from '@/context/useAuth';
+import SessionsModal from '@/components/common/SessionsModal';
 import ChangePasswordModal from '@/modules/home/components/modal/ChangePasswordModal';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
@@ -9,9 +10,11 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 // ASSETS
 import LOGO from '@/assets/images/logo.png';
 import AccountIcon from '@/assets/svg/AccountIcon';
+import ChartIcon from '@/assets/svg/ChartIcon';
 import EditIcon from '@/assets/svg/EditIcon';
 import GuardIcon from '@/assets/svg/GuardIcon';
 import HomeIcon from '@/assets/svg/HomeIcon';
+import LockIcon from '@/assets/svg/LockIcon';
 import LogoutIcon from '@/assets/svg/LogoutIcon';
 import MenuIcon from '@/assets/svg/MenuIcon';
 import ReportIcon from '@/assets/svg/ReportIcon';
@@ -65,6 +68,12 @@ const NAV_GROUPS = [
 				label: 'Khoa / Phòng',
 				icon: <ValiIcon size={18} />,
 			},
+			{
+				path: '/dashboard/logs',
+				label: 'Nhật ký hệ thống',
+				icon: <ChartIcon size={18} />,
+				adminOnly: true,
+			},
 		],
 	},
 ];
@@ -72,6 +81,7 @@ const NAV_GROUPS = [
 export default function DashboardLayout() {
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
 	const [showPasswordModal, setShowPasswordModal] = useState(false);
+	const [showSessionsModal, setShowSessionsModal] = useState(false);
 	const userFooterRef = useRef<HTMLDivElement>(null);
 
 	const [collapsed, setCollapsed] = useState(() => {
@@ -173,7 +183,9 @@ export default function DashboardLayout() {
 							className='nav-group'
 						>
 							<div className='nav-section-label'>{group.label}</div>
-							{group.items.map((n) => (
+							{group.items
+								.filter((n) => !('adminOnly' in n) || user?.vaiTro === 'admin')
+								.map((n) => (
 								<NavLink
 									key={n.path}
 									to={n.path}
@@ -248,6 +260,16 @@ export default function DashboardLayout() {
 								<EditIcon size={14} />
 								Đổi mật khẩu
 							</button>
+							<button
+								className='nav-user-dd-item'
+								onClick={() => {
+									setUserMenuOpen(false);
+									setShowSessionsModal(true);
+								}}
+							>
+								<LockIcon size={14} />
+								Phiên đăng nhập
+							</button>
 							<div
 								style={{ height: 1, background: 'var(--bdr)', margin: '3px 0' }}
 							/>
@@ -311,6 +333,10 @@ export default function DashboardLayout() {
 			<ChangePasswordModal
 				isOpen={showPasswordModal}
 				onClose={() => setShowPasswordModal(false)}
+			/>
+			<SessionsModal
+				isOpen={showSessionsModal}
+				onClose={() => setShowSessionsModal(false)}
 			/>
 		</div>
 	);

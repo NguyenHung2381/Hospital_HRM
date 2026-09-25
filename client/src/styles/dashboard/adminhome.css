@@ -183,8 +183,8 @@
 	border-radius: 10px;
 }
 .ov-pill-ok {
-	background: #d1fae5;
-	color: #065f2b;
+	background: #d3f1df;
+	color: #087c3b;
 	font-size: 0.68rem;
 	font-weight: 700;
 }
@@ -364,7 +364,7 @@
 
 .ov-date-select-wrap:focus-within {
 	border-color: var(--p);
-	box-shadow: 0 0 0 3px rgba(7, 147, 65, 0.15);
+	box-shadow: 0 0 0 3px rgba(10, 155, 74, 0.15);
 }
 
 .ov-date-select-lbl {
@@ -408,7 +408,7 @@
 	border-radius: 8px;
 	padding: 6px 12px;
 	white-space: nowrap;
-	box-shadow: 0 2px 6px rgba(7, 147, 65, 0.1);
+	box-shadow: 0 2px 6px rgba(10, 155, 74, 0.1);
 }
 
 .ov-latest-dot {
@@ -433,7 +433,7 @@
 	inset: -4px -6px 0 -6px;
 	background: var(--pl);
 	border-radius: 8px;
-	border: 1.5px solid rgba(7, 147, 65, 0.35);
+	border: 1.5px solid rgba(10, 155, 74, 0.35);
 	z-index: 0;
 }
 

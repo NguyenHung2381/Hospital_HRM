@@ -1,0 +1,619 @@
+/* ==========================================================
+   Nhật ký hệ thống + Phiên đăng nhập (lg-*)
+   Độc lập với dashboard.css để modal "Phiên đăng nhập" dùng được
+   cả ở trang nhập liệu (MainLayout) lẫn dashboard.
+   ========================================================== */
+
+/* ── Tabs ── */
+.lg-tabs {
+	display: flex;
+	gap: 4px;
+	border-bottom: 1.5px solid var(--bdr);
+	margin-bottom: 14px;
+	overflow-x: auto;
+}
+.lg-tab {
+	border: none;
+	background: none;
+	padding: 10px 16px;
+	font-size: 0.85rem;
+	font-weight: 650;
+	color: var(--mut);
+	cursor: pointer;
+	border-bottom: 2.5px solid transparent;
+	margin-bottom: -1.5px;
+	white-space: nowrap;
+}
+.lg-tab:hover {
+	color: var(--txt);
+}
+.lg-tab.is-active {
+	color: var(--pd);
+	border-bottom-color: var(--p);
+}
+
+/* ── Bộ lọc ── */
+.lg-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 10px;
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: 12px;
+	padding: 12px 14px;
+	margin-bottom: 14px;
+}
+.lg-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: var(--mut);
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	min-width: 130px;
+}
+.lg-field-grow {
+	flex: 1 1 200px;
+}
+.lg-field input,
+.lg-field select {
+	height: 34px;
+	border: 1px solid var(--bdr);
+	border-radius: 8px;
+	padding: 0 10px;
+	font-size: 0.82rem;
+	color: var(--txt);
+	background: #fff;
+	text-transform: none;
+	letter-spacing: normal;
+	font-weight: 500;
+}
+.lg-field input:focus,
+.lg-field select:focus {
+	outline: 2px solid var(--pl);
+	border-color: var(--p);
+}
+.lg-check {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.8rem;
+	color: var(--txt);
+	height: 34px;
+	cursor: pointer;
+}
+.lg-export {
+	margin-left: auto;
+	height: 34px;
+}
+
+/* ── Bảng ── */
+.lg-wrap {
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: 12px;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+.lg-tbl {
+	width: 100%;
+	min-width: 900px;
+	border-collapse: collapse;
+	font-size: 0.8rem;
+	color: var(--txt);
+}
+.lg-tbl th {
+	background: #f8fafc;
+	font-size: 0.68rem;
+	font-weight: 750;
+	color: #475569;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	padding: 10px 14px;
+	text-align: left;
+	border-bottom: 1.5px solid var(--bdr);
+	white-space: nowrap;
+}
+.lg-tbl td {
+	padding: 9px 14px;
+	border-bottom: 1px solid #f1f5f9;
+	vertical-align: middle;
+}
+.lg-row {
+	cursor: pointer;
+}
+.lg-row:hover td,
+.lg-row.is-open td {
+	background: #f8fafc;
+}
+.lg-row:focus-visible {
+	outline: 2px solid var(--p);
+	outline-offset: -2px;
+}
+.is-stale {
+	opacity: 0.55;
+	transition: opacity 0.15s;
+}
+.lg-empty {
+	text-align: center;
+	padding: 36px !important;
+	color: var(--mut);
+}
+.lg-empty-box {
+	text-align: center;
+	padding: 48px;
+	color: var(--mut);
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: 12px;
+}
+.lg-nowrap {
+	white-space: nowrap;
+}
+.lg-mono {
+	font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+	font-size: 0.76rem;
+	color: #475569;
+	word-break: break-all;
+}
+.lg-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 6px;
+}
+.lg-actor {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	align-items: flex-start;
+}
+.lg-actor-name {
+	font-weight: 700;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+.lg-actor-sub {
+	font-size: 0.72rem;
+	color: var(--mut);
+}
+.lg-path {
+	max-width: 340px;
+}
+.lg-method {
+	display: inline-block;
+	font-size: 0.64rem;
+	font-weight: 800;
+	color: #475569;
+	background: var(--gray-l);
+	border-radius: 4px;
+	padding: 1px 5px;
+	margin-right: 6px;
+}
+
+/* chip / trạng thái — luôn có chữ, không chỉ dựa vào màu */
+.lg-chip {
+	display: inline-block;
+	font-size: 0.7rem;
+	font-weight: 700;
+	padding: 2px 8px;
+	border-radius: 999px;
+	white-space: nowrap;
+	background: var(--gray-l);
+	color: #475569;
+}
+.lg-chip-ok {
+	background: var(--pl);
+	color: var(--pd);
+}
+.lg-chip-info {
+	background: var(--blue-l);
+	color: #1d4ed8;
+}
+.lg-chip-warn {
+	background: var(--yellow-l);
+	color: #92400e;
+}
+.lg-chip-err {
+	background: var(--red-l);
+	color: #b91c1c;
+}
+.lg-status {
+	font-family: ui-monospace, Consolas, monospace;
+	font-weight: 700;
+	font-size: 0.76rem;
+	padding: 1px 6px;
+	border-radius: 4px;
+}
+.lg-status-ok {
+	color: var(--pd);
+	background: var(--pl);
+}
+.lg-status-warn {
+	color: #92400e;
+	background: var(--yellow-l);
+}
+.lg-status-err {
+	color: #b91c1c;
+	background: var(--red-l);
+}
+.lg-status-muted {
+	color: var(--mut);
+}
+.lg-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 6px;
+	flex-shrink: 0;
+}
+.lg-dot-warn {
+	background: var(--yellow);
+}
+.lg-dot-err {
+	background: var(--red);
+}
+
+/* chi tiết 1 dòng log */
+.lg-detail-row td {
+	background: #fbfdfc;
+	padding: 12px 18px 16px;
+}
+.lg-detail dl {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+	gap: 6px 16px;
+	margin: 0;
+	font-size: 0.78rem;
+}
+.lg-detail dt {
+	color: var(--mut);
+	font-weight: 700;
+}
+.lg-detail dd {
+	margin: 0;
+}
+.lg-error {
+	margin-top: 10px;
+	border-left: 3px solid var(--red);
+	background: var(--red-l);
+	padding: 8px 12px;
+	border-radius: 0 8px 8px 0;
+	font-size: 0.78rem;
+	color: #7f1d1d;
+}
+.lg-error pre {
+	margin: 6px 0 0;
+	font-size: 0.7rem;
+	white-space: pre-wrap;
+	word-break: break-all;
+	max-height: 240px;
+	overflow: auto;
+}
+
+.lg-banner {
+	background: var(--yellow-l);
+	color: #92400e;
+	font-size: 0.8rem;
+	padding: 8px 14px;
+	border-bottom: 1px solid #fde68a;
+}
+.lg-note {
+	font-size: 0.8rem;
+	color: var(--mut);
+	margin: 0 0 10px;
+}
+
+/* nút nhỏ trong bảng */
+.lg-btn-sm {
+	border: 1px solid var(--bdr);
+	background: #fff;
+	color: var(--txt);
+	font-size: 0.74rem;
+	font-weight: 650;
+	border-radius: 7px;
+	padding: 4px 10px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.lg-btn-sm:hover:not(:disabled) {
+	background: var(--gray-l);
+}
+.lg-btn-danger {
+	color: #b91c1c;
+	border-color: #fecaca;
+}
+.lg-btn-danger:hover:not(:disabled) {
+	background: var(--red-l);
+}
+.lg-btn-sm:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+.lg-modal-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 14px;
+	flex-wrap: wrap;
+}
+.lg-modal-foot .lg-note {
+	margin: 0;
+}
+
+/* ── Thống kê ── */
+.lg-kpis {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 10px;
+	margin-bottom: 14px;
+}
+.lg-kpi {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	text-align: left;
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: 12px;
+	padding: 12px 14px;
+	font: inherit;
+	color: var(--txt);
+}
+.lg-kpi-link {
+	cursor: pointer;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+.lg-kpi-link:hover,
+.lg-kpi-link:focus-visible {
+	border-color: var(--p);
+	box-shadow: 0 2px 8px rgba(10, 155, 74, 0.1);
+}
+.lg-kpi-lbl {
+	display: flex;
+	align-items: center;
+	font-size: 0.72rem;
+	font-weight: 700;
+	color: var(--mut);
+}
+.lg-kpi-val {
+	font-size: 1.45rem;
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.15;
+}
+.lg-kpi-sub {
+	font-size: 0.7rem;
+	color: var(--mut);
+}
+.lg-card {
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: 12px;
+	padding: 14px 16px;
+	min-width: 0;
+}
+.lg-card-title {
+	font-size: 0.82rem;
+	font-weight: 750;
+	margin: 0 0 10px;
+	color: var(--txt);
+}
+.lg-grid-2 {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 12px;
+	margin-bottom: 12px;
+}
+.lg-grid-3 {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 12px;
+}
+
+/* danh sách xếp hạng */
+.lg-rank {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.lg-rank-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 6px 8px;
+	border-radius: 8px;
+	background: none;
+	border: none;
+	font: inherit;
+	text-align: left;
+	color: var(--txt);
+}
+.lg-rank-link {
+	cursor: pointer;
+}
+.lg-rank-link:hover,
+.lg-rank-link:focus-visible {
+	background: #f8fafc;
+}
+.lg-rank-main {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+.lg-rank-label {
+	display: flex;
+	align-items: center;
+	font-size: 0.8rem;
+	font-weight: 650;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.lg-rank-bar {
+	display: block;
+	height: 4px;
+	border-radius: 4px;
+	background: var(--p);
+	opacity: 0.55;
+	min-width: 2px;
+}
+.lg-rank-val {
+	font-size: 0.8rem;
+	font-weight: 750;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+/* ── Biểu đồ cột ── */
+.lg-chart {
+	margin: 0;
+}
+.lg-chart-title {
+	font-size: 0.82rem;
+	font-weight: 750;
+	margin-bottom: 12px;
+	color: var(--txt);
+}
+.lg-chart-body {
+	display: flex;
+	gap: 8px;
+	height: 180px;
+}
+.lg-chart-yaxis {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	font-size: 0.66rem;
+	color: var(--mut);
+	text-align: right;
+	min-width: 28px;
+	margin: -6px 0;
+	font-variant-numeric: tabular-nums;
+}
+.lg-chart-plot {
+	position: relative;
+	flex: 1;
+	border-bottom: 1px solid #cbd5e1;
+}
+.lg-chart-grid {
+	position: absolute;
+	left: 0;
+	right: 0;
+	border-top: 1px dashed #eef2f6;
+}
+.lg-chart-bars {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: stretch;
+}
+/* vùng rê chuột rộng hơn cột */
+.lg-bar-hit {
+	flex: 1;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	background: none;
+	border: none;
+	padding: 0 1px; /* khoảng hở 2px giữa các cột */
+	cursor: default;
+	min-width: 0;
+}
+.lg-bar-hit:focus-visible {
+	outline: 2px solid var(--p);
+	outline-offset: -2px;
+}
+.lg-bar {
+	display: block;
+	width: min(100%, 22px);
+	background: var(--p);
+	border-radius: 4px 4px 0 0;
+	transition: background 0.1s;
+}
+.lg-bar-hit.is-active .lg-bar {
+	background: var(--pd);
+}
+.lg-bar-hit.is-active {
+	background: rgba(10, 155, 74, 0.06);
+}
+.lg-tooltip {
+	position: absolute;
+	top: 4px;
+	pointer-events: none;
+	background: #0f172a;
+	color: #fff;
+	font-size: 0.74rem;
+	padding: 6px 10px;
+	border-radius: 8px;
+	white-space: nowrap;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+	z-index: 2;
+}
+.lg-tooltip-title {
+	font-weight: 700;
+	margin-bottom: 2px;
+}
+.lg-tooltip-sub {
+	color: #cbd5e1;
+	font-size: 0.7rem;
+}
+.lg-chart-xaxis {
+	display: flex;
+	margin-left: 36px;
+	margin-top: 4px;
+	font-size: 0.64rem;
+	color: var(--mut);
+}
+.lg-chart-xaxis span {
+	flex: 1;
+	text-align: center;
+	white-space: nowrap;
+	overflow: visible;
+	min-width: 0;
+}
+.lg-chart-table {
+	margin-top: 10px;
+	font-size: 0.74rem;
+}
+.lg-chart-table summary {
+	cursor: pointer;
+	color: var(--mut);
+}
+.lg-chart-table table {
+	margin-top: 6px;
+	border-collapse: collapse;
+	width: 100%;
+}
+.lg-chart-table td {
+	padding: 3px 8px;
+	border-bottom: 1px solid #f1f5f9;
+}
+.lg-chart-table td:nth-child(2) {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+}
+
+@media (max-width: 640px) {
+	.lg-field {
+		flex: 1 1 calc(50% - 10px);
+		min-width: 0;
+	}
+	.lg-export {
+		margin-left: 0;
+		width: 100%;
+	}
+}

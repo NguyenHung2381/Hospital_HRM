@@ -78,7 +78,7 @@ export default function DashboardPatientStats({
 				<span style={{ fontSize: '.78rem', color: '#64748b', fontWeight: 600 }}>
 					Tổng người bệnh
 				</span>
-				<span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#079341' }}>
+				<span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0a9b4a' }}>
 					{totalNB}
 				</span>
 			</div>

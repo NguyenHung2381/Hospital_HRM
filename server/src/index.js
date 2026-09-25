@@ -5,6 +5,10 @@ const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 const { getPool } = require('./config/db');
 const { authenticate, requireDashboardRole } = require('./middleware/auth');
+const { requestLogger, logError } = require('./utils/auditLog');
+const { ensureSchema } = require('./config/schema');
+const { pruneOldLogs, RETENTION_DAYS } = require('./services/logReader');
+const { cleanupSessions } = require('./services/sessions');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,8 +34,13 @@ app.use(
 	cors({
 		origin: allowedOrigins.length ? allowedOrigins : false,
 		methods: ['GET', 'POST', 'PUT', 'DELETE'],
+		exposedHeaders: ['X-Request-Id'],
 	}),
 );
+
+// Nhật ký hoạt động: mỗi request /api = 1 dòng log (xem utils/auditLog.js).
+// Đặt trước express.json để cả request có body lỗi cũng được ghi lại.
+app.use('/api', requestLogger);
 
 app.use(express.json({ limit: '1mb' }));
 
@@ -76,6 +85,40 @@ app.get('/health/db', authenticate, requireDashboardRole, async (req, res) => {
 
 // Error handler
 app.use(errorHandler);
+
+// ── Lỗi ngoài luồng request: ghi log rồi để tiến trình xử lý như mặc định ──
+process.on('unhandledRejection', (reason) => {
+	console.error('[unhandledRejection]', reason);
+	logError(reason);
+});
+process.on('uncaughtException', (err) => {
+	console.error('[uncaughtException]', err);
+	logError(err);
+	// Trạng thái tiến trình không còn tin cậy → thoát (Docker/pm2 tự khởi động lại)
+	setTimeout(() => process.exit(1), 500);
+});
+
+// ── Tác vụ nền: tạo bảng phiên, dọn log quá hạn và phiên đã hết hạn ──
+const HOUR_MS = 3600 * 1000;
+async function housekeeping() {
+	try {
+		const removed = await pruneOldLogs();
+		if (removed) console.log(`🧹 Đã xoá ${removed} file log cũ hơn ${RETENTION_DAYS} ngày`);
+	} catch (err) {
+		console.error('[housekeeping] Dọn log lỗi:', err.message);
+	}
+	try {
+		const n = await cleanupSessions();
+		if (n) console.log(`🧹 Đã xoá ${n} phiên đăng nhập hết hạn`);
+	} catch (err) {
+		console.error('[housekeeping] Dọn phiên lỗi:', err.message);
+	}
+}
+ensureSchema().catch((err) =>
+	console.error('⚠️  Chưa tạo được bảng Auth_Sessions (sẽ thử lại khi có đăng nhập):', err.message),
+);
+setTimeout(housekeeping, 10 * 1000).unref();
+setInterval(housekeeping, 6 * HOUR_MS).unref();
 
 let currentPort = Number(PORT);
 

@@ -49,8 +49,8 @@ export default function DashboardClsSection({
 			val: clsStats.totalKhoiLuong,
 			lbl: 'Tổng khối lượng CV',
 			sub: `${clsStats.totalNL} tổng nhân lực`,
-			col: '#079341',
-			bg: '#f0faf4',
+			col: '#0a9b4a',
+			bg: '#eef8f2',
 		},
 		{
 			icon: '✅',
@@ -101,7 +101,7 @@ export default function DashboardClsSection({
 										<MiniBar
 											val={r.diLam ?? 0}
 											max={r.khuyenCao ?? 1}
-											color='#079341'
+											color='#0a9b4a'
 										/>
 										<span
 											style={{

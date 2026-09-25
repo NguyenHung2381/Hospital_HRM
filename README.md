@@ -140,17 +140,54 @@ Biến tuỳ chọn (đặt trong shell hoặc file `.env` ở thư mục gốc)
 | `DOCKER_DB_HOST` | `host.docker.internal` | Địa chỉ SQL Server nhìn từ container |
 | `COOKIE_SECURE` | `false` | Đặt `true` khi truy cập qua HTTPS |
 
-Audit log nằm trong volume `hospital_hrm_api-logs`: `docker compose exec api ls logs`.
+Nhật ký hệ thống nằm trong volume `hospital_hrm_api-logs`: `docker compose exec backend ls logs`.
+
+## Nhật ký hệ thống (logs)
+
+Ghi bằng **pino + pino-roll** (giống dự án RMS): mỗi request `/api` là 1 dòng JSON trong `server/logs/audit.YYYY-MM-DD.N.log`, xoay theo ngày (tách file khi vượt `LOG_FILE_SIZE`). Mỗi dòng có: tài khoản, vai trò, hành động, phân hệ, method/đường dẫn, mã trạng thái, thời gian xử lý, IP, thiết bị, mã request (`X-Request-Id`) và — với lỗi — message + stack. **Không** ghi body request, mật khẩu hay token.
+
+- Trang **Dashboard → Nhật ký hệ thống** (chỉ Quản trị hệ thống): lọc theo thời gian / tài khoản / loại thao tác / phân hệ / kết quả / IP, xem chi tiết từng dòng, xuất Excel; tab Thống kê (lượt theo ngày & giờ, đăng nhập sai, lỗi 5xx, endpoint chậm, tài khoản hoạt động nhiều); tab Phiên đăng nhập (thu hồi phiên bất kỳ).
+- Response lỗi trả kèm `request_id` — người dùng báo lỗi kèm mã này, admin dán vào ô tìm kiếm để ra đúng dòng log.
+- File cũ hơn `LOG_RETENTION_DAYS` (mặc định 90) và phiên hết hạn quá `SESSION_RETENTION_DAYS` tự xoá (kiểm tra mỗi 6 giờ).
+- Người dùng tự xem/thu hồi thiết bị đang đăng nhập ở menu tài khoản → **Phiên đăng nhập**.
 
 ## API
 
 Base URL: `http://localhost:3000/api`
 
-Tất cả endpoint bên dưới (trừ `/auth/login`, `/auth/logout`) yêu cầu đăng nhập: JWT nằm trong cookie HttpOnly `hrm_session` do `/auth/login` đặt. Mọi request POST/PUT/DELETE phải kèm header `X-Requested-With: XMLHttpRequest` (chống CSRF).
+Các endpoint (trừ nhóm đăng nhập / làm mới token) yêu cầu **access token** hợp lệ, gửi theo 1 trong 2 cách:
+
+- **Web (trình duyệt)** — cookie HttpOnly do `/auth/login` đặt: `hrm_session` (access token, mặc định 15 phút) và `hrm_refresh` (refresh token, chỉ gửi tới `/api/auth/*`). Client tự gọi `/auth/refresh` khi gặp 401. Mọi request POST/PUT/DELETE phải kèm header `X-Requested-With: XMLHttpRequest` (chống CSRF).
+- **Client API (Postman, ứng dụng, hệ thống khác)** — header `Authorization: Bearer <access_token>`, lấy token qua `/auth/token`. Không cần header chống CSRF.
+
+Refresh token được **xoay vòng** mỗi lần dùng và lưu dạng hash trong bảng `Auth_Sessions` (server tự tạo khi khởi động). Gửi lại refresh token cũ (dấu hiệu bị đánh cắp) → cả phiên bị thu hồi. Đổi/đặt lại mật khẩu, khoá tài khoản → mọi phiên của tài khoản bị thu hồi.
+
+```bash
+# Lấy token
+curl -X POST http://localhost:8080/api/auth/token -H "Content-Type: application/json"   -d '{"username":"admin","password":"..."}'
+# → { data: { access_token, expires_in, refresh_token, refresh_expires_at, session_id } }
+
+# Gọi API
+curl http://localhost:8080/api/departments -H "Authorization: Bearer <access_token>"
+
+# Làm mới (trả cặp token MỚI — refresh token cũ hết giá trị)
+curl -X POST http://localhost:8080/api/auth/token/refresh -H "Content-Type: application/json"   -d '{"refresh_token":"<refresh_token>"}'
+
+# Đăng xuất client API
+curl -X POST http://localhost:8080/api/auth/token/revoke -H "Content-Type: application/json"   -d '{"refresh_token":"<refresh_token>"}'
+```
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
-| POST | `/api/auth/login` | Đăng nhập (rate limit chống brute-force) |
+| POST | `/api/auth/login` | Đăng nhập web — `{ username, password, remember }` (rate limit chống brute-force) |
+| POST | `/api/auth/refresh` \| `/api/auth/logout` | Làm mới access token / đăng xuất (web, cookie) |
+| POST | `/api/auth/token` \| `/token/refresh` \| `/token/revoke` | Cấp / làm mới / thu hồi token cho client API |
+| GET | `/api/auth/me` | Tài khoản đang đăng nhập |
+| GET / DELETE | `/api/auth/sessions` \| `/api/auth/sessions/:sid` | Phiên đăng nhập của chính mình / thu hồi 1 phiên |
+| POST | `/api/auth/logout-all` | Đăng xuất mọi thiết bị khác |
+| GET | `/api/logs` \| `/logs/stats` \| `/logs/export` \| `/logs/meta` | Nhật ký hệ thống: danh sách, thống kê, xuất Excel (chỉ Quản trị hệ thống) |
+| GET / DELETE | `/api/admin/sessions` \| `/api/admin/sessions/:sid` | Mọi phiên đang hoạt động / thu hồi (chỉ Quản trị hệ thống) |
+| POST | `/api/admin/users/:id/revoke-sessions` | Buộc 1 tài khoản đăng xuất khỏi mọi thiết bị |
 | GET | `/api/subscribe` | Realtime updates qua SSE |
 | GET/POST/PUT/DELETE | `/api/departments` | Quản lý phòng ban |
 | GET/POST/PUT/DELETE | `/api/departments/:id/recommended-config` | Cấu hình nhân lực khuyến nghị theo khoa |

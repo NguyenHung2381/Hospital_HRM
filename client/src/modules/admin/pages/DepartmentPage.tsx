@@ -73,8 +73,8 @@ export default function DepartmentPage() {
 					{
 						label: 'Đang hoạt động',
 						val: activeCount,
-						color: '#065f2b',
-						bg: '#f0faf4',
+						color: '#087c3b',
+						bg: '#eef8f2',
 					},
 					{
 						label: 'Tạm dừng',
@@ -235,7 +235,7 @@ export default function DepartmentPage() {
 										</td>
 										<td
 											className='td-center'
-											style={{ fontWeight: 600, color: '#065f2b' }}
+											style={{ fontWeight: 600, color: '#087c3b' }}
 										>
 											{k.total_staff ?? '—'}
 										</td>

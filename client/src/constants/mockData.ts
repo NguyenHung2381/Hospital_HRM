@@ -156,7 +156,7 @@ export const COLOR_MAP: Record<
 > = {
 	blue: { bg: '#dbeafe', text: '#1d4ed8', border: '#93c5fd' },
 	teal: { bg: '#ccfbf1', text: '#0f766e', border: '#5eead4' },
-	green: { bg: '#d1fae5', text: '#065f2b', border: '#6ee7b7' },
+	green: { bg: '#d3f1df', text: '#087c3b', border: '#6ee7b7' },
 	purple: { bg: '#ede9fe', text: '#6d28d9', border: '#c4b5fd' },
 	orange: { bg: '#fef3c7', text: '#b45309', border: '#fcd34d' },
 	red: { bg: '#fee2e2', text: '#b91c1c', border: '#fca5a5' },

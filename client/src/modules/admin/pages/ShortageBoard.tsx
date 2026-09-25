@@ -178,7 +178,7 @@ export default function ShortageBoard({
 											style={{
 												fontWeight: 800,
 												color:
-													dp > 0 ? '#079341' : dp < 0 ? '#dc2626' : '#94a3b8',
+													dp > 0 ? '#0a9b4a' : dp < 0 ? '#dc2626' : '#94a3b8',
 											}}
 										>
 											{dp > 0 ? `+${dp}` : dp}
