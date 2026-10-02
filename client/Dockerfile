@@ -2,7 +2,7 @@
 # Build context = thư mục gốc repo (vì client/package.json phụ thuộc "file:..").
 #   docker build -f client/Dockerfile .
 
-FROM node:22-bookworm-slim AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json ./package.json
 COPY client/package.json client/package-lock.json ./client/
@@ -13,7 +13,7 @@ RUN npm run build
 
 # ─── Dev (docker-compose.yml): Vite dev server, source mount từ máy host.
 # Stage prod (nginx) phải luôn nằm CUỐI file — xem server/Dockerfile.
-FROM node:22-bookworm-slim AS dev
+FROM node:22-alpine AS dev
 WORKDIR /app
 COPY package.json ./package.json
 COPY client/package.json client/package-lock.json ./client/
@@ -23,7 +23,7 @@ EXPOSE 5173
 CMD ["node", "node_modules/vite/bin/vite.js", "--host", "0.0.0.0"]
 
 # nginx chạy bằng user thường, nghe cổng 8080
-FROM nginxinc/nginx-unprivileged:1.27-alpine AS prod
+FROM nginxinc/nginx-unprivileged:stable-alpine AS prod
 COPY client/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/client/dist /usr/share/nginx/html
 # Sinh danh sách proxy tin cậy từ TRUSTED_PROXIES lúc khởi động (entrypoint của
@@ -31,7 +31,8 @@ COPY --from=build /app/client/dist /usr/share/nginx/html
 # bị checkout CRLF trên Windows. Image chạy user 101 → cần root để ghi vào đây.
 COPY client/docker/40-trusted-proxies.sh /docker-entrypoint.d/40-trusted-proxies.sh
 USER root
-RUN sed -i 's/\r$//' /docker-entrypoint.d/40-trusted-proxies.sh \
+RUN apk upgrade --no-cache \
+    && sed -i 's/\r$//' /docker-entrypoint.d/40-trusted-proxies.sh \
     && chmod 755 /docker-entrypoint.d/40-trusted-proxies.sh
 USER 101
 EXPOSE 8080
