@@ -82,15 +82,15 @@ export default function EditRecordModal({
 
 	return (
 		<ModalForm
-			title={`✏️ Sửa dữ liệu — ${draft.department_name} · ${formatDateToVN(selDate)}`}
+			title={`Sửa dữ liệu — ${draft.department_name} · ${formatDateToVN(selDate)}`}
 			onClose={onClose}
 			size='lg'
 		>
 			<div className='mform'>
-				{error && <p className='login-error'>⚠️ {error}</p>}
+				{error && <p className='login-error'>{error}</p>}
 
 				<div className='msec'>
-					<p className='msec-title'>🏥 Số người bệnh theo cấp độ</p>
+					<p className='msec-title'>Số người bệnh theo cấp độ</p>
 					<div className='cap-hint-row'>
 						<span className='cap-hint cap-hint-red'>
 							Cấp 1: Nặng / Nguy kịch
@@ -127,7 +127,7 @@ export default function EditRecordModal({
 				</div>
 
 				<div className='msec'>
-					<p className='msec-title'>👩‍⚕️ Nhân lực ĐD - Hộ sinh - KTV</p>
+					<p className='msec-title'>Nhân lực ĐD - Hộ sinh - KTV</p>
 					<div className='mrow3'>
 						<NumberInput
 							label='Tổng nhân lực'
@@ -146,13 +146,13 @@ export default function EditRecordModal({
 						/>
 					</div>
 					<div className='auto-preview'>
-						<span>🔢 Đi làm (tự tính) =</span>
+						<span>Đi làm (tự tính) =</span>
 						<span className='auto-val'>{diLam} người</span>
 					</div>
 				</div>
 
 				<div className='msec'>
-					<p className='msec-title'>📝 Ghi chú</p>
+					<p className='msec-title'>Ghi chú</p>
 					<FormField label=''>
 						<textarea
 							className='fi-input fi-ta'
@@ -178,7 +178,7 @@ export default function EditRecordModal({
 						onClick={handleSave}
 						disabled={saving}
 					>
-						{saving ? '⏳ Đang lưu...' : '💾 Lưu'}
+						{saving ? 'Đang lưu...' : 'Lưu'}
 					</button>
 				</div>
 			</div>

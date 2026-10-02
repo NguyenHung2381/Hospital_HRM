@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react';
 import type { ReactNode } from 'react';
 import logo from '@/assets/images/logo.png';
 
@@ -65,7 +66,9 @@ export default function AuthLayout({
 								key={f}
 								className='auth-feature-item'
 							>
-								<span className='auth-feature-check'>✓</span>
+								<span className='auth-feature-check'>
+									<Check size={12} strokeWidth={3} />
+								</span>
 								{f}
 							</li>
 						))}

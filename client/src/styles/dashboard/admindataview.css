@@ -452,7 +452,7 @@
 
 /* ── Hero header card (title + badges + tabs) ── */
 .dv-hero-card {
-	background: linear-gradient(135deg, #ffffff 0%, #f8fafb 100%);
+	background: #ffffff;
 	border: 1px solid var(--bdr);
 	border-radius: 16px;
 	padding: 14px 20px;
@@ -462,7 +462,7 @@
 	align-items: center;
 }
 .dv-hero-card .pg-hdr-icon--cls {
-	background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+	background: #f5f3ff;
 }
 .dv-hero-divider {
 	height: 1px;
@@ -478,7 +478,7 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
-	background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+	background: #f5f3ff;
 	border: 1px solid #ddd6fe;
 	color: #6d28d9;
 	border-radius: 20px;
@@ -497,7 +497,7 @@
 	display: block;
 	height: 100%;
 	border-radius: 4px;
-	background: linear-gradient(90deg, #a855f7, #7c3aed);
+	background: #a855f7;
 	transition: width 0.3s ease;
 }
 .dv-hero-sub-label {
@@ -549,7 +549,7 @@
 /* ── Date badge ── */
 .dv-date-badge {
 	margin-left: 8px;
-	background: linear-gradient(135deg, #ecfdf5, #d3f1df);
+	background: #ecfdf5;
 	color: #047857;
 	border: 1px solid #a7f3d0;
 	border-radius: 20px;
@@ -564,45 +564,21 @@
 
 /* ── Summary strip ── */
 .dv-strip {
-	display: flex;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
 	gap: 12px;
-	overflow-x: auto;
-	padding-bottom: 6px;
-	scrollbar-width: none;
-}
-.dv-strip::-webkit-scrollbar {
-	display: none;
 }
 
 .dv-strip-card {
-	flex: 1;
-	min-width: 120px;
-	background: var(--sb, #ffffff);
-	border: 1px solid rgba(13, 24, 32, 0.07);
-	border-radius: 14px;
+	min-width: 0;
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: 12px;
 	padding: 14px 16px;
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
-	position: relative;
-	overflow: hidden;
-	box-shadow: 0 4px 14px -2px rgba(13, 24, 32, 0.04);
-	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.dv-strip-card::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 3.5px;
-	background: var(--sc);
-	border-radius: 14px 14px 0 0;
-}
-
-.dv-strip-card:hover {
-	box-shadow: 0 12px 24px -4px rgba(13, 24, 32, 0.09);
-	transform: translateY(-2px);
+	box-shadow: 0 1px 2px rgba(13, 24, 32, 0.04);
 }
 
 .dv-sc-val {
@@ -617,6 +593,8 @@
 	font-size: 0.72rem;
 	color: #6b8090;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
@@ -747,14 +725,13 @@
 	background: #f0fdf4;
 	border-color: #0a9b4a;
 	color: #0a9b4a;
-	transform: translateY(-1px);
 }
 .dv-pager-btn:disabled {
 	opacity: 0.35;
 	cursor: not-allowed;
 }
 .dv-pager-btn-active {
-	background: linear-gradient(135deg, #0a9b4a, #087c3b) !important;
+	background: #0a9b4a !important;
 	border-color: #0a9b4a !important;
 	color: white !important;
 	box-shadow: 0 4px 12px rgba(10, 155, 74, 0.3) !important;
@@ -858,35 +835,35 @@
 
 /* Header group colours - Refined gradients & Clear Group Boundaries */
 .dv-grp-nb {
-	background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%) !important;
+	background: #eff6ff !important;
 	color: #1e40af !important;
 	border-bottom: 2px solid #3b82f6 !important;
 	border-right: 2px solid #93c5fd !important;
 	font-weight: 800 !important;
 }
 .dv-grp-nb2 {
-	background: linear-gradient(180deg, #f5f3ff 0%, #ede9fe 100%) !important;
+	background: #f5f3ff !important;
 	color: #4338ca !important;
 	border-bottom: 2px solid #6366f1 !important;
 	border-right: 2px solid #a5b4fc !important;
 	font-weight: 800 !important;
 }
 .dv-grp-nl {
-	background: linear-gradient(180deg, #ecfdf5 0%, #d3f1df 100%) !important;
+	background: #ecfdf5 !important;
 	color: #047857 !important;
 	border-bottom: 2px solid #10b981 !important;
 	border-right: 2px solid #6ee7b7 !important;
 	font-weight: 800 !important;
 }
 .dv-grp-kc {
-	background: linear-gradient(180deg, #faf5ff 0%, #f3e8ff 100%) !important;
+	background: #faf5ff !important;
 	color: #6b21a8 !important;
 	border-bottom: 2px solid #a855f7 !important;
 	border-right: 2px solid #c084fc !important;
 	font-weight: 800 !important;
 }
 .dv-grp-dp {
-	background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%) !important;
+	background: #fffbeb !important;
 	color: #b45309 !important;
 	border-bottom: 2px solid #f59e0b !important;
 	border-right: 2px solid #fcd34d !important;
@@ -1100,7 +1077,7 @@
 
 /* Footer tổng cộng */
 .dv-tfoot td {
-	background: linear-gradient(180deg, #ecfdf5 0%, #d3f1df 100%) !important;
+	background: #ecfdf5 !important;
 	font-weight: 800 !important;
 	font-size: 0.82rem;
 	color: #087c3b;
@@ -1183,12 +1160,6 @@
 		cursor: pointer;
 	}
 
-	.dv-strip {
-		flex-wrap: nowrap;
-	}
-	.dv-strip-card {
-		min-width: 100px;
-	}
 }
 
 @media (max-width: 560px) {
@@ -1352,7 +1323,10 @@
 }
 
 .coord-dept-icon {
-	font-size: 0.9rem;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex-shrink: 0;
 }
 
 .coord-dept-title {
@@ -1380,7 +1354,7 @@
 	width: 32px;
 	height: 32px;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--p), var(--pd));
+	background: var(--p);
 	color: white;
 	display: flex;
 	align-items: center;

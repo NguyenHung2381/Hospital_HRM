@@ -1,26 +1,27 @@
+import { CalendarDays, CalendarRange, ChartColumn, Calendar, type LucideIcon } from 'lucide-react';
 import type { GroupBy, DayRange, WeekRange, MonthRange, YearRange } from './reportRangeUtils';
 import { fmt, isoWeek } from './reportRangeUtils';
 
 export const GROUP_TABS: {
 	value: GroupBy;
 	label: string;
-	icon: string;
+	Icon: LucideIcon;
 	hint: string;
 }[] = [
-	{ value: 'day', label: 'Theo ngày', icon: '📅', hint: 'Mỗi dòng = 1 ngày' },
+	{ value: 'day', label: 'Theo ngày', Icon: CalendarDays, hint: 'Mỗi dòng = 1 ngày' },
 	{
 		value: 'week',
 		label: 'Theo tuần',
-		icon: '📆',
+		Icon: CalendarRange,
 		hint: 'Mỗi dòng = 1 tuần (Thứ 2 → CN)',
 	},
 	{
 		value: 'month',
 		label: 'Theo tháng',
-		icon: '🗓️',
+		Icon: Calendar,
 		hint: 'Mỗi dòng = 1 tháng',
 	},
-	{ value: 'year', label: 'Theo năm', icon: '📊', hint: 'Mỗi dòng = 1 năm' },
+	{ value: 'year', label: 'Theo năm', Icon: ChartColumn, hint: 'Mỗi dòng = 1 năm' },
 ];
 
 export const MONTHS = [

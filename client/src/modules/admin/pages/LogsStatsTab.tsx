@@ -174,7 +174,7 @@ export default function LogsStatsTab({ filters, onDrill }: Props) {
 				/>
 				<RankList
 					title='Endpoint lỗi hệ thống (5xx)'
-					empty='Không có lỗi hệ thống 🎉'
+					empty='Không có lỗi hệ thống '
 					items={stats.error_endpoints.map((e) => ({
 						key: e.endpoint,
 						label: e.endpoint,

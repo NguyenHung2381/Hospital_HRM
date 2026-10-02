@@ -1,23 +1,25 @@
+import { Building2, FolderTree, UserRound, type LucideIcon } from 'lucide-react';
+
 export const ACCESS_INFO: Record<
 	string,
-	{ icon: string; text: string; sub: string; color: string; bg: string }
+	{ Icon: LucideIcon; text: string; sub: string; color: string; bg: string }
 > = {
 	all: {
-		icon: '🏥',
+		Icon: Building2,
 		text: 'Toàn bộ tất cả các khoa',
 		sub: 'Không giới hạn - xem được dữ liệu toàn bệnh viện',
 		color: '#1d4ed8',
 		bg: '#dbeafe',
 	},
 	assigned: {
-		icon: '🗂️',
+		Icon: FolderTree,
 		text: 'Các khoa được Admin phân quyền',
 		sub: 'Phân khoa cụ thể cho từng người dùng trong trang Tài khoản',
 		color: '#0f766e',
 		bg: '#ccfbf1',
 	},
 	own: {
-		icon: '👤',
+		Icon: UserRound,
 		text: 'Chỉ khoa đang công tác của mình',
 		sub: 'Tự động theo trường khoa công tác trong hồ sơ tài khoản',
 		color: '#4a6070',

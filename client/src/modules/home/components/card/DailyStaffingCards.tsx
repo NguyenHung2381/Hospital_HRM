@@ -1,3 +1,4 @@
+import { BedDouble, ClipboardList, Stethoscope, TrendingDown, TrendingUp, UserCheck, Users } from 'lucide-react';
 import StatCard from '@/components/ui/StatCard';
 import type {
 	ComputedStats,
@@ -29,31 +30,37 @@ export function DailyStatsOverview({
 	return (
 		<div className='stats-row'>
 			<StatCard
-				icon='🛏️'
+				icon={<BedDouble size={20} />}
 				label='Tổng người bệnh'
 				value={computed ? fmt(computed.tongNB, 0) : '—'}
 				accent='blue'
 			/>
 			<StatCard
-				icon='🩺'
+				icon={<Stethoscope size={20} />}
 				label='NB khám / PT'
 				value={fmt(active.nbKhamPT ?? 0, 0)}
 				accent='purple'
 			/>
 			<StatCard
-				icon='👥'
+				icon={<Users size={20} />}
 				label='Tổng nhân lực'
 				value={fmt(active.nl.tong ?? 0, 0)}
 				accent='teal'
 			/>
 			<StatCard
-				icon='✅'
+				icon={<UserCheck size={20} />}
 				label='Đi làm'
 				value={computed ? fmt(computed.diLam, 0) : '—'}
 				accent='green'
 			/>
 			<StatCard
-				icon={computed && computed.dieuPhoi >= 0 ? '⬆️' : '⬇️'}
+				icon={
+					computed && computed.dieuPhoi >= 0 ? (
+						<TrendingUp size={20} />
+					) : (
+						<TrendingDown size={20} />
+					)
+				}
 				label='Điều phối'
 				value={
 					computed
@@ -86,7 +93,9 @@ export function PatientStatsCard({
 }) {
 	return (
 		<section className='dcard'>
-			<h2 className='dcard-title'>🏥 Người bệnh theo cấp độ</h2>
+			<h2 className='dcard-title'>
+					<BedDouble size={15} /> Người bệnh theo cấp độ
+				</h2>
 			<div className='cap-row'>
 				{[
 					{
@@ -145,7 +154,9 @@ export function StaffingDetailCard({
 }) {
 	return (
 		<section className='dcard'>
-			<h2 className='dcard-title'>👩‍⚕️ Nhân lực ĐD – Hộ sinh – KTV</h2>
+			<h2 className='dcard-title'>
+					<Users size={15} /> Nhân lực ĐD – Hộ sinh – KTV
+				</h2>
 			<div className='nl-grid'>
 				<div className='nl-box nl-total'>
 					<span className='nl-num'>{fmt(active.nl.tong ?? 0, 0)}</span>
@@ -219,7 +230,9 @@ export function FormulaPreviewCard({
 
 	return (
 		<section className='dcard dcard-formula'>
-			<h2 className='dcard-title'>📋 Nhân lực khuyến cáo theo TT 03</h2>
+			<h2 className='dcard-title'>
+					<ClipboardList size={15} /> Nhân lực khuyến cáo theo TT 03
+				</h2>
 			<div className='formula-box'>
 				<p className='formula-label'>Công thức tính:</p>
 				<code className='formula-code'>{formulaLabel}</code>

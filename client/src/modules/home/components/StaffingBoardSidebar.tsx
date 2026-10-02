@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react';
 import Calendar from '@/components/ui/Calendar';
 import type { KhoaItem } from '@/types/staffingType';
 import { getTodayDateString } from '@/utils/dateUtils';
@@ -58,7 +59,7 @@ export default function StaffingBoardSidebar({
 					className='btn-add-full'
 					onClick={() => onAdd()}
 				>
-					＋ Thêm ngày mới
+					<Plus size={15} /> Thêm ngày mới
 				</button>
 			)}
 		</aside>

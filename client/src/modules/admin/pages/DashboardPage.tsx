@@ -1,3 +1,4 @@
+import { BedDouble, Building2, CalendarDays, FlaskConical, TriangleAlert, Users } from 'lucide-react';
 import {
 	formatDateToVN,
 	getTodayDateString,
@@ -98,7 +99,7 @@ export default function DashboardPage() {
 
 	const kpiCards: KpiCardData[] = [
 		{
-			icon: '🏥',
+			icon: <Building2 size={20} />,
 			val: rows.length,
 			lbl: 'Tổng số khoa',
 			sub: 'đang theo dõi',
@@ -106,7 +107,7 @@ export default function DashboardPage() {
 			bg: '#eff6ff',
 		},
 		{
-			icon: '🛌',
+			icon: <BedDouble size={20} />,
 			val: totalNB,
 			lbl: 'Tổng người bệnh',
 			sub: `${totalNBKham} NB khám/PT KH`,
@@ -114,7 +115,7 @@ export default function DashboardPage() {
 			bg: '#e7f5ed',
 		},
 		{
-			icon: '👥',
+			icon: <Users size={20} />,
 			val: totalNL,
 			lbl: 'Tổng nhân lực',
 			sub: `${totalDiLam} đi làm hôm nay`,
@@ -122,7 +123,7 @@ export default function DashboardPage() {
 			bg: '#f5f3ff',
 		},
 		{
-			icon: '⚠️',
+			icon: <TriangleAlert size={20} />,
 			val: khoaThieu.length,
 			lbl: 'Khoa thiếu NL',
 			sub: `thiếu ${tongThieu} người theo TT03`,
@@ -143,7 +144,7 @@ export default function DashboardPage() {
 						className='ov-date-select-lbl'
 						htmlFor='ov-date-sel'
 					>
-						📅 Ngày báo cáo
+						<CalendarDays size={14} /> Ngày báo cáo
 					</label>
 					<select
 						id='ov-date-sel'
@@ -211,7 +212,7 @@ export default function DashboardPage() {
 				className='hcard-title'
 				style={{ margin: '4px 0 -4px' }}
 			>
-				🧪 Hệ Cận lâm sàng
+				<FlaskConical size={16} /> Hệ Cận lâm sàng
 			</h3>
 			<DashboardClsSection
 				clsRowsCount={clsRows.length}

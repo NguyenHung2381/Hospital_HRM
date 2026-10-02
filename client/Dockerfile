@@ -26,6 +26,14 @@ CMD ["node", "node_modules/vite/bin/vite.js", "--host", "0.0.0.0"]
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS prod
 COPY client/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/client/dist /usr/share/nginx/html
+# Sinh danh sách proxy tin cậy từ TRUSTED_PROXIES lúc khởi động (entrypoint của
+# image nginx tự chạy mọi /docker-entrypoint.d/*.sh). sed bỏ CR phòng khi file
+# bị checkout CRLF trên Windows. Image chạy user 101 → cần root để ghi vào đây.
+COPY client/docker/40-trusted-proxies.sh /docker-entrypoint.d/40-trusted-proxies.sh
+USER root
+RUN sed -i 's/\r$//' /docker-entrypoint.d/40-trusted-proxies.sh \
+    && chmod 755 /docker-entrypoint.d/40-trusted-proxies.sh
+USER 101
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1

@@ -11,7 +11,7 @@ export default function FormErrorBanner({ error }: { error: string }) {
 				padding: '6px 10px',
 			}}
 		>
-			⚠️ {error}
+			{error}
 		</p>
 	);
 }

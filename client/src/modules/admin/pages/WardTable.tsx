@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react';
 import type { ApiRecord, ApiReport } from '@/types/apiType';
 import type { KhoaRecord } from '@/types/reportType';
 import { fmtUpdatedAt } from '@/utils/dateUtils';
@@ -233,7 +234,7 @@ export default function WardTable({
 												title='Sửa dữ liệu khoa này'
 												onClick={() => onEdit(apiRec)}
 											>
-												✏️
+												<Pencil size={14} />
 											</button>
 										)}
 										{(perm?.can_delete ?? false) && apiRec && (
@@ -242,7 +243,7 @@ export default function WardTable({
 												title='Xóa bản ghi khoa này'
 												onClick={() => onDelete({ id: apiRec.id, name: r.ten })}
 											>
-												🗑
+												<Trash2 size={14} />
 											</button>
 										)}
 									</div>

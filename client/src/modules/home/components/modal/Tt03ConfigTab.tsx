@@ -14,7 +14,7 @@ export default function Tt03ConfigTab({
 	return (
 		<>
 			<div className='msec'>
-				<p className='msec-title'>📋 Loại công thức TT 03</p>
+				<p className='msec-title'>Loại công thức TT 03</p>
 				<div className='mrow2'>
 					<label className='fi'>
 						<span className='fi-label'>Loại công thức</span>
@@ -55,7 +55,7 @@ export default function Tt03ConfigTab({
 			{/* custom_coef: hệ số theo cấp */}
 			{deptDraft.formulaType === 'custom_coef' && (
 				<div className='msec'>
-					<p className='msec-title'>📐 Hệ số theo cấp độ NB</p>
+					<p className='msec-title'>Hệ số theo cấp độ NB</p>
 					<p className='msec-hint'>
 						= (CSC1 × cap1) + (CSC2 × cap2) + (CSC3 × cap3) + (Tổng ×
 						tong)
@@ -114,7 +114,7 @@ export default function Tt03ConfigTab({
 			{/* standard / icu / surgery: tham số công thức */}
 			{deptDraft.formulaType !== 'custom_coef' && (
 				<div className='msec'>
-					<p className='msec-title'>📐 Tham số công thức</p>
+					<p className='msec-title'>Tham số công thức</p>
 					<div className='mrow3'>
 						<NumberInput
 							label='Tỉ lệ NB / điều dưỡng'
@@ -169,7 +169,7 @@ export default function Tt03ConfigTab({
 			)}
 
 			<div className='msec'>
-				<p className='msec-title'>📝 Ghi chú cấu hình TT03</p>
+				<p className='msec-title'>Ghi chú cấu hình TT03</p>
 				<label className='fi'>
 					<textarea
 						className='fi-input fi-ta'

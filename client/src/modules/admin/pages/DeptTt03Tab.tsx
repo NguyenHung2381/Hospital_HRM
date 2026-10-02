@@ -18,7 +18,7 @@ export default function DeptTt03Tab({
 	return (
 		<div className='dept-heso-section'>
 			<div className='dept-heso-hdr'>
-				<p className='msec-title'>📐 Cấu hình TT 03/2023/TT-BYT</p>
+				<p className='msec-title'>Cấu hình TT 03/2023/TT-BYT</p>
 				<span
 					className='dept-heso-hint-icon'
 					title='Chọn loại công thức phù hợp với đặc thù khoa'

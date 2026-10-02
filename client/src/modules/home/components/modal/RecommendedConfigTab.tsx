@@ -17,7 +17,7 @@ export default function RecommendedConfigTab({
 	return (
 		<>
 			<div className='msec'>
-				<p className='msec-title'>📋 Loại công thức khuyến nghị</p>
+				<p className='msec-title'>Loại công thức khuyến nghị</p>
 				<label className='fi'>
 					<span className='fi-label'>Loại công thức</span>
 					<select
@@ -40,7 +40,7 @@ export default function RecommendedConfigTab({
 			{/* coef: hệ số L1/L2/L3 + cộng thêm */}
 			{recFormula === 'coef' && (
 				<div className='msec'>
-					<p className='msec-title'>📐 Hệ số theo cấp độ NB</p>
+					<p className='msec-title'>Hệ số theo cấp độ NB</p>
 					<p className='msec-hint'>
 						= (L1 × coef_l1) + (L2 × coef_l2) + (L3 × coef_l3) + fixed_add
 					</p>
@@ -78,7 +78,7 @@ export default function RecommendedConfigTab({
 			{/* coef_with_total: hệ số L1/L2/L3 + tỉ lệ tổng NB + cộng thêm */}
 			{recFormula === 'coef_with_total' && (
 				<div className='msec'>
-					<p className='msec-title'>📐 Hệ số cấp độ + Tổng NB</p>
+					<p className='msec-title'>Hệ số cấp độ + Tổng NB</p>
 					<p className='msec-hint'>
 						= (L1 × coef_l1) + (L2 × coef_l2) + (L3 × coef_l3) + (Tổng NB
 						× outpatient_ratio) + fixed_add
@@ -125,7 +125,7 @@ export default function RecommendedConfigTab({
 			{/* total_ratio / outpatient_count */}
 			{(recFormula === 'total_ratio' || recFormula === 'outpatient_count') && (
 				<div className='msec'>
-					<p className='msec-title'>📐 Tham số công thức</p>
+					<p className='msec-title'>Tham số công thức</p>
 					<p className='msec-hint'>
 						{recFormula === 'total_ratio'
 							? '= (L1 + L2 + L3) × outpatient_ratio + fixed_add'
@@ -154,7 +154,7 @@ export default function RecommendedConfigTab({
 			)}
 
 			<div className='msec'>
-				<p className='msec-title'>📝 Ghi chú cấu hình khuyến nghị</p>
+				<p className='msec-title'>Ghi chú cấu hình khuyến nghị</p>
 				<label className='fi'>
 					<textarea
 						className='fi-input fi-ta'

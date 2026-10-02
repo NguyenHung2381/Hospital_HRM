@@ -1,3 +1,4 @@
+import { CalendarDays, Plus } from 'lucide-react';
 import { useAuth } from '@/context/useAuth';
 import { useAppSSE } from '@/hooks/useAppSSE';
 import { useReportData } from '@/hooks/useReportData';
@@ -140,7 +141,7 @@ export default function CoordinationPage() {
 						className='ov-date-select-lbl'
 						htmlFor='coord-date-sel'
 					>
-						📅 Ngày
+						<CalendarDays size={14} /> Ngày
 					</label>
 					<input
 						id='coord-date-sel'
@@ -156,7 +157,7 @@ export default function CoordinationPage() {
 						onClick={() => setModalPrefill({ fromId: null, toId: null })}
 						disabled={!report}
 					>
-						＋ Tạo điều phối
+						<Plus size={15} /> Tạo điều phối
 					</button>
 				)}
 			</PageHeader>

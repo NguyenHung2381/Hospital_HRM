@@ -44,8 +44,8 @@ export default function DailyStaffingForm({
 
 	const title =
 		mode === 'add'
-			? '＋ Thêm bản ghi ngày mới'
-			: `✏️ Sửa ngày ${fmtDisplay(draft.date)}`;
+			? 'Thêm bản ghi ngày mới'
+			: `Sửa ngày ${fmtDisplay(draft.date)}`;
 
 	const diLam =
 		(draft.nl.tong ?? 0) -
@@ -73,7 +73,7 @@ export default function DailyStaffingForm({
 
 				{/* Người bệnh */}
 				<div className='msec'>
-					<p className='msec-title'>🏥 Số người bệnh theo cấp độ</p>
+					<p className='msec-title'>Số người bệnh theo cấp độ</p>
 					<div className='cap-hint-row'>
 						<span className='cap-hint cap-hint-red'>
 							Cấp 1: Nặng / Nguy kịch (CSC1)
@@ -126,7 +126,7 @@ export default function DailyStaffingForm({
 
 				{/* Nhân lực */}
 				<div className='msec'>
-					<p className='msec-title'>👩‍⚕️ Nhân lực ĐD - Hộ sinh - KTV</p>
+					<p className='msec-title'>Nhân lực ĐD - Hộ sinh - KTV</p>
 					<div className='mrow3'>
 						<NumberInput
 							label='Tổng nhân lực'
@@ -151,14 +151,14 @@ export default function DailyStaffingForm({
 						/>
 					</div>
 					<div className='auto-preview'>
-						<span>🔢 Đi làm (tự tính) =</span>
+						<span>Đi làm (tự tính) =</span>
 						<span className='auto-val'>{diLam} người</span>
 					</div>
 				</div>
 
 				{/* Ghi chú */}
 				<div className='msec'>
-					<p className='msec-title'>📝 Ghi chú</p>
+					<p className='msec-title'>Ghi chú</p>
 					<label className='fi'>
 						<textarea
 							className='fi-input fi-ta'
@@ -193,7 +193,7 @@ export default function DailyStaffingForm({
 						}}
 						disabled={saving || (mode === 'add' && !!validateDate(draft.date))}
 					>
-						{saving ? '⏳ Đang lưu...' : '💾 Lưu bản ghi'}
+						{saving ? 'Đang lưu...' : 'Lưu bản ghi'}
 					</button>
 				</div>
 			</div>

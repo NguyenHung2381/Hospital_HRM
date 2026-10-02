@@ -37,7 +37,7 @@ export default function DepartmentFormModal({
 
 	return (
 		<ModalForm
-			title={mode === 'add' ? '＋ Thêm khoa / phòng' : '✏️ Sửa thông tin khoa'}
+			title={mode === 'add' ? 'Thêm khoa / phòng' : 'Sửa thông tin khoa'}
 			onClose={onClose}
 			size='lg'
 		>
@@ -57,19 +57,19 @@ export default function DepartmentFormModal({
 						className={`tab-btn${formTab === 'info' ? ' tab-btn--active' : ''}`}
 						onClick={() => setFormTab('info')}
 					>
-						🏥 Thông tin
+						Thông tin
 					</button>
 					<button
 						className={`tab-btn${formTab === 'tt03' ? ' tab-btn--active' : ''}`}
 						onClick={() => setFormTab('tt03')}
 					>
-						📋 TT 03
+						TT 03
 					</button>
 					<button
 						className={`tab-btn${formTab === 'rec' ? ' tab-btn--active' : ''}`}
 						onClick={() => setFormTab('rec')}
 					>
-						🏅 Khuyến nghị
+						Khuyến nghị
 					</button>
 				</div>
 
@@ -108,7 +108,7 @@ export default function DepartmentFormModal({
 						onClick={onSave}
 						disabled={saving}
 					>
-						{saving ? '⏳ Đang lưu...' : '💾 Lưu'}
+						{saving ? 'Đang lưu...' : 'Lưu'}
 					</button>
 				</div>
 			</div>

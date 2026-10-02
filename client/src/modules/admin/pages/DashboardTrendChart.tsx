@@ -1,3 +1,4 @@
+import { ArrowLeftRight, TrendingUp } from 'lucide-react';
 import type { ApiReport } from '@/types/apiType';
 import type { KhoaRecord } from '@/types/reportType';
 import { formatDateToVN, formatShortDay } from '@/utils/dateUtils';
@@ -27,7 +28,9 @@ export default function DashboardTrendChart({
 			className='hcard'
 			style={{ flex: '1 1 320px' }}
 		>
-			<h3 className='hcard-title'>📈 Xu hướng 7 ngày gần nhất</h3>
+			<h3 className='hcard-title'>
+				<TrendingUp size={16} /> Xu hướng 7 ngày gần nhất
+			</h3>
 			<div className='ov-trend'>
 				{trend7.map((t) => {
 					const isSel = t.date === selDateStr;
@@ -133,7 +136,7 @@ export default function DashboardTrendChart({
 						marginBottom: 6,
 					}}
 				>
-					📋 Tình trạng điều phối
+					<ArrowLeftRight size={14} /> Tình trạng điều phối
 				</p>
 				<div style={{ display: 'flex', gap: 8 }}>
 					{[

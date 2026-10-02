@@ -1,3 +1,4 @@
+import { Plus, X } from 'lucide-react';
 import XIcon from '@/assets/svg/XIcon';
 import type { ApiReport } from '@/types/apiType';
 import type { KhoaRecord } from '@/types/reportType';
@@ -77,7 +78,7 @@ export default function WardTabActions({
 					}}
 					onClick={onClearFilter}
 				>
-					✕ Bỏ lọc ({selKhoa.size})
+					<X size={13} /> Bỏ lọc ({selKhoa.size})
 				</button>
 			)}
 			{report && canDeleteReport && (
@@ -98,7 +99,7 @@ export default function WardTabActions({
 					}}
 					onClick={onOpenDeleteReport}
 				>
-					🗑 Xóa báo cáo
+					Xóa báo cáo
 				</button>
 			)}
 			{!report && !loadingReport && (
@@ -107,7 +108,7 @@ export default function WardTabActions({
 					style={{ fontSize: '.78rem' }}
 					onClick={onOpenCreateReport}
 				>
-					＋ Tạo báo cáo
+					<Plus size={15} /> Tạo báo cáo
 				</button>
 			)}
 		</>

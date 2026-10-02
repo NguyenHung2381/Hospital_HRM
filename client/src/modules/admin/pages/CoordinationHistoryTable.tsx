@@ -1,3 +1,4 @@
+import { History, Trash2 } from 'lucide-react';
 import type { ApiCoordination } from '@/types/apiType';
 import { fmtUpdatedAt, formatDateToVN } from '@/utils/dateUtils';
 
@@ -20,7 +21,7 @@ export default function CoordinationHistoryTable({
 	return (
 		<section className='hcard'>
 			<h3 className='hcard-title'>
-				📋 Lịch sử điều phối ngày {formatDateToVN(selDate)}
+				<History size={16} /> Lịch sử điều phối ngày {formatDateToVN(selDate)}
 			</h3>
 			<div style={{ overflowX: 'auto' }}>
 				<table className='tbl'>
@@ -75,7 +76,7 @@ export default function CoordinationHistoryTable({
 												title='Xoá bản ghi điều phối'
 												onClick={() => onDelete(h.id)}
 											>
-												🗑
+												<Trash2 size={14} />
 											</button>
 										</td>
 									)}

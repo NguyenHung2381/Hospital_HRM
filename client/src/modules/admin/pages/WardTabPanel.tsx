@@ -1,3 +1,4 @@
+import { ClipboardList, Plus } from 'lucide-react';
 import type { ApiRecord, ApiReport } from '@/types/apiType';
 import type { KhoaRecord } from '@/types/reportType';
 import { formatDateToVN } from '@/utils/dateUtils';
@@ -130,7 +131,7 @@ export default function WardTabPanel({
 							</div>
 						) : !report ? (
 							<div style={{ textAlign: 'center', padding: '60px' }}>
-								<p style={{ fontSize: '2rem', marginBottom: 8 }}>📋</p>
+								<ClipboardList size={36} strokeWidth={1.5} style={{ color: 'var(--color-gray-400)', marginBottom: 8 }} />
 								<p
 									style={{
 										color: 'var(--mut)',
@@ -144,7 +145,7 @@ export default function WardTabPanel({
 									className='btn-primary'
 									onClick={onOpenCreateReport}
 								>
-									＋ Tạo báo cáo ngày này
+									<Plus size={15} /> Tạo báo cáo ngày này
 								</button>
 							</div>
 						) : (

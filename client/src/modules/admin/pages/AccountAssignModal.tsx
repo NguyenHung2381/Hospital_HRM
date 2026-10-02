@@ -1,3 +1,4 @@
+import { ArrowLeft, Check } from 'lucide-react';
 import ModalForm from '@/components/common/ModalForm';
 import type { ApiDept } from '@/types/apiType';
 import { useState } from 'react';
@@ -45,12 +46,12 @@ export default function AccountAssignModal({
 
 	return (
 		<ModalForm
-			title='🗂️ Phân khoa & quyền thao tác'
+			title='Phân khoa & quyền thao tác'
 			onClose={onClose}
 			wide
 		>
 			<div className='mform'>
-				{error && <p className='login-error'>⚠️ {error}</p>}
+				{error && <p className='login-error'>{error}</p>}
 
 				<p style={{ fontSize: '.8rem', color: '#6b8090', marginBottom: 12 }}>
 					Chọn khoa mà <strong>{fullName}</strong> được phép xem, sau đó tick
@@ -139,15 +140,11 @@ export default function AccountAssignModal({
 										}}
 									>
 										{checked && (
-											<span
-												style={{
-													color: 'white',
-													fontSize: 11,
-													fontWeight: 700,
-												}}
-											>
-												✓
-											</span>
+											<Check
+												size={12}
+												strokeWidth={3}
+												color='white'
+											/>
 										)}
 									</span>
 									<span
@@ -170,9 +167,9 @@ export default function AccountAssignModal({
 									>
 										{(
 											[
-												['can_edit', '✏️ Sửa'],
-												['can_delete', '🗑 Xoá'],
-												['can_export', '📤 Xuất'],
+												['can_edit', 'Sửa'],
+												['can_delete', 'Xoá'],
+												['can_export', 'Xuất'],
 											] as const
 										).map(([key, label]) => (
 											<label
@@ -210,14 +207,14 @@ export default function AccountAssignModal({
 						onClick={onBack}
 						disabled={saving}
 					>
-						← Quay lại
+						<ArrowLeft size={14} /> Quay lại
 					</button>
 					<button
 						className='btn-primary'
 						onClick={onSave}
 						disabled={saving}
 					>
-						{saving ? '⏳ Đang lưu...' : '💾 Lưu phân khoa'}
+						{saving ? 'Đang lưu...' : 'Lưu phân khoa'}
 					</button>
 				</div>
 			</div>

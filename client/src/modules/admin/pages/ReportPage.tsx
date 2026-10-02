@@ -1,7 +1,8 @@
+import { BedDouble, Building2, CalendarRange, FileSpreadsheet, FlaskConical, Hospital } from 'lucide-react';
 import DownloadIcon from '@/assets/svg/DownloadIcon';
 import PageHeader from '../components/PageHeader';
 import type { ReportConfig } from '@/types/reportType';
-import { defaultReportConfig } from '@/constants/mockData';
+import { defaultReportConfig } from '@/constants/appConstants';
 import { useAuth } from '@/context/useAuth';
 import { useState, useMemo } from 'react';
 import { useExcelExport } from '@/hooks/useExcelExport';
@@ -165,7 +166,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 										setErrorMsg('');
 									}}
 								>
-									<span className='rp-tab-icon'>{t.icon}</span>
+									<t.Icon className='rp-tab-icon' size={15} />
 									<span className='rp-tab-label'>{t.label}</span>
 								</button>
 							))}
@@ -188,11 +189,11 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 						/>
 
 						{rangeSummary && !rangeError && (
-							<p className='rp-date-badge'>🗓️ {rangeSummary}</p>
+							<p className='rp-date-badge'><CalendarRange size={13} /> {rangeSummary}</p>
 						)}
-						{rangeError && <p className='rp-range-err'>⚠️ {rangeError}</p>}
+						{rangeError && <p className='rp-range-err'>{rangeError}</p>}
 						{!rangeError && clsRangeError && (
-							<p className='rp-range-err'>⚠️ {clsRangeError}</p>
+							<p className='rp-range-err'>{clsRangeError}</p>
 						)}
 					</div>
 
@@ -209,19 +210,19 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 								onClick={() => setField('rScope', 'all')}
 								title='Sinh 2 file: khoa nội trú + hệ CLS'
 							>
-								🏥 Toàn bệnh viện
+								<Hospital size={15} /> Toàn bệnh viện
 							</button>
 							<button
 								className={`rp-scope-btn${scope === 'ward' ? ' rp-scope-btn--active' : ''}`}
 								onClick={() => setField('rScope', 'ward')}
 							>
-								🛏️ Khoa nội trú
+								<BedDouble size={15} /> Khoa nội trú
 							</button>
 							<button
 								className={`rp-scope-btn${scope === 'cls' ? ' rp-scope-btn--active' : ''}`}
 								onClick={() => setField('rScope', 'cls')}
 							>
-								🧪 Hệ Cận lâm sàng
+								<FlaskConical size={15} /> Hệ Cận lâm sàng
 							</button>
 							<button
 								className={`rp-scope-btn${scope === 'one' ? ' rp-scope-btn--active' : ''}`}
@@ -235,7 +236,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 									}
 								}}
 							>
-								🏨 Một khoa (nội trú)
+								<Building2 size={15} /> Một khoa (nội trú)
 							</button>
 						</div>
 
@@ -260,7 +261,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 						)}
 					</div>
 
-					{errorMsg && <div className='rp-error'>⚠️ {errorMsg}</div>}
+					{errorMsg && <div className='rp-error'>{errorMsg}</div>}
 
 					<div className='rp-actions'>
 						<button
@@ -291,25 +292,31 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 
 				{/* ══ CỘT PHẢI: XEM TRƯỚC ════════════════════════════ */}
 				<div className='rp-right'>
-					<p className='rp-preview-title'>📋 Nội dung file Excel sẽ xuất</p>
+					<p className='rp-preview-title'><FileSpreadsheet size={16} /> Nội dung file Excel sẽ xuất</p>
 
 					<div className='rp-meta-grid'>
 						<div className='rp-meta-item'>
-							<span className='rp-meta-icon'>{activeTab.icon}</span>
+							<span className='rp-meta-icon'>
+								<activeTab.Icon size={18} />
+							</span>
 							<div>
 								<p className='rp-meta-label'>Kỳ báo cáo</p>
 								<p className='rp-meta-val'>{activeTab.label}</p>
 							</div>
 						</div>
 						<div className='rp-meta-item'>
-							<span className='rp-meta-icon'>🏥</span>
+							<span className='rp-meta-icon'>
+								<Hospital size={18} />
+							</span>
 							<div>
 								<p className='rp-meta-label'>Phạm vi</p>
 								<p className='rp-meta-val'>{khoaName}</p>
 							</div>
 						</div>
 						<div className='rp-meta-item'>
-							<span className='rp-meta-icon'>📆</span>
+							<span className='rp-meta-icon'>
+								<CalendarRange size={18} />
+							</span>
 							<div>
 								<p className='rp-meta-label'>Khoảng chọn</p>
 								<p className='rp-meta-val'>{rangeSummary ?? '—'}</p>
@@ -333,7 +340,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 									<li>Tổng người bệnh</li>
 									<li>Tổng nhân viên · Đi làm</li>
 									<li>Nghỉ trực · Nghỉ &gt;2 ngày</li>
-									<li>⚠️ Số khoa không đủ nhân lực</li>
+									<li>Số khoa không đủ nhân lực</li>
 									<li>NL TT03 toàn BV · Điều phối</li>
 								</ul>
 							</div>
@@ -353,7 +360,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 									<li>NL TT03 · NL Khuyến nghị</li>
 									<li>Điều phối NL (so Khuyến nghị)</li>
 									<li className='rp-sheet-note'>
-										⬜ Kỳ không có dữ liệu → ghi rõ trong dòng
+										Kỳ không có dữ liệu → ghi rõ trong dòng
 									</li>
 								</ul>
 							</div>
@@ -374,7 +381,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 										<li>Tổng NL · Nghỉ trực · Nghỉ &gt;2 ngày · Đi làm</li>
 										<li>Tỷ lệ đi làm/KLCV · NL khuyến cáo · Chênh lệch</li>
 										<li className='rp-sheet-note'>
-											⚠️ Tối đa {CLS_MAX_DAYS} ngày/lần xuất
+											Tối đa {CLS_MAX_DAYS} ngày/lần xuất
 										</li>
 									</ul>
 								</div>
@@ -408,7 +415,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 									<li>Tổng NL · Nghỉ trực · Nghỉ &gt;2 ngày · Đi làm</li>
 									<li>Tỷ lệ đi làm/KLCV · NL khuyến cáo · Chênh lệch</li>
 									<li className='rp-sheet-note'>
-										⚠️ Tối đa {CLS_MAX_DAYS} ngày/lần xuất
+										Tối đa {CLS_MAX_DAYS} ngày/lần xuất
 									</li>
 								</ul>
 							</div>
@@ -431,7 +438,7 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 									<li>NL TT03 · NL Khuyến nghị</li>
 									<li>Điều phối NL (so Khuyến nghị)</li>
 									<li className='rp-sheet-note'>
-										⬜ Kỳ không có dữ liệu → ghi rõ trong dòng
+										Kỳ không có dữ liệu → ghi rõ trong dòng
 									</li>
 								</ul>
 							</div>

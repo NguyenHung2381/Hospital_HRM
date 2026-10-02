@@ -1,3 +1,4 @@
+import { ClipboardList, LoaderCircle, Lock, NotebookPen, Pencil, Plus, Trash2 } from 'lucide-react';
 import ModalForm from '@/components/common/ModalForm';
 import { formatDateToVN } from '@/utils/dateUtils';
 import { compute } from '@/utils/staffingCalc';
@@ -157,22 +158,22 @@ export default function DailyStaffingBoard({
 			/>
 
 			<div className='content'>
-				{apiError && <div className='api-error-banner'>⚠️ {apiError}</div>}
+				{apiError && <div className='api-error-banner'>{apiError}</div>}
 				{lockedActive && (
 					<div className='lock-banner'>
-						<span className='lock-banner-icon'>🔒</span>
+						<Lock className='lock-banner-icon' size={16} />
 						<span>{lockReason}</span>
 					</div>
 				)}
 
 				{loadingRecords ? (
 					<div className='empty'>
-						<p className='empty-icon'>⏳</p>
+						<LoaderCircle className='empty-icon spin' size={36} strokeWidth={1.5} />
 						<p className='empty-title'>Đang tải dữ liệu...</p>
 					</div>
 				) : !active ? (
 					<div className='empty'>
-						<p className='empty-icon'>📋</p>
+						<ClipboardList className='empty-icon' size={40} strokeWidth={1.5} />
 						<p className='empty-title'>Chưa có dữ liệu cho ngày này</p>
 						<p className='empty-sub'>{formatDateToVN(activeDate)}</p>
 						{canAddForDate(activeDate) && (
@@ -180,7 +181,7 @@ export default function DailyStaffingBoard({
 								className='btn-primary'
 								onClick={() => openAdd(activeDate)}
 							>
-								＋ Thêm bản ghi
+								<Plus size={15} /> Thêm bản ghi
 							</button>
 						)}
 					</div>
@@ -199,8 +200,8 @@ export default function DailyStaffingBoard({
 										disabled={!canEdit}
 										title={lockedActive ? lockReason : 'Sửa bản ghi'}
 									>
-										✏️ Sửa{' '}
-										{lockedActive && <span className='btn-lock-ico'>🔒</span>}
+										<Pencil size={13} /> Sửa{' '}
+										{lockedActive && <Lock className='btn-lock-ico' size={12} />}
 									</button>
 								)}
 								{hasDeletePerm && (
@@ -212,8 +213,8 @@ export default function DailyStaffingBoard({
 										disabled={!canDelete}
 										title={lockedActive ? lockReason : 'Xoá bản ghi'}
 									>
-										🗑 Xoá{' '}
-										{lockedActive && <span className='btn-lock-ico'>🔒</span>}
+										<Trash2 size={13} /> Xoá{' '}
+										{lockedActive && <Lock className='btn-lock-ico' size={12} />}
 									</button>
 								)}
 							</div>
@@ -241,7 +242,9 @@ export default function DailyStaffingBoard({
 							/>
 
 							<section className='dcard'>
-								<h2 className='dcard-title'>📝 Ghi chú</h2>
+								<h2 className='dcard-title'>
+									<NotebookPen size={15} /> Ghi chú
+								</h2>
 								<p className='note-text'>
 									{active.ghiChu || '(Không có ghi chú)'}
 								</p>
@@ -297,7 +300,7 @@ export default function DailyStaffingBoard({
 			{/* Modal Báo cáo — nhúng ReportPage vào overlay full-screen */}
 			{showReportModal && (
 				<ModalForm
-					title='📊 Báo cáo nhân lực'
+					title='Báo cáo nhân lực'
 					onClose={onCloseReportModal}
 					size='full'
 				>

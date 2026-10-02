@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from 'lucide-react';
 import type { ApiClsRecord, ApiReport } from '@/types/apiType';
 import type { KhoaClsRecord } from '@/types/clsType';
 import { formatNumber } from '@/utils/formatUtils';
@@ -278,7 +279,7 @@ export default function ClsTable({
 												title='Sửa dữ liệu khoa này'
 												onClick={() => onEdit(apiRec)}
 											>
-												✏️
+												<Pencil size={14} />
 											</button>
 										)}
 										{(perm?.can_delete ?? false) && apiRec && (
@@ -287,7 +288,7 @@ export default function ClsTable({
 												title='Xóa bản ghi khoa này'
 												onClick={() => onDelete({ id: apiRec.id, name: r.ten })}
 											>
-												🗑
+												<Trash2 size={14} />
 											</button>
 										)}
 									</div>

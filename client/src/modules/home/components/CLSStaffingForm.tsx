@@ -49,8 +49,8 @@ export default function CLSStaffingForm({
 
 	const title =
 		mode === 'add'
-			? '＋ Thêm bản ghi ngày mới'
-			: `✏️ Sửa ngày ${fmtDisplay(draft.date)}`;
+			? 'Thêm bản ghi ngày mới'
+			: `Sửa ngày ${fmtDisplay(draft.date)}`;
 
 	const stats = useMemo(
 		() => computeCls(draft, recommendedStaff),
@@ -84,7 +84,7 @@ export default function CLSStaffingForm({
 
 				{/* Khối lượng công việc đã thực hiện */}
 				<div className='msec'>
-					<p className='msec-title'>📊 Khối lượng công việc đã thực hiện</p>
+					<p className='msec-title'>Khối lượng công việc đã thực hiện</p>
 					<NumberGrid
 						rows={chunk3(
 							clsFields.map((f) => ({
@@ -98,7 +98,7 @@ export default function CLSStaffingForm({
 
 				{/* Số lượng tồn / chờ */}
 				<div className='msec'>
-					<p className='msec-title'>⏳ Số lượng tồn / chờ</p>
+					<p className='msec-title'>Số lượng tồn / chờ</p>
 					<NumberGrid
 						rows={chunk3(
 							clsFields
@@ -114,7 +114,7 @@ export default function CLSStaffingForm({
 
 				{/* Nhân lực */}
 				<div className='msec'>
-					<p className='msec-title'>👩‍⚕️ Nhân lực</p>
+					<p className='msec-title'>Nhân lực</p>
 					<div className='mrow3'>
 						<NumberInput
 							label='Tổng nhân lực'
@@ -142,7 +142,7 @@ export default function CLSStaffingForm({
 					{/* Preview tính toán */}
 					<div className='tt03-preview'>
 						<div className='tt03-preview-hdr'>
-							<span>📋 Kết quả tính toán</span>
+							<span>Kết quả tính toán</span>
 						</div>
 						<div className='tt03-preview-body'>
 							<div className='tt03-preview-col'>
@@ -178,10 +178,10 @@ export default function CLSStaffingForm({
 									}`}
 								>
 									{stats.chenhLech > 0
-										? `✅ Dư +${stats.chenhLech} người`
+										? `Dư +${stats.chenhLech} người`
 										: stats.chenhLech < 0
-											? `⚠️ Thiếu ${Math.abs(stats.chenhLech)} người`
-											: `✔️ Đủ nhân lực`}
+											? `Thiếu ${Math.abs(stats.chenhLech)} người`
+											: `Đủ nhân lực`}
 								</div>
 							)}
 						</div>
@@ -190,7 +190,7 @@ export default function CLSStaffingForm({
 
 				{/* Ghi chú */}
 				<div className='msec'>
-					<p className='msec-title'>📝 Ghi chú</p>
+					<p className='msec-title'>Ghi chú</p>
 					<label className='fi'>
 						<textarea
 							className='fi-input fi-ta'
@@ -225,7 +225,7 @@ export default function CLSStaffingForm({
 						}}
 						disabled={saving || (mode === 'add' && !!validateDate(draft.date))}
 					>
-						{saving ? '⏳ Đang lưu...' : '💾 Lưu bản ghi'}
+						{saving ? 'Đang lưu...' : 'Lưu bản ghi'}
 					</button>
 				</div>
 			</div>

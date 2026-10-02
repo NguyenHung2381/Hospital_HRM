@@ -1,3 +1,4 @@
+import { Stethoscope } from 'lucide-react';
 import MiniBar from '@/components/ui/MiniBar';
 import React from 'react';
 
@@ -18,7 +19,9 @@ export default function DashboardPatientStats({
 }: DashboardPatientStatsProps) {
 	return (
 		<section className='hcard ov-card'>
-			<h3 className='hcard-title'>🩺 Số người bệnh theo phân cấp</h3>
+			<h3 className='hcard-title'>
+				<Stethoscope size={16} /> Số người bệnh theo phân cấp
+			</h3>
 			<div className='ov-nb-grid'>
 				{[
 					{

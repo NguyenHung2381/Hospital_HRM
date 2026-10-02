@@ -1,3 +1,4 @@
+import { ArrowRight, Building2, FolderTree, UserRound } from 'lucide-react';
 import ModalForm from '@/components/common/ModalForm';
 import type { ApiDept, ApiRole } from '@/types/apiType';
 import type { UserDraft } from '@/types/userType';
@@ -30,12 +31,12 @@ export default function AccountFormModal({
 }: AccountFormModalProps) {
 	return (
 		<ModalForm
-			title={mode === 'add' ? '＋ Thêm tài khoản' : '✏️ Sửa tài khoản'}
+			title={mode === 'add' ? 'Thêm tài khoản' : 'Sửa tài khoản'}
 			onClose={onClose}
 			wide
 		>
 			<div className='mform'>
-				{error && <p className='login-error'>⚠️ {error}</p>}
+				{error && <p className='login-error'>{error}</p>}
 
 				<div className='mrow2'>
 					<FormField label='Họ và tên *'>
@@ -136,7 +137,7 @@ export default function AccountFormModal({
 									key={r.id_role}
 									value={r.id_role}
 								>
-									{r.icon} {r.name_role}
+									{r.name_role}
 								</option>
 							))}
 						</select>
@@ -162,18 +163,18 @@ export default function AccountFormModal({
 					<div className='acc-role-hint'>
 						{selectedRole.department_access_type === 'all' && (
 							<>
-								<span>🏥</span> Xem toàn bộ khoa — không cần phân thêm
+								<Building2 size={14} /> Xem toàn bộ khoa — không cần phân thêm
 							</>
 						)}
 						{selectedRole.department_access_type === 'assigned' && (
 							<>
-								<span>🗂️</span> Cần phân khoa cụ thể — bước tiếp theo sẽ chọn
+								<FolderTree size={14} /> Cần phân khoa cụ thể — bước tiếp theo sẽ chọn
 								khoa và quyền
 							</>
 						)}
 						{selectedRole.department_access_type === 'own' && (
 							<>
-								<span>👤</span> Tự động xem khoa công tác của mình
+								<UserRound size={14} /> Tự động xem khoa công tác của mình
 							</>
 						)}
 					</div>
@@ -193,10 +194,10 @@ export default function AccountFormModal({
 						disabled={saving}
 					>
 						{saving
-							? '⏳ Đang lưu...'
+							? 'Đang lưu...'
 							: selectedRole?.department_access_type === 'assigned'
-								? 'Tiếp theo →'
-								: '💾 Lưu'}
+								? <>Tiếp theo <ArrowRight size={14} /></>
+								: 'Lưu'}
 					</button>
 				</div>
 			</div>

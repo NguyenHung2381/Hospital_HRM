@@ -1,5 +1,5 @@
 import ModalForm from '@/components/common/ModalForm';
-import { COLOR_MAP, COLOR_OPTIONS } from '@/constants/mockData';
+import { COLOR_MAP, COLOR_OPTIONS } from '@/constants/appConstants';
 import type { ApiRole } from '@/types/apiType';
 import FormField from '../components/FormField';
 
@@ -20,29 +20,17 @@ export default function RoleFormModal({
 }: RoleFormModalProps) {
 	return (
 		<ModalForm
-			title={mode === 'add' ? '＋ Thêm vai trò mới' : `✏️ Sửa: ${draft.name_role}`}
+			title={mode === 'add' ? 'Thêm vai trò mới' : `Sửa: ${draft.name_role}`}
 			onClose={onClose}
 		>
 			<div className='mform'>
-				<div className='mrow2'>
-					<FormField label='Tên vai trò'>
-						<input
-							className='fi-input'
-							value={draft.name_role ?? ''}
-							onChange={(e) =>
-								setDraft((p) => ({ ...p, name_role: e.target.value }))
-							}
-						/>
-					</FormField>
-					<FormField label='Icon (emoji)'>
-						<input
-							className='fi-input'
-							value={draft.icon ?? ''}
-							placeholder='🔑'
-							onChange={(e) => setDraft((p) => ({ ...p, icon: e.target.value }))}
-						/>
-					</FormField>
-				</div>
+				<FormField label='Tên vai trò'>
+					<input
+						className='fi-input'
+						value={draft.name_role ?? ''}
+						onChange={(e) => setDraft((p) => ({ ...p, name_role: e.target.value }))}
+					/>
+				</FormField>
 				<FormField label='Mô tả'>
 					<input
 						className='fi-input'
@@ -64,11 +52,11 @@ export default function RoleFormModal({
 							}))
 						}
 					>
-						<option value='all'>🏥 Toàn bộ tất cả các khoa</option>
+						<option value='all'>Toàn bộ tất cả các khoa</option>
 						<option value='assigned'>
-							🗂️ Các khoa được Admin phân quyền theo từng user
+							Các khoa được Admin phân quyền theo từng user
 						</option>
-						<option value='own'>👤 Chỉ khoa đang công tác của mình</option>
+						<option value='own'>Chỉ khoa đang công tác của mình</option>
 					</select>
 				</FormField>
 				<FormField label='Màu sắc'>
@@ -107,7 +95,7 @@ export default function RoleFormModal({
 						className='btn-primary'
 						onClick={onSave}
 					>
-						💾 Lưu
+						Lưu
 					</button>
 				</div>
 			</div>

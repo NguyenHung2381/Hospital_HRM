@@ -1,3 +1,4 @@
+import { ChartColumn, Info } from 'lucide-react';
 export interface DashboardSystemInfoProps {
 	rowsCount: number;
 	khoaDuCount: number;
@@ -22,7 +23,7 @@ export default function DashboardSystemInfo({
 				{/* ── Khối 1: Thông tin hệ thống ── */}
 				<div style={{ display: 'flex', flexDirection: 'column' }}>
 					<h3 className='hcard-title' style={{ marginBottom: 12 }}>
-						ℹ️ Thông tin hệ thống
+						<Info size={16} /> Thông tin hệ thống
 					</h3>
 					<div
 						style={{
@@ -79,7 +80,7 @@ export default function DashboardSystemInfo({
 				{/* ── Khối 2: Tổng quan khoa ── */}
 				<div style={{ display: 'flex', flexDirection: 'column' }}>
 					<h3 className='hcard-title' style={{ marginBottom: 12 }}>
-						📊 Tổng quan khối Lâm sàng
+						<ChartColumn size={16} /> Tổng quan khối Lâm sàng
 					</h3>
 					<div
 						style={{

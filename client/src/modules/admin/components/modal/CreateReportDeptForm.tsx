@@ -35,7 +35,7 @@ export default function CreateReportDeptForm({
 					borderBottom: '1px solid var(--bdr)',
 				}}
 			>
-				🏥 {dept.name_department}
+				{dept.name_department}
 			</p>
 
 			<div className='msec'>
@@ -86,7 +86,7 @@ export default function CreateReportDeptForm({
 					/>
 				</div>
 				<div className='auto-preview'>
-					<span>🔢 Đi làm =</span>
+					<span>Đi làm =</span>
 					<span className='auto-val'>{diLam} người</span>
 				</div>
 			</div>

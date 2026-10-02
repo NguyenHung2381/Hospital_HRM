@@ -1,8 +1,9 @@
+import { Check, Lock } from 'lucide-react';
 import CheckIcon from '@/assets/svg/CheckIcon';
 import EditIcon from '@/assets/svg/EditIcon';
 import TrashIcon from '@/assets/svg/TrashIcon';
 import XIcon from '@/assets/svg/XIcon';
-import { COLOR_MAP } from '@/constants/mockData';
+import { COLOR_MAP } from '@/constants/appConstants';
 import type { ApiPermission, ApiRole } from '@/types/apiType';
 import { ACCESS_INFO, VIEW_PERM_CODES } from './permissionPageConstants';
 
@@ -49,7 +50,7 @@ export default function PermissionGrid({
 							color: COLOR_MAP[activeRole.color ?? '']?.text ?? '#4a6070',
 						}}
 					>
-						{activeRole.icon}
+						<info.Icon size={20} />
 					</span>
 					<div>
 						<p className='perm-detail-name'>{activeRole.name_role}</p>
@@ -73,7 +74,7 @@ export default function PermissionGrid({
 					</div>
 				) : (
 					<span className='perm-lock-note'>
-						🔒 Vai trò hệ thống - không thể sửa
+						<Lock size={12} /> Vai trò hệ thống - không thể sửa
 					</span>
 				)}
 			</div>
@@ -91,7 +92,7 @@ export default function PermissionGrid({
 					margin: '0 18px 16px',
 				}}
 			>
-				<span style={{ fontSize: '1.1rem' }}>{info.icon}</span>
+				<info.Icon size={18} style={{ color: info.color, flexShrink: 0 }} />
 				<div>
 					<p
 						style={{
@@ -127,7 +128,7 @@ export default function PermissionGrid({
 								color: '#9aaab6',
 							}}
 						>
-							· 🔒 không thể sửa
+							· <Lock size={11} /> không thể sửa
 						</span>
 					)}
 				</p>
@@ -170,7 +171,7 @@ export default function PermissionGrid({
 													padding: '1px 6px',
 												}}
 											>
-												{isAutoTicked ? '✓ tự động' : '— tự động'}
+												{isAutoTicked && <Check size={11} strokeWidth={3} />} tự động
 											</span>
 										)}
 									</div>

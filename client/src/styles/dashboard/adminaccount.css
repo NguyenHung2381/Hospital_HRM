@@ -21,19 +21,19 @@
 
 /* ── Avatar màu theo cấp bậc ── */
 .td-avatar.acc-av-admin {
-	background: linear-gradient(135deg, #b91c1c, #ef4444);
+	background: #b91c1c;
 }
 .td-avatar.acc-av-giam_doc {
-	background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+	background: #1d4ed8;
 }
 .td-avatar.acc-av-dieu_duong_truong {
-	background: linear-gradient(135deg, #6d28d9, #a78bfa);
+	background: #6d28d9;
 }
 .td-avatar.acc-av-ddt_khoa {
-	background: linear-gradient(135deg, #0f766e, #2dd4bf);
+	background: #0f766e;
 }
 .td-avatar.acc-av-nhan_vien {
-	background: linear-gradient(135deg, #4a6070, #9aaab6);
+	background: #4a6070;
 }
 
 /* ── Thanh tóm tắt cấp bậc (chip trên toolbar) ── */

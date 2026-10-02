@@ -1,3 +1,4 @@
+import { Building2 } from 'lucide-react';
 import PlusIcon from '@/assets/svg/PlusIcon';
 import ModalForm from '@/components/common/ModalForm';
 import useDepartments from '@/hooks/useDepartments';
@@ -159,7 +160,7 @@ export default function DepartmentPage() {
 												<div
 													className={`dept-icon ${k.status === 'inactive' ? 'dept-icon-off' : ''}`}
 												>
-													🏥
+													<Building2 size={15} />
 												</div>
 												<span className='td-name'>{k.name_department}</span>
 											</div>
@@ -279,7 +280,7 @@ export default function DepartmentPage() {
 			{/* ── Modal xoá ── */}
 			{modal === 'del' && (
 				<ModalForm
-					title='⚠️ Xác nhận xoá'
+					title='Xác nhận xoá'
 					onClose={() => setModal(null)}
 				>
 					{error && (
@@ -307,7 +308,7 @@ export default function DepartmentPage() {
 							onClick={del}
 							disabled={saving}
 						>
-							{saving ? '⏳ Đang xoá...' : '🗑 Xoá'}
+							{saving ? 'Đang xoá...' : 'Xoá'}
 						</button>
 					</div>
 				</ModalForm>

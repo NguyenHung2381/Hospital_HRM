@@ -17,18 +17,6 @@ export interface UserAccount {
 	department_access_type: DepartmentAccessType;
 }
 
-export interface VaiTroItem {
-	id: number;
-	ten: string;
-	moTa: string;
-	icon: string;
-	mauSac: string;
-	isSystem: boolean;
-	loaiKhoaAccess: DepartmentAccessType;
-	quyen: Record<string, boolean>;
-	khoaDuocPhep: number[];
-}
-
 export interface DeptPerm {
 	id_department: number;
 	name_department: string;

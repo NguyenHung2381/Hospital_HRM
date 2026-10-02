@@ -147,12 +147,12 @@ export default function AddClsRecordModal({
 
 	return (
 		<ModalForm
-			title='＋ Thêm bản ghi khoa CLS'
+			title='Thêm bản ghi khoa CLS'
 			onClose={onClose}
 			size='lg'
 		>
 			<div className='mform'>
-				{error && <p className='login-error'>⚠️ {error}</p>}
+				{error && <p className='login-error'>{error}</p>}
 
 				<FormField label='Chọn khoa *'>
 					<select
@@ -178,7 +178,7 @@ export default function AddClsRecordModal({
 				</FormField>
 
 				<div className='msec'>
-					<p className='msec-title'>📊 Khối lượng công việc đã thực hiện</p>
+					<p className='msec-title'>Khối lượng công việc đã thực hiện</p>
 					{chunk3(clsFields).map((row, i) => (
 						<div
 							key={i}
@@ -197,7 +197,7 @@ export default function AddClsRecordModal({
 				</div>
 
 				<div className='msec'>
-					<p className='msec-title'>⏳ Số lượng tồn / chờ</p>
+					<p className='msec-title'>Số lượng tồn / chờ</p>
 					{chunk3(clsFields.filter((f) => f.apiTonChoKey !== null)).map((row, i) => (
 						<div
 							key={i}
@@ -216,7 +216,7 @@ export default function AddClsRecordModal({
 				</div>
 
 				<div className='msec'>
-					<p className='msec-title'>👩‍⚕️ Nhân lực</p>
+					<p className='msec-title'>Nhân lực</p>
 					<div className='mrow3'>
 						<NumberInput
 							label='Tổng nhân lực'
@@ -235,7 +235,7 @@ export default function AddClsRecordModal({
 						/>
 					</div>
 					<div className='auto-preview'>
-						<span>🔢 Đi làm =</span>
+						<span>Đi làm =</span>
 						<span className='auto-val'>{diLam} người</span>
 					</div>
 				</div>
@@ -262,7 +262,7 @@ export default function AddClsRecordModal({
 						onClick={handleSave}
 						disabled={saving}
 					>
-						{saving ? '⏳ Đang lưu...' : '💾 Thêm bản ghi'}
+						{saving ? 'Đang lưu...' : 'Thêm bản ghi'}
 					</button>
 				</div>
 			</div>

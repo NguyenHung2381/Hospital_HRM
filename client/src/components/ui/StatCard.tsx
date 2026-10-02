@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export default function StatCard({
 	label,
 	value,
@@ -7,7 +9,7 @@ export default function StatCard({
 	label: string;
 	value: string;
 	accent: string;
-	icon: string;
+	icon: ReactNode;
 }) {
 	return (
 		<div className={`stat a-${accent}`}>

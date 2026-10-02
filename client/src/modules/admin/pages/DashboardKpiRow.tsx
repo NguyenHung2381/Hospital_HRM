@@ -1,7 +1,8 @@
+import type { ReactNode } from 'react';
 import StatCard from '../components/StatCard';
 
 export interface KpiCardData {
-	icon: string;
+	icon: ReactNode;
 	val: number;
 	lbl: string;
 	sub: string;

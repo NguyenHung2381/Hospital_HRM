@@ -16,7 +16,7 @@ export default function DateField({
 }: DateFieldProps) {
 	return (
 		<div className='msec'>
-			<p className='msec-title'>📅 Ngày</p>
+			<p className='msec-title'>Ngày</p>
 			<label className='fi'>
 				<span className='fi-label'>Chọn ngày</span>
 				<input
@@ -31,7 +31,7 @@ export default function DateField({
 					<span className='fi-error'>{dateError}</span>
 				)}
 				{mode === 'add' && !dateError && value && (
-					<span className='fi-hint'>✅ Ngày hợp lệ — chưa có bản ghi</span>
+					<span className='fi-hint'>Ngày hợp lệ — chưa có bản ghi</span>
 				)}
 			</label>
 		</div>

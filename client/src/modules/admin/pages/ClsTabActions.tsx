@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react';
 import type { ApiReport } from '@/types/apiType';
 
 export interface ClsTabActionsProps {
@@ -57,7 +58,7 @@ export default function ClsTabActions({
 					}}
 					onClick={onOpenDeleteReport}
 				>
-					🗑 Xóa báo cáo
+					Xóa báo cáo
 				</button>
 			)}
 			{!report && !loadingReport && onOpenCreateReport && (
@@ -66,7 +67,7 @@ export default function ClsTabActions({
 					style={{ fontSize: '.78rem' }}
 					onClick={onOpenCreateReport}
 				>
-					＋ Tạo báo cáo
+					<Plus size={15} /> Tạo báo cáo
 				</button>
 			)}
 		</>

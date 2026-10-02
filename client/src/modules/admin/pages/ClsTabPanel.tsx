@@ -1,3 +1,4 @@
+import { ClipboardList, Plus } from 'lucide-react';
 import type { ApiClsRecord, ApiReport } from '@/types/apiType';
 import type { KhoaClsRecord } from '@/types/clsType';
 import { formatDateToVN } from '@/utils/dateUtils';
@@ -56,21 +57,21 @@ export default function ClsTabPanel({
 						style={{ '--sc': '#2563eb', '--sb': '#eff6ff' } as React.CSSProperties}
 					>
 						<span className='dv-sc-val'>{clsStats.totalKhoiLuong}</span>
-						<span className='dv-sc-lbl'>📊 Tổng khối lượng CV</span>
+						<span className='dv-sc-lbl'>Tổng khối lượng CV</span>
 					</div>
 					<div
 						className='dv-strip-card'
 						style={{ '--sc': '#0f766e', '--sb': '#f0fdf4' } as React.CSSProperties}
 					>
 						<span className='dv-sc-val'>{clsStats.totalNL}</span>
-						<span className='dv-sc-lbl'>👥 Tổng nhân lực</span>
+						<span className='dv-sc-lbl'>Tổng nhân lực</span>
 					</div>
 					<div
 						className='dv-strip-card'
 						style={{ '--sc': '#059669', '--sb': '#ecfdf5' } as React.CSSProperties}
 					>
 						<span className='dv-sc-val'>{clsStats.totalDiLam}</span>
-						<span className='dv-sc-lbl'>✅ Nhân lực đi làm</span>
+						<span className='dv-sc-lbl'>Nhân lực đi làm</span>
 					</div>
 					<div
 						className='dv-strip-card'
@@ -79,7 +80,7 @@ export default function ClsTabPanel({
 						<span className='dv-sc-val'>
 							{clsStats.totalKhoiLuong > 0 ? `${clsStats.rateDiLam}%` : '—'}
 						</span>
-						<span className='dv-sc-lbl'>📈 Tỷ lệ đi làm/KLCV</span>
+						<span className='dv-sc-lbl'>Tỷ lệ đi làm/KLCV</span>
 					</div>
 					<div
 						className='dv-strip-card'
@@ -91,7 +92,7 @@ export default function ClsTabPanel({
 						}
 					>
 						<span className='dv-sc-val'>{clsStats.khoaThieu.length}</span>
-						<span className='dv-sc-lbl'>⚠️ Khoa thiếu nhân lực</span>
+						<span className='dv-sc-lbl'>Khoa thiếu nhân lực</span>
 					</div>
 				</div>
 			)}
@@ -109,7 +110,7 @@ export default function ClsTabPanel({
 				</div>
 			) : !report ? (
 				<div style={{ textAlign: 'center', padding: '60px' }}>
-					<p style={{ fontSize: '2rem', marginBottom: 8 }}>📋</p>
+					<ClipboardList size={36} strokeWidth={1.5} style={{ color: 'var(--color-gray-400)', marginBottom: 8 }} />
 					<p
 						style={{
 							color: 'var(--mut)',
@@ -124,7 +125,7 @@ export default function ClsTabPanel({
 							className='btn-primary'
 							onClick={onOpenCreateReport}
 						>
-							＋ Tạo báo cáo ngày này
+							<Plus size={15} /> Tạo báo cáo ngày này
 						</button>
 					)}
 				</div>

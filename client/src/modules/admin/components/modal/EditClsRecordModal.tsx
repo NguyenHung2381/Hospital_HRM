@@ -114,15 +114,15 @@ export default function EditClsRecordModal({
 
 	return (
 		<ModalForm
-			title={`✏️ Sửa dữ liệu CLS — ${record.department_name} · ${formatDateToVN(selDate)}`}
+			title={`Sửa dữ liệu CLS — ${record.department_name} · ${formatDateToVN(selDate)}`}
 			onClose={onClose}
 			size='lg'
 		>
 			<div className='mform'>
-				{error && <p className='login-error'>⚠️ {error}</p>}
+				{error && <p className='login-error'>{error}</p>}
 
 				<div className='msec'>
-					<p className='msec-title'>📊 Khối lượng công việc đã thực hiện</p>
+					<p className='msec-title'>Khối lượng công việc đã thực hiện</p>
 					{chunk3(clsFields).map((row, i) => (
 						<div
 							key={i}
@@ -141,7 +141,7 @@ export default function EditClsRecordModal({
 				</div>
 
 				<div className='msec'>
-					<p className='msec-title'>⏳ Số lượng tồn / chờ</p>
+					<p className='msec-title'>Số lượng tồn / chờ</p>
 					{chunk3(clsFields.filter((f) => f.apiTonChoKey !== null)).map((row, i) => (
 						<div
 							key={i}
@@ -160,7 +160,7 @@ export default function EditClsRecordModal({
 				</div>
 
 				<div className='msec'>
-					<p className='msec-title'>👩‍⚕️ Nhân lực</p>
+					<p className='msec-title'>Nhân lực</p>
 					<div className='mrow3'>
 						<NumberInput
 							label='Tổng nhân lực'
@@ -179,13 +179,13 @@ export default function EditClsRecordModal({
 						/>
 					</div>
 					<div className='auto-preview'>
-						<span>🔢 Đi làm (tự tính) =</span>
+						<span>Đi làm (tự tính) =</span>
 						<span className='auto-val'>{diLam} người</span>
 					</div>
 				</div>
 
 				<div className='msec'>
-					<p className='msec-title'>📝 Ghi chú</p>
+					<p className='msec-title'>Ghi chú</p>
 					<FormField label=''>
 						<textarea
 							className='fi-input fi-ta'
@@ -209,7 +209,7 @@ export default function EditClsRecordModal({
 						onClick={handleSave}
 						disabled={saving}
 					>
-						{saving ? '⏳ Đang lưu...' : '💾 Lưu'}
+						{saving ? 'Đang lưu...' : 'Lưu'}
 					</button>
 				</div>
 			</div>

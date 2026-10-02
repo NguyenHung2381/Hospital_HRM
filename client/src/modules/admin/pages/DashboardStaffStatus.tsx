@@ -1,3 +1,4 @@
+import { Users } from 'lucide-react';
 export interface DashboardStaffStatusProps {
 	rateDiLam: number;
 	totalNL: number;
@@ -19,7 +20,9 @@ export default function DashboardStaffStatus({
 }: DashboardStaffStatusProps) {
 	return (
 		<section className='hcard ov-card'>
-			<h3 className='hcard-title'>👩‍⚕️ Tình trạng nhân lực ĐD – HS – KTV</h3>
+			<h3 className='hcard-title'>
+				<Users size={16} /> Tình trạng nhân lực ĐD – HS – KTV
+			</h3>
 			<div className='ov-nl-ring-wrap'>
 				<div className='ov-nl-ring'>
 					<svg

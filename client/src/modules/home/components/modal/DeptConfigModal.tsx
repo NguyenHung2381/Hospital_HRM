@@ -1,3 +1,4 @@
+import { Building2 } from 'lucide-react';
 import ModalForm from '@/components/common/ModalForm';
 import type { DeptConfig } from '@/types/staffingType';
 import { useEffect, useState } from 'react';
@@ -168,7 +169,7 @@ export default function DeptConfigModal({
 	// ── Render ──────────────────────────────────────────────────
 	return (
 		<ModalForm
-			title='⚙️ Cấu hình khoa'
+			title='Cấu hình khoa'
 			onClose={onClose}
 			size='lg'
 		>
@@ -176,7 +177,9 @@ export default function DeptConfigModal({
 				{/* Tên khoa */}
 				<div className='msec'>
 					<div className='dept-modal-name-row'>
-						<div className='dept-modal-name-icon'>🏥</div>
+						<div className='dept-modal-name-icon'>
+							<Building2 size={20} />
+						</div>
 						<div>
 							<p className='dept-modal-name-label'>Khoa đang cấu hình</p>
 							<p className='dept-modal-name-val'>{initialDept.ten}</p>
@@ -190,13 +193,13 @@ export default function DeptConfigModal({
 						className={`tab-btn${activeTab === 'tt03' ? ' tab-btn--active' : ''}`}
 						onClick={() => setActiveTab('tt03')}
 					>
-						📋 Cấu hình TT 03
+						Cấu hình TT 03
 					</button>
 					<button
 						className={`tab-btn${activeTab === 'rec' ? ' tab-btn--active' : ''}`}
 						onClick={() => setActiveTab('rec')}
 					>
-						🏅 Cấu hình Khuyến nghị
+						Cấu hình Khuyến nghị
 					</button>
 				</div>
 
@@ -216,7 +219,7 @@ export default function DeptConfigModal({
 					/>
 				)}
 
-				{apiError && <p className='login-error'>⚠️ {apiError}</p>}
+				{apiError && <p className='login-error'>{apiError}</p>}
 
 				<div className='mfooter'>
 					<button
@@ -231,7 +234,7 @@ export default function DeptConfigModal({
 						onClick={handleSave}
 						disabled={saving}
 					>
-						{saving ? '⏳ Đang lưu...' : '💾 Lưu cấu hình'}
+						{saving ? 'Đang lưu...' : 'Lưu cấu hình'}
 					</button>
 				</div>
 			</div>

@@ -1,3 +1,4 @@
+import { ChartColumn, FlaskConical, TriangleAlert, UserCheck } from 'lucide-react';
 import MiniBar from '@/components/ui/MiniBar';
 import type { aggregateClsDashboardStats } from '@/utils/clsCalc';
 import DashboardKpiRow, { type KpiCardData } from './DashboardKpiRow';
@@ -28,7 +29,7 @@ export default function DashboardClsSection({
 						border: '1px dashed #cbd5dc',
 					}}
 				>
-					<span style={{ fontSize: '1.1rem' }}>🧪</span>
+					<FlaskConical size={18} />
 					<span>Chưa có khoa CLS nào nhập dữ liệu ngày này</span>
 				</div>
 			</section>
@@ -37,7 +38,7 @@ export default function DashboardClsSection({
 
 	const kpiCards: KpiCardData[] = [
 		{
-			icon: '🧪',
+			icon: <FlaskConical size={20} />,
 			val: clsRowsCount,
 			lbl: 'Khoa CLS đã nhập',
 			sub: 'trên 10 khoa',
@@ -45,7 +46,7 @@ export default function DashboardClsSection({
 			bg: '#eff6ff',
 		},
 		{
-			icon: '📊',
+			icon: <ChartColumn size={20} />,
 			val: clsStats.totalKhoiLuong,
 			lbl: 'Tổng khối lượng CV',
 			sub: `${clsStats.totalNL} tổng nhân lực`,
@@ -53,7 +54,7 @@ export default function DashboardClsSection({
 			bg: '#e7f5ed',
 		},
 		{
-			icon: '✅',
+			icon: <UserCheck size={20} />,
 			val: clsStats.totalDiLam,
 			lbl: 'Nhân lực đi làm',
 			sub: `${clsStats.rateDiLam}% / khối lượng CV`,
@@ -61,7 +62,7 @@ export default function DashboardClsSection({
 			bg: '#f5f3ff',
 		},
 		{
-			icon: '⚠️',
+			icon: <TriangleAlert size={20} />,
 			val: clsStats.khoaThieu.length,
 			lbl: 'Khoa CLS thiếu NL',
 			sub: `thiếu ${clsStats.tongThieu} người so khuyến cáo`,
@@ -76,7 +77,9 @@ export default function DashboardClsSection({
 
 			{clsStats.khoaThieu.length > 0 && (
 				<section className='hcard ov-card'>
-					<h3 className='hcard-title'>⚠️ Khoa CLS thiếu nhân lực</h3>
+					<h3 className='hcard-title'>
+						<TriangleAlert size={16} /> Khoa CLS thiếu nhân lực
+					</h3>
 					<div className='hcard-list'>
 						{clsStats.khoaThieu.map((r) => (
 							<div

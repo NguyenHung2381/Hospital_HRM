@@ -118,12 +118,12 @@ export default function AddRecordModal({
 
 	return (
 		<ModalForm
-			title='＋ Thêm bản ghi khoa'
+			title='Thêm bản ghi khoa'
 			onClose={onClose}
 			size='md'
 		>
 			<div className='mform'>
-				{error && <p className='login-error'>⚠️ {error}</p>}
+				{error && <p className='login-error'>{error}</p>}
 
 				<FormField label='Chọn khoa *'>
 					<select
@@ -150,7 +150,7 @@ export default function AddRecordModal({
 				</FormField>
 
 				<div className='msec'>
-					<p className='msec-title'>🏥 Số người bệnh</p>
+					<p className='msec-title'>Số người bệnh</p>
 					<div className='mrow3'>
 						<NumberInput
 							label='Cấp 1 (CSC1)'
@@ -178,7 +178,7 @@ export default function AddRecordModal({
 				</div>
 
 				<div className='msec'>
-					<p className='msec-title'>👩‍⚕️ Nhân lực</p>
+					<p className='msec-title'>Nhân lực</p>
 					<div className='mrow3'>
 						<NumberInput
 							label='Tổng nhân lực'
@@ -197,7 +197,7 @@ export default function AddRecordModal({
 						/>
 					</div>
 					<div className='auto-preview'>
-						<span>🔢 Đi làm =</span>
+						<span>Đi làm =</span>
 						<span className='auto-val'>{diLam} người</span>
 					</div>
 				</div>
@@ -224,7 +224,7 @@ export default function AddRecordModal({
 						onClick={handleSave}
 						disabled={saving}
 					>
-						{saving ? '⏳ Đang lưu...' : '💾 Thêm bản ghi'}
+						{saving ? 'Đang lưu...' : 'Thêm bản ghi'}
 					</button>
 				</div>
 			</div>

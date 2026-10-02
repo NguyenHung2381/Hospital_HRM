@@ -1,3 +1,4 @@
+import { BedDouble, CalendarDays, FlaskConical } from 'lucide-react';
 import { useAuth } from '@/context/useAuth';
 import { useDeptFilter } from '@/hooks/useDeptFilter';
 import { useDeptPermissions } from '@/hooks/UseDeptPermissionsReturn';
@@ -186,7 +187,7 @@ export default function DataPage() {
 							<span
 								className={`pg-hdr-icon${activeTab === 'cls' ? ' pg-hdr-icon--cls' : ''}`}
 							>
-								{activeTab === 'ward' ? '🏥' : '🧪'}
+								{activeTab === 'ward' ? <BedDouble size={20} /> : <FlaskConical size={20} />}
 							</span>
 						}
 						title={activeTab === 'ward' ? 'Khoa nội trú' : 'Hệ Cận lâm sàng'}
@@ -218,7 +219,7 @@ export default function DataPage() {
 										: `${clsRows.length} / ${allClsDepts.length || 10} khoa đã nhập`}
 								</span>
 								<span className='dv-date-badge'>
-									📅 Ngày xem: {formatDateToVN(selDate)}
+									<CalendarDays size={13} /> Ngày xem: {formatDateToVN(selDate)}
 								</span>
 							</>
 						}
@@ -262,13 +263,13 @@ export default function DataPage() {
 								className={`tab-btn${activeTab === 'ward' ? ' tab-btn--active' : ''}`}
 								onClick={() => setActiveTab('ward')}
 							>
-								🏥 Khoa nội trú
+								<BedDouble size={15} /> Khoa nội trú
 							</button>
 							<button
 								className={`tab-btn${activeTab === 'cls' ? ' tab-btn--active' : ''}`}
 								onClick={() => setActiveTab('cls')}
 							>
-								🧪 Hệ Cận lâm sàng
+								<FlaskConical size={15} /> Hệ Cận lâm sàng
 							</button>
 						</div>
 					</div>
@@ -286,7 +287,7 @@ export default function DataPage() {
 							color: '#dc2626',
 						}}
 					>
-						⚠️ {apiError}
+						{apiError}
 					</div>
 				)}
 

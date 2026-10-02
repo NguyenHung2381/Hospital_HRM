@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react';
 import EyeIcon from '@/assets/svg/EyeClosedIcon';
 import EyeClosedIcon from '@/assets/svg/EyeIcon';
 import GuardIcon from '@/assets/svg/GuardIcon';
@@ -175,7 +176,7 @@ export default function LoginForm() {
 							}}
 							disabled={loading}
 						>
-							← Quay lại đăng nhập
+							<ArrowLeft size={14} /> Quay lại đăng nhập
 						</button>
 					</form>
 				</div>

@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [deptPermissions, setDeptPermissions] = useState<DeptPermission[]>([]);
 	const [loading, setLoading] = useState(false);
 
-	// 🔥 Hàm fetch chung (quan trọng)
+	// Hàm fetch chung (quan trọng)
 	const fetchAllData = async (userId: number) => {
 		setLoading(true);
 		try {
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			.catch(() => {});
 	}, []);
 
-	// 🔥 AUTO SYNC khi reload hoặc user change
+	// AUTO SYNC khi reload hoặc user change
 	useEffect(() => {
 		if (user?.id) {
 			fetchAllData(user.id);
@@ -161,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		}
 	};
 
-	// 🔥 LOGIN
+	// LOGIN
 	const login = async (
 		taiKhoan: string,
 		matKhau: string,
@@ -193,7 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		}
 	};
 
-	// 🔥 BƯỚC 2 — XÁC MINH MÃ 2FA
+	// BƯỚC 2 — XÁC MINH MÃ 2FA
 	const verify2FA = async (
 		preAuthToken: string,
 		code: string,
@@ -224,7 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		}
 	};
 
-	// 🔥 LOGOUT
+	// LOGOUT
 	const logout = () => {
 		setUser(null);
 		setKhoaList([]);
@@ -235,7 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
 	};
 
-	// 🔥 MANUAL REFRESH (rất hữu ích)
+	// MANUAL REFRESH (rất hữu ích)
 	const refresh = () => {
 		if (user?.id) {
 			fetchAllData(user.id);
@@ -251,8 +251,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				login,
 				verify2FA,
 				logout,
-				refresh, // 👈 thêm cái này
-				loading, // 👈 optional
+				refresh, // thêm cái này
+				loading, // optional
 			}}
 		>
 			{children}

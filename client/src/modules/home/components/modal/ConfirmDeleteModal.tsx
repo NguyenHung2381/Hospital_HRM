@@ -17,7 +17,7 @@ export default function ConfirmDeleteModal({
 }: ConfirmDeleteModalProps) {
 	return (
 		<ModalForm
-			title='⚠️ Xác nhận xoá'
+			title='Xác nhận xoá'
 			onClose={onClose}
 		>
 			<p className='confirm-txt'>
@@ -39,7 +39,7 @@ export default function ConfirmDeleteModal({
 					onClick={onConfirm}
 					disabled={saving}
 				>
-					{saving ? '⏳ Đang xoá...' : '🗑 Xoá'}
+					{saving ? 'Đang xoá...' : 'Xoá'}
 				</button>
 			</div>
 		</ModalForm>

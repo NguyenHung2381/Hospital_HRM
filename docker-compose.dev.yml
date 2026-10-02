@@ -13,7 +13,7 @@
 name: hospital_hrm_dev
 
 services:
-  api:
+  backend:
     build:
       context: .
       dockerfile: server/Dockerfile
@@ -45,13 +45,13 @@ services:
         limits:
           memory: 512m
 
-  web:
+  frontend:
     build:
       context: .
       dockerfile: client/Dockerfile
       target: dev
     environment:
-      VITE_API_PROXY: http://api:3000
+      VITE_API_PROXY: http://backend:3000
       VITE_USE_POLLING: "true"
     ports:
       - "${DEV_WEB_PORT:-5174}:5173"
@@ -59,7 +59,7 @@ services:
       - ./client:/app/client
       - /app/client/node_modules
     depends_on:
-      - api
+      - backend
     deploy:
       resources:
         limits:

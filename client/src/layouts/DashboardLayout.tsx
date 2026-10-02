@@ -1,3 +1,4 @@
+import { CalendarDays, X } from 'lucide-react';
 //STYLE
 import '@/styles/dashboard.css';
 
@@ -172,7 +173,7 @@ export default function DashboardLayout() {
 						onClick={() => setCollapsed(true)}
 						title='Đóng menu'
 					>
-						✕
+						<X size={18} />
 					</button>
 				</div>
 
@@ -312,7 +313,9 @@ export default function DashboardLayout() {
 						</div>
 					</div>
 					<div className='topbar-r'>
-						<div className='topbar-date'>📅 {todayDate}</div>
+						<div className='topbar-date'>
+							<CalendarDays size={13} /> {todayDate}
+						</div>
 						<button
 							className='topbar-home-btn'
 							onClick={() => navigate('/home')}

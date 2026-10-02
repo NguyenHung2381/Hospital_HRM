@@ -82,7 +82,7 @@ export default function SessionsTab() {
 				hãy đăng xuất thiết bị đó và đổi mật khẩu ngay.
 			</p>
 
-			{error && <p className='login-error'>⚠️ {error}</p>}
+			{error && <p className='login-error'>{error}</p>}
 			{success && <p className='pwd-success'>{success}</p>}
 
 			{sessions === null && !error && <p className='sec-muted'>Đang tải...</p>}
@@ -122,7 +122,7 @@ export default function SessionsTab() {
 					disabled={busy || others.length === 0}
 					onClick={() => act('/api/auth/logout-all', 'POST')}
 				>
-					{busy ? '⏳ Đang xử lý...' : `Đăng xuất tất cả thiết bị khác (${others.length})`}
+					{busy ? 'Đang xử lý...' : `Đăng xuất tất cả thiết bị khác (${others.length})`}
 				</button>
 			</div>
 		</div>

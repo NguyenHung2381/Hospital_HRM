@@ -94,6 +94,7 @@ npm install --prefix server
 Tạo file `server/.env` (xem đầy đủ các biến trong `server/.env.example`):
 
 ```env
+NODE_ENV=development           # máy dev; production dùng server/.env.production (xem mục Môi trường)
 PORT=3000
 HOST=127.0.0.1                 # đổi nếu server cần nhận traffic trực tiếp từ máy khác
 DB_HOST=localhost\SQLEXPRESS   # hoặc tên server\instance
@@ -116,31 +117,129 @@ npm run client   # Frontend: http://localhost:5173
 npm run server   # Backend:  http://localhost:3000
 ```
 
-## Chạy bằng Docker
+## Môi trường Dev và Production
 
-Gồm 2 container: `web` (nginx — phục vụ giao diện, reverse-proxy `/api`, header bảo mật, giới hạn tốc độ đăng nhập) và `api` (Node, không mở cổng ra ngoài). Database dùng SQL Server có sẵn trên máy host, kết nối qua `host.docker.internal`.
+Dự án tách thành 2 môi trường độc lập. Mỗi môi trường có file compose, stage Dockerfile, file cấu hình và cổng riêng. Có thể chạy song song trên cùng một máy mà không ảnh hưởng nhau.
+
+| | **Dev** | **Production** |
+|---|---|---|
+| Mục đích | Lập trình, sửa code thấy ngay (hot reload) | Chạy thật cho người dùng trong viện |
+| Cách chạy | `npm run dev` hoặc `docker-compose.dev.yml` | `docker-compose.yml` |
+| Tên project Compose | `hospital_hrm_dev` | `hospital_hrm` |
+| Stage Dockerfile | `dev` (nodemon + Vite dev server) | `prod` (Node + nginx, build tĩnh) |
+| File cấu hình server | `server/.env` | `server/.env.production` (không có → dùng `server/.env`) |
+| `NODE_ENV` | `development` — trả chi tiết lỗi DB về client | `production` — ẩn chi tiết lỗi, cảnh báo nếu `DB_ENCRYPT≠true` hoặc `DB_USER=sa` |
+| Giao diện | `http://localhost:5173` (npm) / `http://localhost:5174` (Docker) | `https://dieuduong.bvnghean.vn` → máy chủ `:8080` |
+| API | `http://localhost:3000` (npm) / `http://127.0.0.1:3002` (Docker) | Không mở ra ngoài, chỉ nginx gọi qua mạng nội bộ |
+| Source code | Mount từ máy host, sửa là chạy lại | Đóng vào image lúc build, phải build lại khi cập nhật |
+| Cookie phiên | `COOKIE_SECURE=false` (HTTP) | `COOKIE_SECURE=true` (bắt buộc HTTPS) |
+| Bảo mật container | Không giới hạn (tiện debug) | read-only, không root, `cap_drop: ALL`, giới hạn RAM |
+| Log | `server/logs/` trên máy | volume `hospital_hrm_api-logs` |
+
+> Cả hai môi trường dùng SQL Server có sẵn trên máy (không nằm trong compose). Chạy trong Docker thì SQL Server phải bật **TCP/IP ở cổng cố định** (SQL Server Configuration Manager → Protocols → TCP/IP).
+
+### Dev
+
+#### Cách 1: npm (không cần Docker)
 
 ```bash
-# 1. Cấu hình server/.env như mục trên (DB_PORT phải là cổng TCP của SQL Server,
-#    SQL Server phải bật TCP/IP và cho phép kết nối không chỉ từ localhost)
-# 2. Build + chạy
-docker compose up -d --build
-# Truy cập: http://localhost:8080
-
-docker compose logs -f api        # xem log server
-docker compose down               # dừng
+# 1. Cài dependencies (xem mục Cài đặt)
+# 2. cp server/.env.example server/.env rồi điền DB, JWT_SECRET
+#    và đổi NODE_ENV=development (file mẫu để sẵn production)
+npm run dev          # client :5173 + server :3000 cùng lúc
 ```
 
-Biến tuỳ chọn (đặt trong shell hoặc file `.env` ở thư mục gốc):
+Vite tự proxy `/api` sang `http://localhost:3000`, nên mở `http://localhost:5173` là dùng được ngay.
+
+#### Cách 2: Docker (hot reload)
+
+Không cần cài Node trên máy, chỉ cần Docker Desktop.
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build   # lần đầu / sau khi sửa Dockerfile, package.json
+docker compose -f docker-compose.dev.yml logs -f backend # xem log server
+docker compose -f docker-compose.dev.yml down            # dừng
+```
+
+- Giao diện `http://localhost:5174`, API `http://127.0.0.1:3002` (chỉ máy local gọi được, dùng cho Postman...). Muốn đổi cổng thì đặt `DEV_WEB_PORT` / `DEV_API_PORT` trong file `.env` ở thư mục gốc. Cổng mặc định khác `npm run dev` và Hospital_RMS dev nên không bị trùng.
+- `./server` và `./client` được mount vào container: sửa code → nodemon / Vite tự nạp lại (dùng polling vì bind mount trên Windows không phát sự kiện thay đổi file).
+- Cấu hình đọc từ `server/.env` (dùng chung với cách 1). Compose tự ghi đè:
+  - `NODE_ENV=development`
+  - `HOST=0.0.0.0`: để container frontend gọi được backend
+  - `DB_HOST=host.docker.internal`: vì `localhost\SQLEXPRESS` bên trong container là chính container. `DB_PORT` vẫn lấy từ `server/.env`.
+- `node_modules` nằm trong container (bản Linux), không dùng thư mục của Windows (`bcrypt` là native module). Thêm dependency mới thì chạy lại với `--build --renew-anon-volumes`.
+
+### Production
+
+Gồm 2 container:
+
+- `frontend`: nginx phục vụ giao diện đã build, reverse-proxy `/api`, header bảo mật, rate-limit, lấy IP thật của người dùng qua proxy tin cậy. Đây là container duy nhất mở cổng ra ngoài.
+- `backend`: Node, không mở cổng ra ngoài, read-only, không chạy bằng root. Có healthcheck `/health`; `frontend` chỉ khởi động khi `backend` đã healthy.
+
+Luồng truy cập: `https://dieuduong.bvnghean.vn` → reverse proxy HTTPS → máy chủ `:8080` → `frontend` (nginx) → `backend:3000` → SQL Server trên host.
+
+#### Triển khai lần đầu
+
+```bash
+# 1. Tạo cấu hình server
+cp server/.env.production.example server/.env.production
+#    Điền DB_USER / DB_PASSWORD (login riêng, KHÔNG dùng sa) và JWT_SECRET
+#    (khác với máy dev). Xem chú thích trong file mẫu.
+
+# 2. (Tuỳ chọn) Tạo file .env ở thư mục gốc cho biến của compose — xem bảng dưới
+
+# 3. Build + chạy
+docker compose up -d --build
+
+# 4. Kiểm tra
+docker compose ps                 # cả 2 container phải ở trạng thái healthy
+docker compose logs -f backend    # log server
+```
+
+#### Cập nhật phiên bản mới
+
+```bash
+git pull
+docker compose up -d --build      # build lại image, thay container; volume log giữ nguyên
+```
+
+#### Lệnh thường dùng
+
+```bash
+docker compose down                       # dừng (giữ volume log)
+docker compose restart backend            # khởi động lại server (vd sau khi sửa .env.production)
+docker compose exec backend ls logs       # xem danh sách file log
+```
+
+#### Biến của compose
+
+Đặt trong file `.env` cạnh `docker-compose.yml` (không commit). Khác với `server/.env.production`: file này chỉ dành cho compose, không đi vào container.
 
 | Biến | Mặc định | Ý nghĩa |
 |------|----------|---------|
-| `WEB_PORT` | `8080` | Cổng truy cập giao diện |
-| `WEB_BIND` | `0.0.0.0` | Đặt `127.0.0.1` nếu chỉ cho truy cập từ chính máy chủ |
-| `DOCKER_DB_HOST` | `host.docker.internal` | Địa chỉ SQL Server nhìn từ container |
-| `COOKIE_SECURE` | `false` | Đặt `true` khi truy cập qua HTTPS |
+| `WEB_PORT` | `8080` | Cổng nhận traffic từ proxy HTTPS |
+| `WEB_BIND` | `0.0.0.0` | Proxy HTTPS ở cùng máy → `127.0.0.1` (LAN không gọi thẳng HTTP được). Proxy ở máy khác → giữ mặc định và dùng firewall chỉ mở `8080` cho IP proxy |
+| `TRUSTED_PROXIES` | `127.0.0.1 + 172.16.0.0/12` | IP/CIDR của proxy HTTPS. Proxy ở máy khác **bắt buộc** khai, nếu không mọi người dùng chung 1 IP → rate-limit đăng nhập chặn cả viện |
 
-Nhật ký hệ thống nằm trong volume `hospital_hrm_api-logs`: `docker compose exec backend ls logs`.
+#### Lưu ý
+
+- `COOKIE_SECURE=true` thì cookie chỉ gửi qua HTTPS. Thử nhanh bằng `http://localhost:8080` (không qua proxy) thì tạm đặt `false`, nếu không sẽ không đăng nhập được.
+- `NODE_ENV`, `HOST`, `PORT`, `TRUST_PROXY` đã cố định trong `docker-compose.yml`, đặt trong `.env.production` cũng không có tác dụng.
+- Không đổi `name: hospital_hrm` trong `docker-compose.yml`: tên volume log thật (`hospital_hrm_api-logs`) phụ thuộc vào nó.
+- Lần chạy đầu server tự tạo bảng/cột bảo mật, nên login DB cần quyền `ALTER`/`CREATE TABLE` (hoặc chạy trước `node src/config/securitySchema.js` bằng tài khoản có quyền).
+
+### Các file cấu hình
+
+| File | Môi trường | Commit? | Ghi chú |
+|------|-----------|---------|---------|
+| `server/.env.example` | Dev | Có | Mẫu cho `server/.env` |
+| `server/.env` | Dev (npm + Docker dev) | **Không** | |
+| `server/.env.production.example` | Production | Có | Mẫu cho `server/.env.production` |
+| `server/.env.production` | Production | **Không** | Đọc lúc chạy container, không đóng vào image (`.dockerignore`) |
+| `.env` (thư mục gốc) | Cả hai | **Không** | Biến của compose: `WEB_PORT`, `TRUSTED_PROXIES`, `DEV_WEB_PORT`... |
+| `docker-compose.dev.yml` | Dev | Có | Project `hospital_hrm_dev` |
+| `docker-compose.yml` | Production | Có | Project `hospital_hrm` |
+| `server/Dockerfile`, `client/Dockerfile` | Cả hai | Có | Stage `dev` và `prod`; `prod` luôn nằm cuối file để build mặc định ra image prod |
 
 ## Nhật ký hệ thống (logs)
 
@@ -150,20 +249,6 @@ Ghi bằng **pino + pino-roll** (giống dự án RMS): mỗi request `/api` là
 - Response lỗi trả kèm `request_id` — người dùng báo lỗi kèm mã này, admin dán vào ô tìm kiếm để ra đúng dòng log.
 - File cũ hơn `LOG_RETENTION_DAYS` (mặc định 90) và phiên hết hạn quá `SESSION_RETENTION_DAYS` tự xoá (kiểm tra mỗi 6 giờ).
 - Người dùng tự xem/thu hồi thiết bị đang đăng nhập ở menu tài khoản → **Phiên đăng nhập**.
-
-### Dev bằng Docker (hot reload)
-
-`docker-compose.dev.yml` chạy môi trường dev trong project Compose riêng `hospital_hrm_dev`: container, network, image và volume tách hẳn khỏi production (`hospital_hrm`), nên hai môi trường chạy song song được và `down` bên này không ảnh hưởng bên kia.
-
-```bash
-docker compose -f docker-compose.dev.yml up -d --build   # lần đầu / sau khi sửa Dockerfile, package.json
-docker compose -f docker-compose.dev.yml logs -f api
-docker compose -f docker-compose.dev.yml down
-```
-
-- Giao diện: `http://localhost:5174` (Vite, sửa code tự nạp lại). API: `http://127.0.0.1:3002`. Đổi bằng `DEV_WEB_PORT` / `DEV_API_PORT`.
-- Cấu hình đọc từ `server/.env`. Compose tự ghi đè `HOST=0.0.0.0` và `DB_HOST=host.docker.internal` (giữ `DB_PORT`), vì `localhost\SQLEXPRESS` bên trong container là chính container. SQL Server phải bật TCP/IP ở cổng cố định.
-- Thêm dependency mới: chạy lại với `--build --renew-anon-volumes` để cài lại `node_modules` trong container.
 
 ## API
 

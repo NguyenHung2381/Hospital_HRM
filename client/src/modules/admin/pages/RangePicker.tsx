@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react';
 import type {
 	DayRange,
 	GroupBy,
@@ -50,7 +51,7 @@ export default function RangePicker({
 							}
 						/>
 					</div>
-					<span className='rp-date-sep'>→</span>
+					<ArrowRight className='rp-date-sep' size={16} />
 					<div className='rp-date-field'>
 						<label className='rp-label'>Đến ngày</label>
 						<input
@@ -114,7 +115,7 @@ export default function RangePicker({
 							</div>
 						</div>
 					</div>
-					<span className='rp-range-arrow'>→</span>
+					<ArrowRight className='rp-range-arrow' size={16} />
 					<div className='rp-range-block'>
 						<p className='rp-range-block-lbl'>Đến tuần</p>
 						<div className='rp-range-row'>
@@ -215,7 +216,7 @@ export default function RangePicker({
 							</div>
 						</div>
 					</div>
-					<span className='rp-range-arrow'>→</span>
+					<ArrowRight className='rp-range-arrow' size={16} />
 					<div className='rp-range-block'>
 						<p className='rp-range-block-lbl'>Đến tháng</p>
 						<div className='rp-range-row'>
@@ -284,7 +285,7 @@ export default function RangePicker({
 							))}
 						</select>
 					</div>
-					<span className='rp-date-sep'>→</span>
+					<ArrowRight className='rp-date-sep' size={16} />
 					<div className='rp-date-field'>
 						<label className='rp-label'>Đến năm</label>
 						<select

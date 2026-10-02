@@ -1,3 +1,4 @@
+import { MousePointerClick } from 'lucide-react';
 import ModalForm from '@/components/common/ModalForm';
 import type { ApiDept, ApiReport } from '@/types/apiType';
 import { BLANK_ROW_INPUT, type RowInput } from '@/types/staffingType';
@@ -139,14 +140,14 @@ export default function CreateReportModal({
 
 	return (
 		<ModalForm
-			title={`＋ Tạo báo cáo — ${formatDateToVN(selDate)}`}
+			title={`Tạo báo cáo — ${formatDateToVN(selDate)}`}
 			onClose={onClose}
 			size='xl'
 		>
 			<div>
 				{error && (
 					<div style={{ padding: '12px 20px 0' }}>
-						<p className='login-error'>⚠️ {error}</p>
+						<p className='login-error'>{error}</p>
 					</div>
 				)}
 
@@ -179,7 +180,7 @@ export default function CreateReportModal({
 										marginBottom: 0,
 									}}
 								>
-									🟢 {filledCount} / {allDepts.length} khoa đã nhập
+									{filledCount} / {allDepts.length} khoa đã nhập
 								</p>
 							</div>
 							<div className='mcreate-sidebar-list'>
@@ -222,7 +223,7 @@ export default function CreateReportModal({
 						<div className='mcreate-detail'>
 							{createActiveDept === null ? (
 								<div className='mcreate-empty'>
-									<span style={{ fontSize: '2rem', marginBottom: 8 }}>👈</span>
+									<MousePointerClick size={32} strokeWidth={1.5} style={{ marginBottom: 8, color: 'var(--color-gray-400)' }} />
 									Chọn khoa bên trái để nhập số liệu
 								</div>
 							) : (
@@ -262,7 +263,7 @@ export default function CreateReportModal({
 						onClick={handleCreate}
 						disabled={saving || loadingDepts || filledCount === 0}
 					>
-						{saving ? '⏳ Đang tạo...' : `💾 Tạo báo cáo (${filledCount} khoa)`}
+						{saving ? 'Đang tạo...' : `Tạo báo cáo (${filledCount} khoa)`}
 					</button>
 				</div>
 			</div>

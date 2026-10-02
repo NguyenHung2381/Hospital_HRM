@@ -152,11 +152,11 @@ export default function DataPageModals({
 
 			{showDelConfirm && (
 				<ModalForm
-					title='⚠️ Xác nhận xóa báo cáo'
+					title='Xác nhận xóa báo cáo'
 					onClose={() => setShowDelConfirm(false)}
 					size='sm'
 				>
-					{apiError && <p className='login-error'>⚠️ {apiError}</p>}
+					{apiError && <p className='login-error'>{apiError}</p>}
 					<p className='confirm-txt'>
 						Xóa toàn bộ báo cáo ngày <strong>{formatDateToVN(selDate)}</strong>?
 						<br />
@@ -178,7 +178,7 @@ export default function DataPageModals({
 							onClick={delReport}
 							disabled={saving}
 						>
-							{saving ? '⏳ Đang xóa...' : '🗑 Xóa báo cáo'}
+							{saving ? 'Đang xóa...' : 'Xóa báo cáo'}
 						</button>
 					</div>
 				</ModalForm>
@@ -186,11 +186,11 @@ export default function DataPageModals({
 
 			{delRecord && (
 				<ModalForm
-					title='⚠️ Xác nhận xóa bản ghi'
+					title='Xác nhận xóa bản ghi'
 					onClose={() => setDelRecord(null)}
 					size='sm'
 				>
-					{apiError && <p className='login-error'>⚠️ {apiError}</p>}
+					{apiError && <p className='login-error'>{apiError}</p>}
 					<p className='confirm-txt'>
 						Xóa bản ghi của <strong>{delRecord.name}</strong> khỏi báo cáo ngày{' '}
 						<strong>{formatDateToVN(selDate)}</strong>?
@@ -212,7 +212,7 @@ export default function DataPageModals({
 							onClick={confirmDelRecord}
 							disabled={saving}
 						>
-							{saving ? '⏳...' : '🗑 Xóa bản ghi'}
+							{saving ? '...' : 'Xóa bản ghi'}
 						</button>
 					</div>
 				</ModalForm>
@@ -220,11 +220,11 @@ export default function DataPageModals({
 
 			{delClsRecord && (
 				<ModalForm
-					title='⚠️ Xác nhận xóa bản ghi CLS'
+					title='Xác nhận xóa bản ghi CLS'
 					onClose={() => setDelClsRecord(null)}
 					size='sm'
 				>
-					{apiError && <p className='login-error'>⚠️ {apiError}</p>}
+					{apiError && <p className='login-error'>{apiError}</p>}
 					<p className='confirm-txt'>
 						Xóa bản ghi của <strong>{delClsRecord.name}</strong> khỏi báo cáo
 						ngày <strong>{formatDateToVN(selDate)}</strong>?
@@ -246,7 +246,7 @@ export default function DataPageModals({
 							onClick={confirmDelClsRecord}
 							disabled={saving}
 						>
-							{saving ? '⏳...' : '🗑 Xóa bản ghi'}
+							{saving ? '...' : 'Xóa bản ghi'}
 						</button>
 					</div>
 				</ModalForm>

@@ -34,7 +34,7 @@ export default function PermissionPage() {
 		setDraft({
 			name_role: '',
 			description: '',
-			icon: '👥',
+			icon: '',
 			color: 'teal',
 			is_system: false,
 			department_access_type: 'assigned',
@@ -113,9 +113,9 @@ export default function PermissionPage() {
 							<CheckIcon size={12} /> Đã lưu
 						</>
 					) : saving ? (
-						'⏳ Đang lưu...'
+						'Đang lưu...'
 					) : (
-						'💾 Lưu quyền'
+						'Lưu quyền'
 					)}
 				</button>
 			</PageHeader>
@@ -155,7 +155,7 @@ export default function PermissionPage() {
 			{/* Modal xoá vai trò */}
 			{modal === 'del' && (
 				<ModalForm
-					title='⚠️ Xác nhận xoá'
+					title='Xác nhận xoá'
 					onClose={() => setModal(null)}
 				>
 					<p className='confirm-txt'>
@@ -173,7 +173,7 @@ export default function PermissionPage() {
 							className='btn-danger'
 							onClick={deleteRole}
 						>
-							🗑 Xoá
+							Xoá
 						</button>
 					</div>
 				</ModalForm>
@@ -183,7 +183,7 @@ export default function PermissionPage() {
 				className='perm-note'
 				style={{ marginTop: 4 }}
 			>
-				* Vai trò hệ thống (🔒) không thể sửa hoặc xoá. Phân khoa theo từng
+				* Vai trò hệ thống () không thể sửa hoặc xoá. Phân khoa theo từng
 				người dùng được quản lý trong trang Tài khoản.
 			</p>
 		</div>

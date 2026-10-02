@@ -1,3 +1,4 @@
+import { UserRound } from 'lucide-react';
 import ModalForm from '@/components/common/ModalForm';
 import { useAuth } from '@/context/useAuth';
 import '@/styles/accountSecurity.css';
@@ -74,7 +75,7 @@ export default function ChangePasswordModal({
 			if (!data.success) {
 				setPwdError(data.message ?? 'Đổi mật khẩu thất bại');
 			} else {
-				setPwdSuccess('✅ Đổi mật khẩu thành công!');
+				setPwdSuccess('Đổi mật khẩu thành công!');
 				setPwdOld('');
 				setPwdNew('');
 				setPwdConfirm('');
@@ -91,7 +92,7 @@ export default function ChangePasswordModal({
 
 	return (
 		<ModalForm
-			title='🔐 Bảo mật tài khoản'
+			title='Bảo mật tài khoản'
 			onClose={handleClose}
 		>
 			<div className='sec-tabs'>
@@ -119,14 +120,14 @@ export default function ChangePasswordModal({
 			{tab === 'password' && (
 			<div className='mform'>
 				<div className='pwd-user-info'>
-					<span className='pwd-user-icon'>👤</span>
+					<UserRound className='pwd-user-icon' size={20} />
 					<div>
 						<p className='pwd-user-name'>{user?.hoTen}</p>
 						<p className='pwd-user-account'>{user?.taiKhoan}</p>
 					</div>
 				</div>
 
-				{pwdError && <p className='login-error'>⚠️ {pwdError}</p>}
+				{pwdError && <p className='login-error'>{pwdError}</p>}
 				{pwdSuccess && <p className='pwd-success'>{pwdSuccess}</p>}
 
 				<label className='fi'>
@@ -186,7 +187,7 @@ export default function ChangePasswordModal({
 						onClick={handleChangePassword}
 						disabled={savingPwd}
 					>
-						{savingPwd ? '⏳ Đang lưu...' : '🔑 Đổi mật khẩu'}
+						{savingPwd ? 'Đang lưu...' : 'Đổi mật khẩu'}
 					</button>
 				</div>
 			</div>

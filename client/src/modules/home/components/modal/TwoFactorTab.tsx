@@ -67,7 +67,7 @@ export default function TwoFactorTab() {
 			setSetup(null);
 			setCode('');
 			setEnabled(true);
-			setSuccess('✅ Đã bật xác thực 2 lớp. Lần đăng nhập sau sẽ cần mã từ ứng dụng.');
+			setSuccess('Đã bật xác thực 2 lớp. Lần đăng nhập sau sẽ cần mã từ ứng dụng.');
 		});
 
 	const disable = () =>
@@ -90,7 +90,7 @@ export default function TwoFactorTab() {
 				lần đăng nhập. Mất điện thoại → liên hệ quản trị để tắt 2FA.
 			</p>
 
-			{error && <p className='login-error'>⚠️ {error}</p>}
+			{error && <p className='login-error'>{error}</p>}
 			{success && <p className='pwd-success'>{success}</p>}
 
 			<div className='sec-status'>
@@ -105,7 +105,7 @@ export default function TwoFactorTab() {
 						onClick={startSetup}
 						disabled={busy}
 					>
-						{busy ? '⏳ Đang xử lý...' : '🛡️ Bật xác thực 2 lớp'}
+						{busy ? 'Đang xử lý...' : 'Bật xác thực 2 lớp'}
 					</button>
 				</div>
 			)}
@@ -159,7 +159,7 @@ export default function TwoFactorTab() {
 							onClick={confirmSetup}
 							disabled={busy || code.length !== 6}
 						>
-							{busy ? '⏳ Đang xác nhận...' : 'Xác nhận & bật'}
+							{busy ? 'Đang xác nhận...' : 'Xác nhận & bật'}
 						</button>
 					</div>
 				</>
@@ -207,7 +207,7 @@ export default function TwoFactorTab() {
 							onClick={disable}
 							disabled={busy || !password}
 						>
-							{busy ? '⏳ Đang xử lý...' : 'Xác nhận tắt 2FA'}
+							{busy ? 'Đang xử lý...' : 'Xác nhận tắt 2FA'}
 						</button>
 					</div>
 				</>

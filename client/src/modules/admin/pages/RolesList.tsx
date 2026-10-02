@@ -1,4 +1,5 @@
-import { COLOR_MAP } from '@/constants/mockData';
+import { Lock } from 'lucide-react';
+import { COLOR_MAP } from '@/constants/appConstants';
 import type { ApiRole } from '@/types/apiType';
 import { ACCESS_INFO } from './permissionPageConstants';
 
@@ -26,6 +27,7 @@ export default function RolesList({
 				<div className='perm-role-list'>
 					{roles.map((v, idx) => {
 						const c = COLOR_MAP[v.color ?? ''] ?? COLOR_MAP.gray;
+						const RoleIcon = ACCESS_INFO[v.department_access_type]?.Icon;
 						const isActive = v.id_role === activeRoleId;
 						return (
 							<button
@@ -43,12 +45,11 @@ export default function RolesList({
 									className='perm-role-ico'
 									style={isActive ? { background: c.bg, color: c.text } : {}}
 								>
-									{v.icon}
+									{RoleIcon && <RoleIcon size={15} />}
 								</span>
 								<div className='perm-role-info'>
 									<p className='perm-role-name'>{v.name_role}</p>
 									<p className='perm-role-desc'>
-										{ACCESS_INFO[v.department_access_type]?.icon}{' '}
 										{v.department_access_type}
 									</p>
 								</div>
@@ -57,7 +58,7 @@ export default function RolesList({
 										className='perm-sys-badge'
 										title='Vai trò hệ thống'
 									>
-										🔒
+										<Lock size={13} />
 									</span>
 								)}
 								{isActive && <span className='perm-active-dot' />}

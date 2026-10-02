@@ -1,3 +1,4 @@
+import { ChartColumn, ClipboardList, Hourglass, LoaderCircle, Lock, NotebookPen, Pencil, Percent, Plus, Trash2, TrendingDown, TrendingUp, UserCheck, Users } from 'lucide-react';
 import ModalForm from '@/components/common/ModalForm';
 import StatCard from '@/components/ui/StatCard';
 import type { KhoaItem } from '@/types/staffingType';
@@ -101,22 +102,22 @@ export default function CLSStaffingBoard({
 			/>
 
 			<div className='content'>
-				{apiError && <div className='api-error-banner'>⚠️ {apiError}</div>}
+				{apiError && <div className='api-error-banner'>{apiError}</div>}
 				{lockedActive && (
 					<div className='lock-banner'>
-						<span className='lock-banner-icon'>🔒</span>
+						<Lock className='lock-banner-icon' size={16} />
 						<span>{lockReason}</span>
 					</div>
 				)}
 
 				{loadingRecords ? (
 					<div className='empty'>
-						<p className='empty-icon'>⏳</p>
+						<LoaderCircle className='empty-icon spin' size={36} strokeWidth={1.5} />
 						<p className='empty-title'>Đang tải dữ liệu...</p>
 					</div>
 				) : !active || !stats ? (
 					<div className='empty'>
-						<p className='empty-icon'>📋</p>
+						<ClipboardList className='empty-icon' size={40} strokeWidth={1.5} />
 						<p className='empty-title'>Chưa có dữ liệu cho ngày này</p>
 						<p className='empty-sub'>{formatDateToVN(activeDate)}</p>
 						{canAddForDate(activeDate) && (
@@ -124,7 +125,7 @@ export default function CLSStaffingBoard({
 								className='btn-primary'
 								onClick={() => openAdd(activeDate)}
 							>
-								＋ Thêm bản ghi
+								<Plus size={15} /> Thêm bản ghi
 							</button>
 						)}
 					</div>
@@ -143,8 +144,8 @@ export default function CLSStaffingBoard({
 										disabled={!canEdit}
 										title={lockedActive ? lockReason : 'Sửa bản ghi'}
 									>
-										✏️ Sửa{' '}
-										{lockedActive && <span className='btn-lock-ico'>🔒</span>}
+										<Pencil size={13} /> Sửa{' '}
+										{lockedActive && <Lock className='btn-lock-ico' size={12} />}
 									</button>
 								)}
 								{hasDeletePerm && (
@@ -156,8 +157,8 @@ export default function CLSStaffingBoard({
 										disabled={!canDelete}
 										title={lockedActive ? lockReason : 'Xoá bản ghi'}
 									>
-										🗑 Xoá{' '}
-										{lockedActive && <span className='btn-lock-ico'>🔒</span>}
+										<Trash2 size={13} /> Xoá{' '}
+										{lockedActive && <Lock className='btn-lock-ico' size={12} />}
 									</button>
 								)}
 							</div>
@@ -165,25 +166,25 @@ export default function CLSStaffingBoard({
 
 						<div className='stats-row'>
 							<StatCard
-								icon='📊'
+								icon={<ChartColumn size={20} />}
 								label='Tổng khối lượng CV'
 								value={String(stats.tongKhoiLuong)}
 								accent='blue'
 							/>
 							<StatCard
-								icon='👥'
+								icon={<Users size={20} />}
 								label='Tổng nhân lực'
 								value={String(active.nl.tong ?? '—')}
 								accent='teal'
 							/>
 							<StatCard
-								icon='✅'
+								icon={<UserCheck size={20} />}
 								label='Đi làm'
 								value={String(stats.diLam)}
 								accent='green'
 							/>
 							<StatCard
-								icon='📈'
+								icon={<Percent size={20} />}
 								label='Tỷ lệ đi làm/KLCV'
 								value={
 									stats.tyLe !== null ? `${(stats.tyLe * 100).toFixed(1)}%` : '—'
@@ -191,7 +192,13 @@ export default function CLSStaffingBoard({
 								accent='purple'
 							/>
 							<StatCard
-								icon={stats.chenhLech !== null && stats.chenhLech < 0 ? '⬇️' : '⬆️'}
+								icon={
+									stats.chenhLech !== null && stats.chenhLech < 0 ? (
+										<TrendingDown size={20} />
+									) : (
+										<TrendingUp size={20} />
+									)
+								}
 								label='Chênh lệch'
 								value={
 									stats.chenhLech === null
@@ -214,7 +221,8 @@ export default function CLSStaffingBoard({
 
 						<div className='detail-grid'>
 							<section className='dcard'>
-								<h2 className='dcard-title'>📊 Khối lượng công việc đã thực hiện</h2>
+								<h2 className='dcard-title'>
+									<ChartColumn size={15} /> Khối lượng công việc đã thực hiện</h2>
 								<div className='cap-row'>
 									{clsFields.map((f) => (
 										<div
@@ -229,7 +237,9 @@ export default function CLSStaffingBoard({
 							</section>
 
 							<section className='dcard'>
-								<h2 className='dcard-title'>⏳ Số lượng tồn / chờ</h2>
+								<h2 className='dcard-title'>
+									<Hourglass size={15} /> Số lượng tồn / chờ
+								</h2>
 								<div className='cap-row'>
 									{clsFields
 										.filter((f) => f.tonChoKey !== null)
@@ -248,7 +258,9 @@ export default function CLSStaffingBoard({
 							</section>
 
 							<section className='dcard'>
-								<h2 className='dcard-title'>👩‍⚕️ Nhân lực</h2>
+								<h2 className='dcard-title'>
+									<Users size={15} /> Nhân lực
+								</h2>
 								<div className='nl-grid'>
 									<div className='nl-box nl-total'>
 										<span className='nl-num'>{active.nl.tong ?? 0}</span>
@@ -307,7 +319,9 @@ export default function CLSStaffingBoard({
 							</section>
 
 							<section className='dcard'>
-								<h2 className='dcard-title'>📝 Ghi chú</h2>
+								<h2 className='dcard-title'>
+									<NotebookPen size={15} /> Ghi chú
+								</h2>
 								<p className='note-text'>
 									{active.ghiChu || '(Không có ghi chú)'}
 								</p>
@@ -350,7 +364,7 @@ export default function CLSStaffingBoard({
 
 			{showReportModal && (
 				<ModalForm
-					title='📊 Báo cáo nhân lực'
+					title='Báo cáo nhân lực'
 					onClose={onCloseReportModal}
 					size='full'
 				>

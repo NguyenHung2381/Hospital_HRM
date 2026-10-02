@@ -37,9 +37,9 @@ export default function Tt03PreviewPanel({
 	return (
 		<div className='tt03-preview'>
 			<div className='tt03-preview-hdr'>
-				<span>📋 Nhân lực khuyến cáo</span>
+				<span>Nhân lực khuyến cáo</span>
 				{previewLoading && (
-					<span className='tt03-preview-loading'>⏳ đang tính...</span>
+					<span className='tt03-preview-loading'>đang tính...</span>
 				)}
 			</div>
 
@@ -48,7 +48,7 @@ export default function Tt03PreviewPanel({
 					{/* ── Cột TT03 ── */}
 					<div className='tt03-preview-col'>
 						<div className='tt03-preview-col-hdr tt03-col-hdr-blue'>
-							📑 Theo TT03
+							Theo TT03
 						</div>
 						{tt03Preview.tt03 ? (
 							<>
@@ -91,7 +91,7 @@ export default function Tt03PreviewPanel({
 					{/* ── Cột Khuyến nghị ── */}
 					<div className='tt03-preview-col'>
 						<div className='tt03-preview-col-hdr tt03-col-hdr-green'>
-							💡 Khuyến nghị
+							Khuyến nghị
 						</div>
 						{tt03Preview.recommended ? (
 							<>
@@ -137,10 +137,10 @@ export default function Tt03PreviewPanel({
 							}`}
 						>
 							{dieuPhoiPreview > 0
-								? `✅ Dư +${dieuPhoiPreview} người`
+								? `Dư +${dieuPhoiPreview} người`
 								: dieuPhoiPreview < 0
-									? `⚠️ Thiếu ${Math.abs(dieuPhoiPreview)} người`
-									: `✔️ Đủ nhân lực`}
+									? `Thiếu ${Math.abs(dieuPhoiPreview)} người`
+									: `Đủ nhân lực`}
 							<span className='dp-ref-note'>
 								{tt03Preview.recommended
 									? '(theo nhân lực khuyến nghị)'

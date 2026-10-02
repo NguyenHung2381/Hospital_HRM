@@ -1,3 +1,4 @@
+import { ArrowRight, ChartColumn, TriangleAlert } from 'lucide-react';
 import ModalForm from '@/components/common/ModalForm';
 import type { ApiCoordination } from '@/types/apiType';
 import type { KhoaRecord } from '@/types/reportType';
@@ -116,19 +117,19 @@ export default function CreateCoordinationModal({
 
 	return (
 		<ModalForm
-			title={`🔄 Điều phối nhân lực ca trực ${dateFormatted ? `(${dateFormatted})` : ''}`}
+			title={`Điều phối nhân lực ca trực ${dateFormatted ? `(${dateFormatted})` : ''}`}
 			onClose={onClose}
 			size='lg'
 		>
 			<div className='mform coord-modal-wrap'>
-				{error && <p className='login-error'>⚠️ {error}</p>}
+				{error && <p className='login-error'>{error}</p>}
 
 				{/* ── Visual Flow Card ── */}
 				<div className='coord-flow-grid'>
 					{/* Khoa Gửi */}
 					<div className='coord-dept-box coord-dept-box-from'>
 						<div className='coord-dept-header'>
-							<span className='coord-dept-icon'>🟢</span>
+							<span className='coord-dept-icon' style={{ background: 'var(--color-success)' }} />
 							<span className='coord-dept-title'>Khoa gửi (Bên nguồn dư)</span>
 						</div>
 						<select
@@ -142,7 +143,7 @@ export default function CreateCoordinationModal({
 						>
 							<option value=''>-- Chọn khoa gửi --</option>
 							{surplusDepts.length > 0 && (
-								<optgroup label='🟢 Các khoa đang dư nhân sự (Ưu tiên)'>
+								<optgroup label='Các khoa đang dư nhân sự (Ưu tiên)'>
 									{surplusDepts.map((r) => (
 										<option key={r.id_department} value={r.id_department}>
 											{r.ten} (Dư +{r.dieuPhoi})
@@ -151,7 +152,7 @@ export default function CreateCoordinationModal({
 								</optgroup>
 							)}
 							{deficitDepts.length > 0 && (
-								<optgroup label='🔴 Các khoa đang thiếu nhân sự'>
+								<optgroup label='Các khoa đang thiếu nhân sự'>
 									{deficitDepts.map((r) => (
 										<option key={r.id_department} value={r.id_department}>
 											{r.ten} (Thiếu {r.dieuPhoi})
@@ -160,7 +161,7 @@ export default function CreateCoordinationModal({
 								</optgroup>
 							)}
 							{otherDepts.length > 0 && (
-								<optgroup label='⚪ Các khoa cân bằng'>
+								<optgroup label='Các khoa cân bằng'>
 									{otherDepts.map((r) => (
 										<option key={r.id_department} value={r.id_department}>
 											{r.ten} (Đủ)
@@ -173,24 +174,26 @@ export default function CreateCoordinationModal({
 						{fromDept && (
 							<div className={`coord-stat-badge ${fromSurplus > 0 ? 'badge-green' : 'badge-gray'}`}>
 								{fromSurplus > 0
-									? `⚡ Đang dư +${fromSurplus} nhân sự`
+									? `Đang dư +${fromSurplus} nhân sự`
 									: fromSurplus < 0
-									? `⚠️ Đang thiếu ${fromSurplus} nhân sự`
-									: '✅ Đã đủ định mức'}
+									? `Đang thiếu ${fromSurplus} nhân sự`
+									: 'Đã đủ định mức'}
 							</div>
 						)}
 					</div>
 
 					{/* Flow Arrow */}
 					<div className='coord-flow-arrow' title='Hướng điều chuyển'>
-						<span className='coord-arrow-icon'>➔</span>
+						<span className='coord-arrow-icon'>
+							<ArrowRight size={16} />
+						</span>
 						<span className='coord-arrow-sub'>Điều chuyển</span>
 					</div>
 
 					{/* Khoa Nhận */}
 					<div className='coord-dept-box coord-dept-box-to'>
 						<div className='coord-dept-header'>
-							<span className='coord-dept-icon'>🔴</span>
+							<span className='coord-dept-icon' style={{ background: 'var(--color-error)' }} />
 							<span className='coord-dept-title'>Khoa nhận (Bên tiếp nhận)</span>
 						</div>
 						<select
@@ -204,7 +207,7 @@ export default function CreateCoordinationModal({
 						>
 							<option value=''>-- Chọn khoa nhận --</option>
 							{deficitDepts.length > 0 && (
-								<optgroup label='🔴 Các khoa đang thiếu nhân sự (Ưu tiên)'>
+								<optgroup label='Các khoa đang thiếu nhân sự (Ưu tiên)'>
 									{deficitDepts.map((r) => (
 										<option key={r.id_department} value={r.id_department}>
 											{r.ten} (Thiếu {r.dieuPhoi})
@@ -213,7 +216,7 @@ export default function CreateCoordinationModal({
 								</optgroup>
 							)}
 							{surplusDepts.length > 0 && (
-								<optgroup label='🟢 Các khoa đang dư nhân sự'>
+								<optgroup label='Các khoa đang dư nhân sự'>
 									{surplusDepts.map((r) => (
 										<option key={r.id_department} value={r.id_department}>
 											{r.ten} (Dư +{r.dieuPhoi})
@@ -222,7 +225,7 @@ export default function CreateCoordinationModal({
 								</optgroup>
 							)}
 							{otherDepts.length > 0 && (
-								<optgroup label='⚪ Các khoa cân bằng'>
+								<optgroup label='Các khoa cân bằng'>
 									{otherDepts.map((r) => (
 										<option key={r.id_department} value={r.id_department}>
 											{r.ten} (Đủ)
@@ -235,10 +238,10 @@ export default function CreateCoordinationModal({
 						{toDept && (
 							<div className={`coord-stat-badge ${toDeficit < 0 ? 'badge-red' : 'badge-gray'}`}>
 								{toDeficit < 0
-									? `⚠️ Đang thiếu ${Math.abs(toDeficit)} nhân sự`
+									? `Đang thiếu ${Math.abs(toDeficit)} nhân sự`
 									: toDeficit > 0
-									? `⚡ Đang dư +${toDeficit} nhân sự`
-									: '✅ Đã đủ định mức'}
+									? `Đang dư +${toDeficit} nhân sự`
+									: 'Đã đủ định mức'}
 							</div>
 						)}
 					</div>
@@ -302,12 +305,13 @@ export default function CreateCoordinationModal({
 				{/* ── Impact Preview Card ── */}
 				{fromDept && toDept && (
 					<div className='coord-impact-preview'>
-						<div className='coord-impact-hdr'>📊 Dự báo số liệu sau điều phối:</div>
+						<div className='coord-impact-hdr'><ChartColumn size={14} /> Dự báo số liệu sau điều phối:</div>
 						<div className='coord-impact-grid'>
 							<div className='coord-impact-item'>
 								<span className='coord-impact-label'>{fromDept.ten} (Gửi):</span>
 								<span className='coord-impact-val'>
-									{fromSurplus > 0 ? `Dư +${fromSurplus}` : `${fromSurplus}`} ➔{' '}
+									{fromSurplus > 0 ? `Dư +${fromSurplus}` : `${fromSurplus}`}{' '}
+									<ArrowRight size={13} />{' '}
 									<strong>
 										{fromSurplus - staffCount >= 0
 											? `Dư +${fromSurplus - staffCount}`
@@ -318,7 +322,8 @@ export default function CreateCoordinationModal({
 							<div className='coord-impact-item'>
 								<span className='coord-impact-label'>{toDept.ten} (Nhận):</span>
 								<span className='coord-impact-val'>
-									{toDeficit < 0 ? `Thiếu ${toDeficit}` : `Dư +${toDeficit}`} ➔{' '}
+									{toDeficit < 0 ? `Thiếu ${toDeficit}` : `Dư +${toDeficit}`}{' '}
+									<ArrowRight size={13} />{' '}
 									<strong>
 										{toDeficit + staffCount < 0
 											? `Thiếu ${toDeficit + staffCount}`
@@ -329,7 +334,7 @@ export default function CreateCoordinationModal({
 						</div>
 						{fromSurplus > 0 && staffCount > fromSurplus && (
 							<div className='coord-impact-warn'>
-								⚠️ Số lượng chuyển ({staffCount}) vượt quá số dư hiện tại của Khoa gửi ({fromSurplus}).
+								<TriangleAlert size={14} /> Số lượng chuyển ({staffCount}) vượt quá số dư hiện tại của Khoa gửi ({fromSurplus}).
 							</div>
 						)}
 					</div>
@@ -372,7 +377,7 @@ export default function CreateCoordinationModal({
 						onClick={handleCreate}
 						disabled={saving}
 					>
-						{saving ? '⏳ Đang lưu...' : '🚀 Xác nhận điều phối'}
+						{saving ? 'Đang lưu...' : 'Xác nhận điều phối'}
 					</button>
 				</div>
 			</div>

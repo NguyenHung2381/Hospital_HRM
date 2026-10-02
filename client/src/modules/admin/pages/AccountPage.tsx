@@ -1,7 +1,7 @@
 import PlusIcon from '@/assets/svg/PlusIcon';
 import ModalForm from '@/components/common/ModalForm';
 import Pagination from '@/components/ui/Pagination';
-import { VAI_TRO_LABELS } from '@/constants/mockData';
+import { VAI_TRO_LABELS } from '@/constants/appConstants';
 import useDepartments from '@/hooks/useDepartments';
 import usePagination from '@/hooks/usePagination';
 import useRoles from '@/hooks/useRoles';
@@ -110,7 +110,6 @@ export default function AccountPage() {
 						setPage(1);
 					}}
 				>
-					<span>👥</span>
 					<span className='acc-rank-label'>Tất cả</span>
 					<span className='acc-rank-count'>{users.length}</span>
 				</div>
@@ -133,7 +132,6 @@ export default function AccountPage() {
 								setPage(1);
 							}}
 						>
-							<span>{r.icon ?? '👤'}</span>
 							<span className='acc-rank-label'>
 								{info?.shortLabel ?? r.name_role}
 							</span>
@@ -302,10 +300,10 @@ export default function AccountPage() {
 			{/* Modal xoá */}
 			{modal === 'del' && (
 				<ModalForm
-					title='⚠️ Xác nhận xoá'
+					title='Xác nhận xoá'
 					onClose={() => setModal(null)}
 				>
-					{error && <p className='login-error'>⚠️ {error}</p>}
+					{error && <p className='login-error'>{error}</p>}
 					<p className='confirm-txt'>
 						Xoá tài khoản <strong>{target?.full_name}</strong>? Hành động này
 						không thể hoàn tác.
@@ -323,7 +321,7 @@ export default function AccountPage() {
 							onClick={handleDel}
 							disabled={saving}
 						>
-							{saving ? '⏳...' : '🗑 Xoá'}
+							{saving ? '...' : 'Xoá'}
 						</button>
 					</div>
 				</ModalForm>
@@ -332,10 +330,10 @@ export default function AccountPage() {
 			{/* Modal reset mật khẩu */}
 			{modal === 'reset' && (
 				<ModalForm
-					title='🔑 Đặt lại mật khẩu'
+					title='Đặt lại mật khẩu'
 					onClose={closeReset}
 				>
-					{error && <p className='login-error'>⚠️ {error}</p>}
+					{error && <p className='login-error'>{error}</p>}
 					{tempPassword ? (
 						<>
 							<p className='confirm-txt'>
@@ -367,7 +365,7 @@ export default function AccountPage() {
 										void navigator.clipboard?.writeText(tempPassword);
 									}}
 								>
-									📋 Sao chép
+									Sao chép
 								</button>
 								<button className='btn-primary' onClick={closeReset}>
 									Đóng
@@ -399,7 +397,7 @@ export default function AccountPage() {
 										onClick={handleReset2FA}
 										disabled={saving}
 									>
-										🛡️ Tắt xác thực 2 lớp
+										Tắt xác thực 2 lớp
 									</button>
 								</p>
 							)}
@@ -420,7 +418,7 @@ export default function AccountPage() {
 									onClick={handleReset}
 									disabled={saving}
 								>
-									{saving ? '⏳ Đang xử lý...' : '🔑 Xác nhận đặt lại'}
+									{saving ? 'Đang xử lý...' : 'Xác nhận đặt lại'}
 								</button>
 							</div>
 						</>

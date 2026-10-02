@@ -1,3 +1,4 @@
+import { BedDouble } from 'lucide-react';
 import logo from '@/assets/images/logo.png';
 import ArrowIcon from '@/assets/svg/AngleArrowIcon';
 import EditIcon from '@/assets/svg/EditIcon';
@@ -76,7 +77,9 @@ export default function MainLayout({
 
 				<div className='topbar-r'>
 					{giuongMay != null && (
-						<div className='meta-chip'>🛏️ {giuongMay} giường/máy</div>
+						<div className='meta-chip'>
+							<BedDouble size={13} /> {giuongMay} giường/máy
+						</div>
 					)}
 
 					{/* User menu */}

@@ -1,3 +1,4 @@
+import { CircleCheck, TriangleAlert } from 'lucide-react';
 import MiniBar from '@/components/ui/MiniBar';
 import type { KhoaRecord } from '@/types/reportType';
 
@@ -11,7 +12,9 @@ export default function DashboardTopShortage({
 			className='hcard ov-card'
 			style={{ flex: '1 1 260px' }}
 		>
-			<h3 className='hcard-title'>⚠️ Top khoa thiếu nhân lực</h3>
+			<h3 className='hcard-title'>
+				<TriangleAlert size={16} /> Top khoa thiếu nhân lực
+			</h3>
 			{top5Thieu.length === 0 ? (
 				<div
 					style={{
@@ -21,7 +24,7 @@ export default function DashboardTopShortage({
 						fontSize: '.82rem',
 					}}
 				>
-					✅ Tất cả khoa đủ nhân lực theo TT03
+					<CircleCheck size={16} /> Tất cả khoa đủ nhân lực theo TT03
 				</div>
 			) : (
 				<div className='hcard-list'>

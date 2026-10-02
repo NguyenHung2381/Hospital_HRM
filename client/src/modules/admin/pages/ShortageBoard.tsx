@@ -1,3 +1,4 @@
+import { ArrowLeftRight, ChartColumn, ChevronDown, ChevronUp } from 'lucide-react';
 import type { KhoaRecord } from '@/types/reportType';
 
 export type SortField = 'ten' | 'nlTong' | 'diLam' | 'khuyenCao' | 'dieuPhoi';
@@ -31,11 +32,19 @@ export default function ShortageBoard({
 	onDrop,
 }: ShortageBoardProps) {
 	const sortArrow = (field: SortField) =>
-		field === sortField ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+		field === sortField ? (
+			sortDir === 'asc' ? (
+				<ChevronUp size={13} />
+			) : (
+				<ChevronDown size={13} />
+			)
+		) : null;
 
 	return (
 		<section className='hcard'>
-			<h3 className='hcard-title'>📊 Tình trạng nhân lực theo khoa</h3>
+			<h3 className='hcard-title'>
+				<ChartColumn size={16} /> Tình trạng nhân lực theo khoa
+			</h3>
 			{isAdmin && (
 				<p
 					style={{
@@ -44,7 +53,7 @@ export default function ShortageBoard({
 						margin: '-4px 0 8px',
 					}}
 				>
-					💡 Bấm cột tiêu đề để sắp xếp · Kéo 1 dòng đang dư rồi thả vào
+					Bấm cột tiêu đề để sắp xếp · Kéo 1 dòng đang dư rồi thả vào
 					dòng đang thiếu để điều phối nhanh
 				</p>
 			)}
@@ -218,7 +227,7 @@ export default function ShortageBoard({
 													}}
 													onClick={() => onCoordinate(r)}
 												>
-													⇄ Điều phối
+													<ArrowLeftRight size={13} /> Điều phối
 												</button>
 											</td>
 										)}

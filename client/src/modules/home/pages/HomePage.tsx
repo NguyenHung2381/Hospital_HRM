@@ -1,3 +1,4 @@
+import { BedDouble, FlaskConical } from 'lucide-react';
 import { useAppSSE } from '@/hooks/useAppSSE';
 import { useAuth } from '@/context/useAuth';
 import MainLayout from '@/layouts/MainLayout';
@@ -71,13 +72,13 @@ export default function HomePage() {
 								className={`tab-btn${activeGroup === 'ward' ? ' tab-btn--active' : ''}`}
 								onClick={() => setManualGroup('ward')}
 							>
-								🏥 Khoa nội trú
+								<BedDouble size={15} /> Khoa nội trú
 							</button>
 							<button
 								className={`tab-btn${activeGroup === 'cls' ? ' tab-btn--active' : ''}`}
 								onClick={() => setManualGroup('cls')}
 							>
-								🧪 Hệ Cận lâm sàng
+								<FlaskConical size={15} /> Hệ Cận lâm sàng
 							</button>
 						</div>
 					</div>

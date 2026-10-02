@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import type React from 'react';
 
 // ── Props ──────────────────────────────────────────────────
@@ -59,7 +60,7 @@ export default function ModalForm({
 						onClick={onClose}
 						aria-label='Đóng'
 					>
-						✕
+						<X size={16} />
 					</button>
 				</div>
 				<div className='modal-body'>{children}</div>

@@ -1,3 +1,4 @@
+import { TriangleAlert, X } from 'lucide-react';
 import Calendar from '@/components/ui/Calendar';
 import CheckIcon from '@/assets/svg/CheckIcon';
 import type { ApiReport, ReportMeta } from '@/types/apiType';
@@ -55,7 +56,7 @@ export default function DataPageSidebar({
 				className='dv-aside-close'
 				onClick={onCloseDrawer}
 			>
-				✕
+				<X size={18} />
 			</button>
 
 			<div className='dv-cal-wrap'>
@@ -159,7 +160,7 @@ export default function DataPageSidebar({
 									className='dv-khoa-panel-title'
 									style={{ color: '#d97706' }}
 								>
-									<span>⚠️</span> CHƯA NHẬP
+									<TriangleAlert size={13} /> CHƯA NHẬP
 									<span className='dv-missing-badge'>{missingDepts.length}</span>
 								</span>
 							</div>
@@ -191,7 +192,7 @@ export default function DataPageSidebar({
 									className='dv-khoa-panel-title'
 									style={{ color: '#d97706' }}
 								>
-									<span>⚠️</span> KHOA CLS CHƯA NHẬP
+									<TriangleAlert size={13} /> KHOA CLS CHƯA NHẬP
 									<span className='dv-missing-badge'>
 										{missingClsDepts.length}
 									</span>
