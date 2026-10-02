@@ -128,8 +128,12 @@ process.on('unhandledRejection', (reason) => {
 	console.error('[unhandledRejection]', reason);
 	logError(reason);
 });
+let crashing = false;
 process.on('uncaughtException', (err) => {
 	console.error('[uncaughtException]', err);
+	// Lỗi phát sinh ngay trong lúc ghi log lỗi → không ghi lại nữa, tránh vòng lặp
+	if (crashing) return;
+	crashing = true;
 	logError(err);
 	// Trạng thái tiến trình không còn tin cậy → thoát (Docker/pm2 tự khởi động lại)
 	setTimeout(() => process.exit(1), 500);

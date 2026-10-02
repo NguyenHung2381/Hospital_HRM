@@ -44,6 +44,17 @@ const transport =
 				},
 			});
 
+// Worker ghi log chết (thư mục log không ghi được: EACCES/EROFS...) → stream bắn
+// 'error'. Không bắt thì thành uncaughtException, handler lại ghi log → lặp vô
+// hạn, tiến trình treo (container unhealthy mãi). Bắt ở đây: API vẫn chạy,
+// báo 1 lần ra console để biết mà sửa quyền/volume.
+let transportFailed = false;
+transport.on('error', (err) => {
+	if (transportFailed) return;
+	transportFailed = true;
+	console.error(`❌ Không ghi được nhật ký vào ${LOG_DIR}: ${err.message}`);
+});
+
 const logger = pino({ base, timestamp, messageKey: 'msg' }, transport);
 
 module.exports = { logger, LOG_DIR };
