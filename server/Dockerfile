@@ -9,9 +9,9 @@ COPY server/package.json server/package-lock.json ./server/
 WORKDIR /app/server
 RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
-# ─── Dev (docker-compose.dev.yml): đủ devDependencies (nodemon), source mount
+# ─── Dev (docker-compose.yml): đủ devDependencies (nodemon), source mount
 # từ máy host nên không COPY src. Stage prod phải luôn nằm CUỐI file để
-# `docker build` / docker-compose.yml (không chỉ định target) vẫn ra image prod.
+# `docker build` / docker-compose.prod.yml (không chỉ định target) vẫn ra image prod.
 FROM node:22-bookworm-slim AS dev
 WORKDIR /app
 COPY package.json ./package.json

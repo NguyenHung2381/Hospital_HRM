@@ -17,7 +17,7 @@ export default defineConfig({
 		// của Vite, nguy hiểm nếu chạy `npm run dev` trên máy đã thông Internet.
 		// Mặc định (không set) Vite chỉ cho phép localhost + hostname cấu hình —
 		// đủ dùng để mở dev server từ máy khác trong LAN qua http://<ip-may>:5173.
-		// Chạy trong Docker (docker-compose.dev.yml): API ở container `api`, và
+		// Chạy trong Docker (docker-compose.yml): API ở container `api`, và
 		// bind mount không phát fs-events nên phải polling mới thấy file đổi.
 		proxy: {
 			'/api': process.env.VITE_API_PROXY || 'http://localhost:3000',

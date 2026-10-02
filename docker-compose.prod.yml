@@ -1,5 +1,5 @@
 # Hospital HRM — PRODUCTION bằng Docker
-#   docker compose up -d --build
+#   docker compose -f docker-compose.prod.yml up -d --build
 # https://dieuduong.bvnghean.vn (reverse proxy HTTPS) → máy chủ :${WEB_PORT:-8080}
 # → nginx (container frontend). Thử nhanh không qua proxy: http://localhost:8080
 # (khi đó đặt COOKIE_SECURE=false, nếu không sẽ không đăng nhập được).
@@ -17,7 +17,7 @@
 # server/.env (tiện chạy thử trên máy dev). Thiếu cả hai → server báo thiếu
 # biến và dừng.
 #
-# File này là PRODUCTION. Dev (hot reload) dùng docker-compose.dev.yml —
+# File này là PRODUCTION. Dev (hot reload) dùng docker-compose.yml —
 # project riêng "hospital_hrm_dev", không đụng tới container/volume ở đây.
 # Giữ nguyên tên project: volume audit log thật là hospital_hrm_api-logs.
 

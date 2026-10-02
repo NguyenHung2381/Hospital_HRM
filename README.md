@@ -124,7 +124,7 @@ Dự án tách thành 2 môi trường độc lập. Mỗi môi trường có fi
 | | **Dev** | **Production** |
 |---|---|---|
 | Mục đích | Lập trình, sửa code thấy ngay (hot reload) | Chạy thật cho người dùng trong viện |
-| Cách chạy | `npm run dev` hoặc `docker-compose.dev.yml` | `docker-compose.yml` |
+| Cách chạy | `npm run dev` hoặc `docker-compose.yml` | `docker-compose.prod.yml` |
 | Tên project Compose | `hospital_hrm_dev` | `hospital_hrm` |
 | Stage Dockerfile | `dev` (nodemon + Vite dev server) | `prod` (Node + nginx, build tĩnh) |
 | File cấu hình server | `server/.env` | `server/.env.production` (không có → dùng `server/.env`) |
@@ -156,9 +156,9 @@ Vite tự proxy `/api` sang `http://localhost:3000`, nên mở `http://localhost
 Không cần cài Node trên máy, chỉ cần Docker Desktop.
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d --build   # lần đầu / sau khi sửa Dockerfile, package.json
-docker compose -f docker-compose.dev.yml logs -f backend # xem log server
-docker compose -f docker-compose.dev.yml down            # dừng
+docker compose up -d --build   # lần đầu / sau khi sửa Dockerfile, package.json
+docker compose logs -f backend # xem log server
+docker compose down            # dừng
 ```
 
 - Giao diện `http://localhost:5174`, API `http://127.0.0.1:3002` (chỉ máy local gọi được, dùng cho Postman...). Muốn đổi cổng thì đặt `DEV_WEB_PORT` / `DEV_API_PORT` trong file `.env` ở thư mục gốc. Cổng mặc định khác `npm run dev` và Hospital_RMS dev nên không bị trùng.
@@ -189,31 +189,31 @@ cp server/.env.production.example server/.env.production
 # 2. (Tuỳ chọn) Tạo file .env ở thư mục gốc cho biến của compose — xem bảng dưới
 
 # 3. Build + chạy
-docker compose up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 
 # 4. Kiểm tra
-docker compose ps                 # cả 2 container phải ở trạng thái healthy
-docker compose logs -f backend    # log server
+docker compose -f docker-compose.prod.yml ps                 # cả 2 container phải ở trạng thái healthy
+docker compose -f docker-compose.prod.yml logs -f backend    # log server
 ```
 
 #### Cập nhật phiên bản mới
 
 ```bash
 git pull
-docker compose up -d --build      # build lại image, thay container; volume log giữ nguyên
+docker compose -f docker-compose.prod.yml up -d --build      # build lại image, thay container; volume log giữ nguyên
 ```
 
 #### Lệnh thường dùng
 
 ```bash
-docker compose down                       # dừng (giữ volume log)
-docker compose restart backend            # khởi động lại server (vd sau khi sửa .env.production)
-docker compose exec backend ls logs       # xem danh sách file log
+docker compose -f docker-compose.prod.yml down                       # dừng (giữ volume log)
+docker compose -f docker-compose.prod.yml restart backend            # khởi động lại server (vd sau khi sửa .env.production)
+docker compose -f docker-compose.prod.yml exec backend ls logs       # xem danh sách file log
 ```
 
 #### Biến của compose
 
-Đặt trong file `.env` cạnh `docker-compose.yml` (không commit). Khác với `server/.env.production`: file này chỉ dành cho compose, không đi vào container.
+Đặt trong file `.env` ở thư mục gốc (không commit, dùng chung cho cả 2 file compose). Khác với `server/.env.production`: file này chỉ dành cho compose, không đi vào container.
 
 | Biến | Mặc định | Ý nghĩa |
 |------|----------|---------|
@@ -224,8 +224,8 @@ docker compose exec backend ls logs       # xem danh sách file log
 #### Lưu ý
 
 - `COOKIE_SECURE=true` thì cookie chỉ gửi qua HTTPS. Thử nhanh bằng `http://localhost:8080` (không qua proxy) thì tạm đặt `false`, nếu không sẽ không đăng nhập được.
-- `NODE_ENV`, `HOST`, `PORT`, `TRUST_PROXY` đã cố định trong `docker-compose.yml`, đặt trong `.env.production` cũng không có tác dụng.
-- Không đổi `name: hospital_hrm` trong `docker-compose.yml`: tên volume log thật (`hospital_hrm_api-logs`) phụ thuộc vào nó.
+- `NODE_ENV`, `HOST`, `PORT`, `TRUST_PROXY` đã cố định trong `docker-compose.prod.yml`, đặt trong `.env.production` cũng không có tác dụng.
+- Không đổi `name: hospital_hrm` trong `docker-compose.prod.yml`: tên volume log thật (`hospital_hrm_api-logs`) phụ thuộc vào nó.
 - Lần chạy đầu server tự tạo bảng/cột bảo mật, nên login DB cần quyền `ALTER`/`CREATE TABLE` (hoặc chạy trước `node src/config/securitySchema.js` bằng tài khoản có quyền).
 
 ### Các file cấu hình
@@ -237,8 +237,8 @@ docker compose exec backend ls logs       # xem danh sách file log
 | `server/.env.production.example` | Production | Có | Mẫu cho `server/.env.production` |
 | `server/.env.production` | Production | **Không** | Đọc lúc chạy container, không đóng vào image (`.dockerignore`) |
 | `.env` (thư mục gốc) | Cả hai | **Không** | Biến của compose: `WEB_PORT`, `TRUSTED_PROXIES`, `DEV_WEB_PORT`... |
-| `docker-compose.dev.yml` | Dev | Có | Project `hospital_hrm_dev` |
-| `docker-compose.yml` | Production | Có | Project `hospital_hrm` |
+| `docker-compose.yml` | Dev | Có | Project `hospital_hrm_dev` |
+| `docker-compose.prod.yml` | Production | Có | Project `hospital_hrm` |
 | `server/Dockerfile`, `client/Dockerfile` | Cả hai | Có | Stage `dev` và `prod`; `prod` luôn nằm cuối file để build mặc định ra image prod |
 
 ## Nhật ký hệ thống (logs)

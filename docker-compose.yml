@@ -1,8 +1,8 @@
 # Hospital HRM — môi trường DEV bằng Docker (hot reload)
-#   docker compose -f docker-compose.dev.yml up -d --build
+#   docker compose up -d --build
 # Truy cập: http://localhost:${DEV_WEB_PORT:-5174}
 #
-# Tách hẳn khỏi production (docker-compose.yml, project hospital_hrm): project
+# Tách hẳn khỏi production (docker-compose.prod.yml, project hospital_hrm): project
 # riêng → container, network, image, volume riêng; chạy / down môi trường này
 # không đụng tới môi trường kia. Cổng mặc định 5174 / 3002 để không trùng
 # `npm run dev` (5173 / 3000) và Hospital_RMS dev (5173 / 3000).

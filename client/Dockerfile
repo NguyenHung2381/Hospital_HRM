@@ -11,7 +11,7 @@ RUN npm ci --no-audit --no-fund
 COPY client/ ./
 RUN npm run build
 
-# ─── Dev (docker-compose.dev.yml): Vite dev server, source mount từ máy host.
+# ─── Dev (docker-compose.yml): Vite dev server, source mount từ máy host.
 # Stage prod (nginx) phải luôn nằm CUỐI file — xem server/Dockerfile.
 FROM node:22-bookworm-slim AS dev
 WORKDIR /app
