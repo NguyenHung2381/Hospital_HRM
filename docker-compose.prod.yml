@@ -82,7 +82,10 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:8080"
+      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:80"
+    # nginx chạy user 101 + cap_drop ALL vẫn bind được cổng 80
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
     environment:
       # Trống = 127.0.0.1 + mạng Docker (proxy HTTPS cùng máy). Proxy ở máy
       # khác thì BẮT BUỘC đặt IP của nó, nếu không mọi người dùng bị coi là

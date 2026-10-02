@@ -22,7 +22,7 @@ RUN npm ci --no-audit --no-fund && npm cache clean --force
 EXPOSE 5173
 CMD ["node", "node_modules/vite/bin/vite.js", "--host", "0.0.0.0"]
 
-# nginx chạy bằng user thường, nghe cổng 8080
+# nginx chạy bằng user thường, nghe cổng 80 (Docker cho phép user thường bind cổng <1024: ip_unprivileged_port_start=0)
 FROM nginxinc/nginx-unprivileged:stable-alpine AS prod
 COPY client/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/client/dist /usr/share/nginx/html
@@ -35,6 +35,6 @@ RUN apk upgrade --no-cache \
     && sed -i 's/\r$//' /docker-entrypoint.d/40-trusted-proxies.sh \
     && chmod 755 /docker-entrypoint.d/40-trusted-proxies.sh
 USER 101
-EXPOSE 8080
+EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1
+  CMD wget -q -O /dev/null http://127.0.0.1:80/ || exit 1

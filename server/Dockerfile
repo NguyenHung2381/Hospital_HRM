@@ -31,8 +31,11 @@ WORKDIR /app
 COPY --from=deps /app /app
 COPY server/src ./server/src
 
-# Chạy bằng user thường (không phải root); chỉ thư mục log được ghi
+# Chạy bằng user thường (không phải root); chỉ thư mục log được ghi.
+# Lúc chạy chỉ cần node → xóa npm/corepack/yarn (nguồn CVE chính của image node).
 RUN apk upgrade --no-cache \
+    && rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx \
+              /usr/local/bin/corepack /opt/yarn* /usr/local/bin/yarn /usr/local/bin/yarnpkg \
     && mkdir -p /app/server/logs && chown node:node /app/server/logs
 USER node
 WORKDIR /app/server
