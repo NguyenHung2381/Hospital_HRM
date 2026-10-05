@@ -86,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [khoaList, setKhoaList] = useState<KhoaItem[]>([]);
 	const [deptPermissions, setDeptPermissions] = useState<DeptPermission[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [loadError, setLoadError] = useState('');
 
 	// Hàm fetch chung (quan trọng)
 	const fetchAllData = async (userId: number) => {
@@ -96,8 +97,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				fetch(`/api/users/${userId}/dept-permissions`),
 			]);
 
+			if (!deptRes.ok || !permRes.ok)
+				throw new Error(`HTTP ${deptRes.ok ? permRes.status : deptRes.status}`);
 			const deptData = await deptRes.json();
 			const permData = await permRes.json();
+			setLoadError('');
 
 			if (deptData.success) setKhoaList(deptData.data.map(mapApiDept));
 
@@ -113,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				);
 		} catch (err) {
 			console.error('Fetch error:', err);
+			setLoadError('Không tải được danh sách khoa và quyền nhập liệu. Vui lòng thử lại.');
 		} finally {
 			setLoading(false);
 		}
@@ -229,6 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		setUser(null);
 		setKhoaList([]);
 		setDeptPermissions([]);
+		setLoadError('');
 
 		localStorage.removeItem(STORAGE_KEY);
 		// Thu hồi phiên phía server + xoá cookie HttpOnly
@@ -253,6 +259,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				logout,
 				refresh, // thêm cái này
 				loading, // optional
+				loadError,
 			}}
 		>
 			{children}

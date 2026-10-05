@@ -7,7 +7,7 @@ import { getClsFields } from '@/utils/clsFieldConfig';
 import { formatDateToVN } from '@/utils/dateUtils';
 import { useClsStaffingRecords } from '@/hooks/useClsStaffingRecords';
 import { useRecordPermissions } from '@/hooks/useRecordPermissions';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import CLSStaffingForm from './CLSStaffingForm';
 import StaffingBoardSidebar from './StaffingBoardSidebar';
 import ChangePasswordModal from './modal/ChangePasswordModal';
@@ -37,14 +37,6 @@ export default function CLSStaffingBoard({
 	const [recommendedStaff, setRecommendedStaff] = useState<number | null>(
 		userKhoa.length > 0 ? (userKhoa[0].heSoRec?.fixedAdd ?? null) : null,
 	);
-
-	useEffect(() => {
-		if (userKhoa.length > 0 && activeKhoaId === 0) {
-			setActiveKhoaId(userKhoa[0].id);
-			setRecommendedStaff(userKhoa[0].heSoRec?.fixedAdd ?? null);
-			onDeptNameChange(userKhoa[0].ten);
-		}
-	}, [userKhoa, activeKhoaId, onDeptNameChange]);
 
 	const {
 		records,

@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import type React from 'react';
+import { useRef } from 'react';
 
 // ── Props ──────────────────────────────────────────────────
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
@@ -28,11 +29,24 @@ export default function ModalForm({
 	// Backwards-compat: wide → lg
 	const resolvedSize: ModalSize = size ?? (wide ? 'lg' : 'md');
 
+	// Chỉ đóng khi nhấn VÀ thả chuột đều trên nền mờ. Nếu chỉ dùng onClick,
+	// bôi đen chữ trong ô nhập rồi kéo chuột ra ngoài modal cũng làm đóng form
+	// → mất hết số liệu đang nhập.
+	const pressedOnOverlay = useRef(false);
+	const overlayProps = {
+		onMouseDown: (e: React.MouseEvent) => {
+			pressedOnOverlay.current = e.target === e.currentTarget;
+		},
+		onClick: (e: React.MouseEvent) => {
+			if (pressedOnOverlay.current && e.target === e.currentTarget) onClose();
+		},
+	};
+
 	if (bare) {
 		return (
 			<div
 				className='overlay'
-				onClick={onClose}
+				{...overlayProps}
 			>
 				<div
 					className='dev-notice'
@@ -47,7 +61,7 @@ export default function ModalForm({
 	return (
 		<div
 			className='overlay'
-			onClick={onClose}
+			{...overlayProps}
 		>
 			<div
 				className={`modal modal--${resolvedSize}`}

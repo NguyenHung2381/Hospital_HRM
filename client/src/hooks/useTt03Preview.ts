@@ -47,7 +47,6 @@ export function useTt03Preview(deptId: number, input: Tt03PreviewInput) {
 		}, 400);
 
 		return () => clearTimeout(timer);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [cap1, cap2, cap3, nbKhamPT, deptId]);
 
 	return { tt03Preview, previewLoading };

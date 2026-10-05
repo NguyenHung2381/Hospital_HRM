@@ -1,5 +1,6 @@
 import type { RoleType } from '@/types/commonType';
 import type { ReportConfig } from '@/types/reportType';
+import { toLocalYMD } from '@/utils/dateUtils';
 
 export const VAI_TRO_LABELS: Record<
 	RoleType,
@@ -52,6 +53,6 @@ export const COLOR_OPTIONS = Object.keys(COLOR_MAP);
 export const defaultReportConfig = (): ReportConfig => ({
 	rScope: 'all',
 	rKhoa: 'all',
-	rFrom: new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10),
-	rTo: new Date().toISOString().slice(0, 10),
+	rFrom: toLocalYMD(new Date(Date.now() - 7 * 86_400_000)),
+	rTo: toLocalYMD(new Date()),
 });

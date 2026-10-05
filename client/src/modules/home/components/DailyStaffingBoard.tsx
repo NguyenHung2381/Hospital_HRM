@@ -77,23 +77,6 @@ export default function DailyStaffingBoard({
 		return () => clearInterval(id);
 	}, []);
 
-	useEffect(() => {
-		if (userKhoa.length > 0 && activeKhoaId === 0) {
-			setActiveKhoaId(userKhoa[0].id);
-			setDept({
-				ten: userKhoa[0].ten,
-				giuongMay: userKhoa[0].giuong,
-				heSo: userKhoa[0].heSo,
-				formulaType: userKhoa[0].formulaType,
-				tt03Note: userKhoa[0].tt03Note ?? '',
-				recFormulaType: userKhoa[0].recFormulaType ?? null,
-				heSoRec: userKhoa[0].heSoRec ?? null,
-			});
-			onDeptNameChange(userKhoa[0].ten);
-			onGiuongMayChange(userKhoa[0].giuong);
-		}
-	}, [userKhoa, activeKhoaId, onDeptNameChange, onGiuongMayChange]);
-
 	const {
 		records,
 		activeDate,

@@ -35,6 +35,8 @@ export interface AuthContextType {
 	logout: () => void;
 	refresh: () => void;
 	loading: boolean;
+	/** Lỗi tải danh sách khoa/quyền (rỗng = OK) */
+	loadError: string;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);

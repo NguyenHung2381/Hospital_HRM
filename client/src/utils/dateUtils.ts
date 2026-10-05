@@ -15,13 +15,15 @@ export const MONTHS_VI = [
 	'Tháng 12',
 ];
 
-export const getTodayDateString = (): string => {
-	const d = new Date();
+/** YYYY-MM-DD theo giờ máy (không dùng toISOString — UTC lệch 1 ngày trước 7h sáng ở UTC+7). */
+export const toLocalYMD = (d: Date): string => {
 	const year = d.getFullYear();
 	const month = String(d.getMonth() + 1).padStart(2, '0');
 	const day = String(d.getDate()).padStart(2, '0');
 	return `${year}-${month}-${day}`;
 };
+
+export const getTodayDateString = (): string => toLocalYMD(new Date());
 
 export const parseYMDToDate = (dateString: string): Date => {
 	const [y, m, d] = dateString.split('-').map(Number);
@@ -81,26 +83,11 @@ export const getNextAvailableDate = (existingDates: string[]): string => {
 	const existingSet = new Set(existingDates);
 	const d = new Date();
 	for (let i = 0; i <= 365; i++) {
-		const candidate = d.toISOString().slice(0, 10);
+		const candidate = toLocalYMD(d);
 		if (!existingSet.has(candidate)) return candidate;
 		d.setDate(d.getDate() + 1);
 	}
-	// getTodayDateString() đã có sẵn trong dateUtils.ts
 	return getTodayDateString();
-};
-
-// Thêm vào utils/dateUtils.ts
-export const validateRecordDate = (
-	dateStr: string,
-	existingDates: string[],
-): string => {
-	if (!dateStr) return 'Vui lòng chọn ngày';
-	const todayStr = new Date().toISOString().slice(0, 10);
-	if (dateStr < todayStr)
-		return 'Không thể thêm bản ghi cho ngày trong quá khứ';
-	if (new Set(existingDates).has(dateStr))
-		return 'Ngày này đã có bản ghi, vui lòng chọn ngày khác';
-	return '';
 };
 
 /** Khoảng ngày của 1 tháng (month: 0–11) dạng YYYY-MM-DD + key 'YYYY-MM'. */

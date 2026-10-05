@@ -1,28 +1,24 @@
 import { useState } from 'react';
-import { useAuth } from '@/context/useAuth';
 import { useDeptMonthRecords } from '@/hooks/useDeptMonthRecords';
 import type { ApiDeptRecord } from '@/types/apiType';
 import type { DailyRecord } from '@/types/staffingType';
 import { getNextAvailableDate, getTodayDateString } from '@/utils/dateUtils';
-import { apiToDailyRecord, dailyToApiBody } from '@/utils/recordHelperUtils';
+import {
+	apiErrorMessage,
+	apiToDailyRecord,
+	dailyToApiBody,
+	upsertDeptRecord,
+} from '@/utils/recordHelperUtils';
 import { createEmptyRecord } from '@/modules/home/utils/recordHelpers';
 
 /** CRUD + fetch cho bản ghi chấm công ngày (DailyStaffingBoard). */
 export function useDailyStaffingRecords(activeKhoaId: number) {
-	const { user } = useAuth();
-
 	const [activeDate, setActiveDate] = useState(getTodayDateString());
 	const { records, setRecords, recordIds, setRecordIds, loadingRecords, loadMonth } =
 		useDeptMonthRecords<ApiDeptRecord & { report_date: string }, DailyRecord>(
 			activeKhoaId,
 			'ward',
 			apiToDailyRecord,
-			(recs) => {
-				// Chưa có bản ghi hôm nay → nhảy tới ngày gần nhất có dữ liệu
-				const today = getTodayDateString();
-				if (!recs.some((r) => r.date === today) && recs.length)
-					setActiveDate(recs[recs.length - 1].date);
-			},
 		);
 	const [saving, setSaving] = useState(false);
 	const [apiError, setApiError] = useState('');
@@ -56,90 +52,15 @@ export function useDailyStaffingRecords(activeKhoaId: number) {
 		setSaving(true);
 		setApiError('');
 		try {
-			const ids = recordIds[draft.date];
-			if (ids) {
-				const res = await fetch(
-					`/api/reports/${ids.id_report}/records/${ids.record_id}`,
-					{
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify(dailyToApiBody(draft)),
-					},
-				);
-				if (!res.ok) {
-					const err = (await res.json().catch(() => ({}))) as {
-						message?: string;
-					};
-					setApiError(err.message ?? 'Lỗi khi cập nhật dữ liệu');
-					return;
-				}
-			} else {
-				const checkRes = await fetch(
-					`/api/reports?from=${draft.date}&to=${draft.date}`,
-				);
-				const checkData = (await checkRes.json().catch(() => ({}))) as {
-					success?: boolean;
-					data?: { id_report: number; report_date: string }[];
-				};
-				const existingReport = checkData.data?.[0];
-				let targetIdReport: number | undefined;
-
-				if (existingReport) {
-					const addRes = await fetch(
-						`/api/reports/${existingReport.id_report}/records`,
-						{
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								id_department: activeKhoaId,
-								sort_order: 1,
-								...dailyToApiBody(draft),
-							}),
-						},
-					);
-					if (!addRes.ok) {
-						setApiError('Lỗi khi thêm bản ghi vào báo cáo');
-						return;
-					}
-					targetIdReport = existingReport.id_report;
-				} else {
-					const createRes = await fetch(`/api/reports`, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							report_date: draft.date,
-							created_by: user?.id ?? null,
-							records: [
-								{
-									id_department: activeKhoaId,
-									sort_order: 1,
-									...dailyToApiBody(draft),
-								},
-							],
-						}),
-					});
-					if (!createRes.ok) {
-						setApiError('Lỗi khi tạo báo cáo mới');
-						return;
-					}
-					const createData = (await createRes.json()) as {
-						success: boolean;
-						data: { id_report: number };
-					};
-					targetIdReport = createData.data?.id_report;
-				}
-
-				if (targetIdReport) {
-					setRecordIds((prev) => ({
-						...prev,
-						[draft.date]: {
-							id_report: targetIdReport!,
-							record_id: 0,
-						},
-					}));
-				}
+			const ids = await upsertDeptRecord('records', draft.date, recordIds[draft.date], {
+				id_department: activeKhoaId,
+				...dailyToApiBody(draft),
+			});
+			if (typeof ids === 'string') {
+				setApiError(ids);
+				return;
 			}
-
+			setRecordIds((prev) => ({ ...prev, [draft.date]: ids }));
 			setRecords((prev) =>
 				[...prev.filter((r) => r.date !== draft.date), draft].sort((a, b) =>
 					a.date.localeCompare(b.date),
@@ -159,11 +80,13 @@ export function useDailyStaffingRecords(activeKhoaId: number) {
 		setApiError('');
 		try {
 			if (ids) {
-				const res = await fetch(`/api/reports/${ids.id_report}`, {
-					method: 'DELETE',
-				});
+				// Chỉ xoá bản ghi của khoa này — KHÔNG xoá cả báo cáo ngày (chứa mọi khoa)
+				const res = await fetch(
+					`/api/reports/${ids.id_report}/records/${ids.record_id}`,
+					{ method: 'DELETE' },
+				);
 				if (!res.ok) {
-					setApiError('Lỗi khi xoá bản ghi');
+					setApiError(await apiErrorMessage(res, 'Lỗi khi xoá bản ghi'));
 					setDelDate(null);
 					return;
 				}

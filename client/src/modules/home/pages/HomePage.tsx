@@ -8,7 +8,7 @@ import DailyStaffingBoard from '../components/DailyStaffingBoard';
 import CLSStaffingBoard from '../components/CLSStaffingBoard';
 
 export default function HomePage() {
-	const { user, khoaList, refresh } = useAuth();
+	const { user, khoaList, refresh, loadError } = useAuth();
 
 	const wardKhoa = useMemo(
 		() => khoaList.filter((k) => k.deptGroup !== 'cls'),
@@ -29,10 +29,16 @@ export default function HomePage() {
 	const [manualGroup, setManualGroup] = useState<'ward' | 'cls' | null>(null);
 	const activeGroup = manualGroup ?? (wardKhoa.length > 0 ? 'ward' : 'cls');
 
-	const [deptName, setDeptName] = useState(
-		khoaList.length > 0 ? khoaList[0].ten : '',
-	);
-	const [giuongMay, setGiuongMay] = useState<number | null>(null);
+	const groupKhoa = activeGroup === 'ward' ? wardKhoa : clsKhoa;
+
+	// undefined = chưa đổi khoa → header hiện khoa đầu tiên của nhóm đang mở
+	const [deptName, setDeptName] = useState<string>();
+	const [giuongMay, setGiuongMay] = useState<number | null>();
+	const switchGroup = (g: 'ward' | 'cls') => {
+		setManualGroup(g);
+		setDeptName(undefined);
+		setGiuongMay(undefined);
+	};
 	const [showDeptModal, setShowDeptModal] = useState(false);
 	const [showReportModal, setShowReportModal] = useState(false);
 	const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -55,8 +61,14 @@ export default function HomePage() {
 
 	return (
 		<MainLayout
-			deptName={deptName}
-			giuongMay={giuongMay}
+			deptName={deptName ?? groupKhoa[0]?.ten ?? ''}
+			giuongMay={
+				activeGroup === 'cls'
+					? null
+					: giuongMay !== undefined
+						? giuongMay
+						: (groupKhoa[0]?.giuong ?? null)
+			}
 			currentUser={user}
 			onEditDept={
 				activeGroup === 'cls' ? undefined : () => setShowDeptModal(true)
@@ -65,18 +77,29 @@ export default function HomePage() {
 			onChangePassword={() => setShowPasswordModal(true)}
 		>
 			<div className='home-tabs-wrap'>
+				{loadError && (
+					<div className='api-error-banner'>
+						{loadError}{' '}
+						<button
+							className='btn-ghost'
+							onClick={refresh}
+						>
+							Thử lại
+						</button>
+					</div>
+				)}
 				{showGroupTabs && (
 					<div className='home-tabs-bar-wrap'>
 						<div className='tab-bar'>
 							<button
 								className={`tab-btn${activeGroup === 'ward' ? ' tab-btn--active' : ''}`}
-								onClick={() => setManualGroup('ward')}
+								onClick={() => switchGroup('ward')}
 							>
 								<BedDouble size={15} /> Khoa nội trú
 							</button>
 							<button
 								className={`tab-btn${activeGroup === 'cls' ? ' tab-btn--active' : ''}`}
-								onClick={() => setManualGroup('cls')}
+								onClick={() => switchGroup('cls')}
 							>
 								<FlaskConical size={15} /> Hệ Cận lâm sàng
 							</button>
@@ -86,7 +109,10 @@ export default function HomePage() {
 
 				<div className='home-tabs-row'>
 					{activeGroup === 'ward' ? (
+						// key: danh sách khoa tải bất đồng bộ → mount lại khi có khoa
+						// để state khởi tạo đúng khoa đầu tiên (thay cho setState trong effect)
 						<DailyStaffingBoard
+							key={wardKhoa[0]?.id ?? 0}
 							userKhoa={wardKhoa}
 							onDeptNameChange={setDeptName}
 							onGiuongMayChange={setGiuongMay}
@@ -99,6 +125,7 @@ export default function HomePage() {
 						/>
 					) : (
 						<CLSStaffingBoard
+							key={clsKhoa[0]?.id ?? 0}
 							userKhoa={clsKhoa}
 							onDeptNameChange={setDeptName}
 							showReportModal={showReportModal}
