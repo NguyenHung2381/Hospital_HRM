@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json ./package.json
 COPY server/package.json server/package-lock.json ./server/
 WORKDIR /app/server
-RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force && mkdir /logs
+RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
 # ─── Dev (docker-compose.yml): đủ devDependencies (nodemon), source mount
 # từ máy host nên không COPY src. Stage prod phải luôn nằm CUỐI file để
@@ -22,18 +22,21 @@ EXPOSE 3000
 # -L (polling): bind mount qua Docker Desktop không phát fs-events
 CMD ["node", "node_modules/nodemon/bin/nodemon.js", "-L", "src/index.js"]
 
-# ─── Prod: Docker Hardened Image — chỉ có node (không npm, không shell, không
-# apk), mặc định chạy user node (1000). Máy build phải `docker login dhi.io` (tài
-# khoản Docker miễn phí). Cùng bản node 22 + musl với stage deps nên bcrypt chạy được.
-FROM dhi.io/node:22-alpine3.22 AS prod
+# ─── Prod
+FROM node:22-alpine AS prod
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=3000
 WORKDIR /app
 COPY --from=deps /app /app
 COPY server/src ./server/src
-# Chỉ thư mục log được ghi (image không có shell nên không RUN mkdir/chown được)
-COPY --from=deps --chown=node:node /logs ./server/logs
+
+# Chạy bằng user thường (không phải root); chỉ thư mục log được ghi.
+# Lúc chạy chỉ cần node → xóa npm/corepack/yarn (nguồn CVE chính của image node).
+RUN apk upgrade --no-cache \
+    && rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx \
+              /usr/local/bin/corepack /opt/yarn* /usr/local/bin/yarn /usr/local/bin/yarnpkg \
+    && mkdir -p /app/server/logs && chown node:node /app/server/logs
 USER node
 WORKDIR /app/server
 

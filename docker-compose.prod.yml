@@ -1,7 +1,5 @@
 # Hospital HRM — PRODUCTION bằng Docker
 #   docker compose -f docker-compose.prod.yml up -d --build
-# Lần đầu trên máy build: `docker login dhi.io` (tài khoản Docker miễn phí) — image
-# API dùng base Docker Hardened Image (xem server/Dockerfile).
 # https://dieuduong.bvnghean.vn (reverse proxy HTTPS) → máy chủ :${WEB_PORT:-8080}
 # → nginx (container frontend). Thử nhanh không qua proxy: http://localhost:8080
 # (khi đó đặt COOKIE_SECURE=false, nếu không sẽ không đăng nhập được).
