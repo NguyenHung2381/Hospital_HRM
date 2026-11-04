@@ -38,14 +38,14 @@ async function getAll(req, res, next) {
 		const result = await request.query(`
 			SELECT u.id_user, u.full_name, u.username, u.user_code, u.position, u.status,
 				u.created_at, u.updated_at, u.totp_enabled,
-				CAST(CASE WHEN u.locked_until > SYSUTCDATETIME() THEN 1 ELSE 0 END AS BIT) AS is_locked,
+				COALESCE(u.locked_until > now(), false) AS is_locked,
 				d.id_department, d.name_department,
 				r.id_role, r.name_role, r.department_access_type
 			FROM Users u
 			LEFT JOIN Departments d ON d.id_department = u.id_department
 			LEFT JOIN Roles r ON r.id_role = u.id_role
 			${whereClause}
-			ORDER BY u.user_code
+			ORDER BY u.user_code NULLS FIRST
 		`);
 		res.json({ success: true, data: result.recordset });
 	} catch (err) {
@@ -61,7 +61,7 @@ async function getById(req, res, next) {
 			.query(`
 			SELECT u.id_user, u.full_name, u.username, u.user_code, u.position, u.status,
 				u.created_at, u.updated_at, u.totp_enabled,
-				CAST(CASE WHEN u.locked_until > SYSUTCDATETIME() THEN 1 ELSE 0 END AS BIT) AS is_locked,
+				COALESCE(u.locked_until > now(), false) AS is_locked,
 				d.id_department, d.name_department,
 				r.id_role, r.name_role, r.department_access_type
 			FROM Users u
@@ -114,18 +114,10 @@ async function create(req, res, next) {
 			.input('position', sql.NVarChar(100), position ?? null)
 			.input('id_role', sql.Int, id_role)
 			.input('status', sql.NVarChar(10), status ?? 'active').query(`
-				DECLARE @uout TABLE (
-					id_user INT, full_name NVARCHAR(150), username NVARCHAR(50),
-					user_code NVARCHAR(10), id_department INT, position NVARCHAR(100),
-					id_role INT, status NVARCHAR(10), created_at DATETIMEOFFSET
-				);
 				INSERT INTO Users (full_name, username, password, user_code, id_department, position, id_role, status)
-				OUTPUT INSERTED.id_user, INSERTED.full_name, INSERTED.username,
-					INSERTED.user_code, INSERTED.id_department, INSERTED.position,
-					INSERTED.id_role, INSERTED.status, INSERTED.created_at
-				INTO @uout
-				VALUES (@full_name, @username, @password, @user_code, @id_department, @position, @id_role, @status);
-				SELECT * FROM @uout;
+				VALUES (@full_name, @username, @password, @user_code, @id_department, @position, @id_role, @status)
+				RETURNING id_user, full_name, username, user_code, id_department, position,
+					id_role, status, created_at
 			`);
 		appEmitter.emit('changed', {
 			resource: 'users',
@@ -134,7 +126,7 @@ async function create(req, res, next) {
 		});
 		res.status(201).json({ success: true, data: result.recordset[0] });
 	} catch (err) {
-		if (err.number === 2627)
+		if (err.code === '23505')
 			return res
 				.status(409)
 				.json({ success: false, message: 'Tên tài khoản đã tồn tại' });
@@ -171,22 +163,14 @@ async function update(req, res, next) {
 			.input('position', sql.NVarChar(100), position ?? null)
 			.input('id_role', sql.Int, id_role)
 			.input('status', sql.NVarChar(10), status ?? 'active').query(`
-				DECLARE @uout TABLE (
-					id_user INT, full_name NVARCHAR(150), username NVARCHAR(50),
-					user_code NVARCHAR(10), id_department INT, position NVARCHAR(100),
-					id_role INT, status NVARCHAR(10), updated_at DATETIMEOFFSET
-				);
 				UPDATE Users
 				SET full_name = @full_name, user_code = @user_code,
 					id_department = @id_department, position = @position,
 					id_role = @id_role, status = @status,
-					updated_at = SYSDATETIMEOFFSET()
-				OUTPUT INSERTED.id_user, INSERTED.full_name, INSERTED.username,
-					INSERTED.user_code, INSERTED.id_department, INSERTED.position,
-					INSERTED.id_role, INSERTED.status, INSERTED.updated_at
-				INTO @uout
-				WHERE id_user = @id;
-				SELECT * FROM @uout;
+					updated_at = now()
+				WHERE id_user = @id
+				RETURNING id_user, full_name, username, user_code, id_department, position,
+					id_role, status, updated_at
 			`);
 		invalidateUserCache(req.params.id);
 		// Khoá tài khoản → đăng xuất khỏi mọi thiết bị ngay
@@ -221,9 +205,7 @@ async function remove(req, res, next) {
 			});
 		const result = await pool.request().input('id_user', sql.Int, req.params.id)
 			.query(`
-				DECLARE @dout TABLE (id_user INT);
-				DELETE FROM Users OUTPUT DELETED.id_user INTO @dout WHERE id_user = @id_user;
-				SELECT * FROM @dout;
+				DELETE FROM Users WHERE id_user = @id_user RETURNING id_user
 			`);
 		if (!result.recordset.length)
 			return res

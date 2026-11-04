@@ -18,16 +18,16 @@ async function fetchRawRecords(pool, { from, to, department }) {
 			dr.report_code,
 			d.id_department,
 			d.name_department,
-			ISNULL(rdr.patient_level_1,  0) AS patient_level_1,
-			ISNULL(rdr.patient_level_2,  0) AS patient_level_2,
-			ISNULL(rdr.patient_level_3,  0) AS patient_level_3,
-			ISNULL(rdr.outpatient_cnt,   0) AS outpatient_cnt,
-			ISNULL(rdr.total_patients,   0) AS total_patients,
-			ISNULL(rdr.total_staff,      0) AS total_staff,
-			ISNULL(rdr.staff_on_duty,    0) AS staff_on_duty,
-			ISNULL(rdr.staff_long_leave, 0) AS staff_long_leave,
-			ISNULL(rdr.staff_working,
-				ISNULL(rdr.total_staff,0) - ISNULL(rdr.staff_on_duty,0) - ISNULL(rdr.staff_long_leave,0)
+			COALESCE(rdr.patient_level_1,  0) AS patient_level_1,
+			COALESCE(rdr.patient_level_2,  0) AS patient_level_2,
+			COALESCE(rdr.patient_level_3,  0) AS patient_level_3,
+			COALESCE(rdr.outpatient_cnt,   0) AS outpatient_cnt,
+			COALESCE(rdr.total_patients,   0) AS total_patients,
+			COALESCE(rdr.total_staff,      0) AS total_staff,
+			COALESCE(rdr.staff_on_duty,    0) AS staff_on_duty,
+			COALESCE(rdr.staff_long_leave, 0) AS staff_long_leave,
+			COALESCE(rdr.staff_working,
+				COALESCE(rdr.total_staff,0) - COALESCE(rdr.staff_on_duty,0) - COALESCE(rdr.staff_long_leave,0)
 			) AS staff_working,
 			d.bed_count,
 			d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total,
@@ -43,7 +43,7 @@ async function fetchRawRecords(pool, { from, to, department }) {
 			rec.outpatient_ratio AS rec_outpatient_ratio,
 			rec.fixed_add        AS rec_fixed_add
 		FROM Daily_Reports dr
-		INNER JOIN [Report_Department_Records ] rdr ON rdr.id_report = dr.id_report
+		INNER JOIN report_department_records rdr ON rdr.id_report = dr.id_report
 		LEFT JOIN  Departments d             ON d.id_department       = rdr.id_department
 		LEFT JOIN  Dept_TT03_Config tt03cfg  ON tt03cfg.id_department = rdr.id_department
 		LEFT JOIN  Dept_Recommended_Config rec ON rec.id_department   = rdr.id_department

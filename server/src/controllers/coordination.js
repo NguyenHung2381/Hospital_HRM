@@ -86,24 +86,23 @@ async function create(req, res, next) {
 			.input('staff_count', sql.SmallInt, staff_count)
 			.input('note', sql.NVarChar(300), note ?? null)
 			.input('created_by', sql.Int, req.user.id_user).query(`
-				DECLARE @out TABLE (id INT);
-				INSERT INTO Staff_Coordination_Records
-					(id_report, id_department_from, id_department_to, staff_count, note, created_by)
-				OUTPUT INSERTED.id INTO @out
-				VALUES (@id_report, @id_department_from, @id_department_to, @staff_count, @note, @created_by);
-
+				WITH o AS (
+					INSERT INTO Staff_Coordination_Records
+						(id_report, id_department_from, id_department_to, staff_count, note, created_by)
+					VALUES (@id_report, @id_department_from, @id_department_to, @staff_count, @note, @created_by)
+					RETURNING *
+				)
 				SELECT sc.id, sc.id_report, dr.report_date,
 					sc.id_department_from, df.name_department AS from_department_name,
 					sc.id_department_to, dt.name_department AS to_department_name,
 					sc.staff_count, sc.note,
 					sc.created_by, u.full_name AS created_by_name,
 					sc.created_at, sc.updated_at
-				FROM Staff_Coordination_Records sc
-				INNER JOIN @out o ON o.id = sc.id
+				FROM o sc
 				INNER JOIN Daily_Reports dr ON dr.id_report = sc.id_report
 				INNER JOIN Departments df ON df.id_department = sc.id_department_from
 				INNER JOIN Departments dt ON dt.id_department = sc.id_department_to
-				LEFT JOIN Users u ON u.id_user = sc.created_by;
+				LEFT JOIN Users u ON u.id_user = sc.created_by
 			`);
 
 		appEmitter.emit('changed', {
@@ -143,26 +142,25 @@ async function update(req, res, next) {
 			.input('id', sql.Int, req.params.id)
 			.input('staff_count', sql.SmallInt, staff_count)
 			.input('note', sql.NVarChar(300), note ?? null).query(`
-				DECLARE @out TABLE (id INT);
-				UPDATE Staff_Coordination_Records
-				SET staff_count = @staff_count,
-					note        = @note,
-					updated_at  = SYSDATETIMEOFFSET()
-				OUTPUT INSERTED.id INTO @out
-				WHERE id = @id;
-
+				WITH o AS (
+					UPDATE Staff_Coordination_Records
+					SET staff_count = @staff_count,
+						note        = @note,
+						updated_at  = now()
+					WHERE id = @id
+					RETURNING *
+				)
 				SELECT sc.id, sc.id_report, dr.report_date,
 					sc.id_department_from, df.name_department AS from_department_name,
 					sc.id_department_to, dt.name_department AS to_department_name,
 					sc.staff_count, sc.note,
 					sc.created_by, u.full_name AS created_by_name,
 					sc.created_at, sc.updated_at
-				FROM Staff_Coordination_Records sc
-				INNER JOIN @out o ON o.id = sc.id
+				FROM o sc
 				INNER JOIN Daily_Reports dr ON dr.id_report = sc.id_report
 				INNER JOIN Departments df ON df.id_department = sc.id_department_from
 				INNER JOIN Departments dt ON dt.id_department = sc.id_department_to
-				LEFT JOIN Users u ON u.id_user = sc.created_by;
+				LEFT JOIN Users u ON u.id_user = sc.created_by
 			`);
 
 		appEmitter.emit('changed', {
@@ -184,7 +182,7 @@ async function remove(req, res, next) {
 			.request()
 			.input('id', sql.Int, req.params.id)
 			.query(
-				`DELETE FROM Staff_Coordination_Records OUTPUT DELETED.id WHERE id = @id`,
+				`DELETE FROM Staff_Coordination_Records WHERE id = @id RETURNING id`,
 			);
 
 		if (!result.recordset.length)

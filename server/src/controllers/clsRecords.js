@@ -32,7 +32,7 @@ async function resolveRecommended(pool, record) {
 // Cột + JOIN dùng chung cho bản ghi CLS (getRecordsForReport, getByDepartment)
 const CLS_RECORD_SELECT = `
 	SELECT
-		rcr.Id AS id, rcr.id_report, rcr.id_department, rcr.sort_order,
+		rcr.id AS id, rcr.id_report, rcr.id_department, rcr.sort_order,
 		d.name_department AS department_name, d.code_department,
 		rcr.sample_or_visit_cnt, rcr.xray_us_cnt, rcr.ct_endoscopy_cnt,
 		rcr.mri_bonedensity_cnt, rcr.ecg_intervention_cnt, rcr.linen_media_cnt,
@@ -54,7 +54,7 @@ async function getRecordsForReport(pool, id_report) {
 		.query(`
 		${CLS_RECORD_SELECT}
 		WHERE rcr.id_report = @id_report
-		ORDER BY rcr.sort_order
+		ORDER BY rcr.sort_order NULLS FIRST
 	`);
 	return result.recordset;
 }
@@ -80,7 +80,7 @@ async function getByDepartment(req, res, next) {
 			.input('to', sql.Date, to).query(`
 				${CLS_RECORD_SELECT.replace(
 					'SELECT',
-					'SELECT CONVERT(varchar(10), dr.report_date, 23) AS report_date,',
+					"SELECT to_char(dr.report_date, 'YYYY-MM-DD') AS report_date,",
 				)}
 				INNER JOIN Daily_Reports dr ON dr.id_report = rcr.id_report
 				WHERE rcr.id_department = @dept
@@ -128,7 +128,7 @@ async function addRecord(req, res, next) {
 			.request()
 			.input('id_report', sql.Int, id)
 			.input('id_department', sql.Int, r.id_department).query(`
-				SELECT Id FROM Report_CLS_Records
+				SELECT id FROM Report_CLS_Records
 				WHERE id_report = @id_report AND id_department = @id_department
 			`);
 		if (dup.recordset.length)
@@ -141,7 +141,7 @@ async function addRecord(req, res, next) {
 			.request()
 			.input('id_report', sql.Int, id)
 			.query(
-				`SELECT ISNULL(MAX(sort_order), 0) + 1 AS next_order FROM Report_CLS_Records WHERE id_report = @id_report`,
+				`SELECT COALESCE(MAX(sort_order), 0) + 1 AS next_order FROM Report_CLS_Records WHERE id_report = @id_report`,
 			);
 		const nextOrder = sortRes.recordset[0].next_order;
 
@@ -206,7 +206,6 @@ async function addRecord(req, res, next) {
 			.input('coordination', sql.SmallInt, r.coordination ?? null)
 			.input('note', sql.NVarChar(sql.MAX), r.note ?? null)
 			.input('created_by', sql.Int, req.user.id_user).query(`
-				DECLARE @out TABLE (Id INT);
 				INSERT INTO Report_CLS_Records
 					(id_report, id_department, sort_order,
 					sample_or_visit_cnt, xray_us_cnt, ct_endoscopy_cnt, mri_bonedensity_cnt,
@@ -216,8 +215,7 @@ async function addRecord(req, res, next) {
 					pending_tool_metal_cnt, pending_tool_plastic_cnt,
 					total_staff, staff_on_duty, staff_long_leave, staff_working, work_ratio,
 					recommended_staff, coordination, note, created_by)
-				OUTPUT INSERTED.Id INTO @out
-				VALUES
+					VALUES
 					(@id_report, @id_department, @sort_order,
 					@sample_or_visit_cnt, @xray_us_cnt, @ct_endoscopy_cnt, @mri_bonedensity_cnt,
 					@ecg_intervention_cnt, @linen_media_cnt, @tool_metal_cnt, @tool_plastic_cnt, @supervised_dept_cnt,
@@ -225,8 +223,8 @@ async function addRecord(req, res, next) {
 					@pending_mri_bonedensity_cnt, @pending_ecg_intervention_cnt, @pending_linen_cnt,
 					@pending_tool_metal_cnt, @pending_tool_plastic_cnt,
 					@total_staff, @staff_on_duty, @staff_long_leave, @staff_working, @work_ratio,
-					@recommended_staff, @coordination, @note, @created_by);
-				SELECT * FROM @out;
+					@recommended_staff, @coordination, @note, @created_by)
+					RETURNING id
 			`);
 
 		appEmitter.emit('changed', {
@@ -237,7 +235,7 @@ async function addRecord(req, res, next) {
 		res.status(201).json({
 			success: true,
 			message: 'Đã thêm bản ghi khoa CLS thành công',
-			data: { id: result.recordset[0].Id, recommended_staff: recommended },
+			data: { id: result.recordset[0].id, recommended_staff: recommended },
 		});
 	} catch (err) {
 		next(err);
@@ -254,7 +252,7 @@ async function updateRecord(req, res, next) {
 		const deptRes = await pool
 			.request()
 			.input('id', sql.Int, recordId)
-			.query(`SELECT id_department FROM Report_CLS_Records WHERE Id = @id`);
+			.query(`SELECT id_department FROM Report_CLS_Records WHERE id = @id`);
 
 		if (!deptRes.recordset.length)
 			return res
@@ -330,7 +328,6 @@ async function updateRecord(req, res, next) {
 			.input('recommended_staff', sql.SmallInt, recommended)
 			.input('coordination', sql.SmallInt, r.coordination ?? null)
 			.input('note', sql.NVarChar(sql.MAX), r.note ?? null).query(`
-				DECLARE @out TABLE (Id INT);
 				UPDATE Report_CLS_Records
 				SET sample_or_visit_cnt        = @sample_or_visit_cnt,
 					xray_us_cnt                = @xray_us_cnt,
@@ -357,12 +354,9 @@ async function updateRecord(req, res, next) {
 					recommended_staff          = @recommended_staff,
 					coordination               = @coordination,
 					note                       = @note,
-					updated_at                 = SYSDATETIMEOFFSET()
-				OUTPUT INSERTED.Id INTO @out
-				WHERE Id = @id AND id_report = @id_report;
-				SELECT rcr.*
-				FROM Report_CLS_Records rcr
-				INNER JOIN @out o ON o.Id = rcr.Id;
+					updated_at                 = now()
+					WHERE id = @id AND id_report = @id_report
+					RETURNING *
 			`);
 
 		if (!result.recordset.length)
@@ -390,7 +384,7 @@ async function removeRecord(req, res, next) {
 		const deptRes = await pool
 			.request()
 			.input('id', sql.Int, recordId)
-			.query(`SELECT id_department FROM Report_CLS_Records WHERE Id = @id`);
+			.query(`SELECT id_department FROM Report_CLS_Records WHERE id = @id`);
 		if (!deptRes.recordset.length)
 			return res
 				.status(404)
@@ -410,11 +404,9 @@ async function removeRecord(req, res, next) {
 			.request()
 			.input('id', sql.Int, recordId)
 			.input('id_report', sql.Int, id).query(`
-				DECLARE @dout TABLE (Id INT);
 				DELETE FROM Report_CLS_Records
-				OUTPUT DELETED.Id INTO @dout
-				WHERE Id = @id AND id_report = @id_report;
-				SELECT * FROM @dout;
+				WHERE id = @id AND id_report = @id_report
+				RETURNING id
 			`);
 		if (!result.recordset.length)
 			return res

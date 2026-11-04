@@ -175,9 +175,9 @@ async function getDeptPermissions(req, res, next) {
 		if (department_access_type === 'all') {
 			const r = await pool.request().query(`
 				SELECT id_department, name_department,
-					CAST(1 AS BIT) AS can_edit,
-					CAST(1 AS BIT) AS can_delete,
-					CAST(1 AS BIT) AS can_export
+					true AS can_edit,
+					true AS can_delete,
+					true AS can_export
 				FROM Departments WHERE status = 'active' ORDER BY id_department ASC
 			`);
 			return res.json({ success: true, data: r.recordset });
@@ -190,9 +190,9 @@ async function getDeptPermissions(req, res, next) {
 				.input('id', sql.Int, req.params.id)
 				.input('id_department', sql.Int, id_department ?? null).query(`
 					SELECT DISTINCT d.id_department, d.name_department,
-						CAST(COALESCE(udp.can_edit,   1) AS BIT) AS can_edit,
-						CAST(COALESCE(udp.can_delete, 0) AS BIT) AS can_delete,
-						CAST(COALESCE(udp.can_export, 1) AS BIT) AS can_export
+						COALESCE(udp.can_edit,   true)  AS can_edit,
+						COALESCE(udp.can_delete, false) AS can_delete,
+						COALESCE(udp.can_export, true)  AS can_export
 					FROM Departments d
 					LEFT JOIN User_Dept_Permissions udp
 						ON udp.id_department = d.id_department AND udp.id_user = @id
@@ -216,9 +216,9 @@ async function getDeptPermissions(req, res, next) {
 			.input('id', sql.Int, req.params.id)
 			.input('id_department', sql.Int, id_department).query(`
 				SELECT d.id_department, d.name_department,
-					CAST(COALESCE(udp.can_edit,   1) AS BIT) AS can_edit,
-					CAST(COALESCE(udp.can_delete, 0) AS BIT) AS can_delete,
-					CAST(COALESCE(udp.can_export, 0) AS BIT) AS can_export
+					COALESCE(udp.can_edit,   true)  AS can_edit,
+					COALESCE(udp.can_delete, false) AS can_delete,
+					COALESCE(udp.can_export, false) AS can_export
 				FROM Departments d
 				LEFT JOIN User_Dept_Permissions udp
 					ON udp.id_department = d.id_department AND udp.id_user = @id

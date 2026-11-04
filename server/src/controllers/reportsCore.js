@@ -14,7 +14,7 @@ const { isAdmin } = require('../middleware/auth');
 // Cột + JOIN dùng chung cho bản ghi khoa (getById, getByDepartment)
 const RECORD_SELECT = `
 	SELECT
-		rdr.Id AS id, rdr.id_report, rdr.id_department, rdr.sort_order,
+		rdr.id AS id, rdr.id_report, rdr.id_department, rdr.sort_order,
 		d.name_department AS department_name,
 		d.bed_count, d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total,
 		rdr.patient_level_1, rdr.patient_level_2, rdr.patient_level_3,
@@ -44,9 +44,9 @@ const RECORD_SELECT = `
 		rc.fixed_add            AS rec_fixed_add,
 		rdr.coordination, rdr.note,
 		rdr.created_at, rdr.updated_at
-	FROM [Report_Department_Records ] rdr
+	FROM report_department_records rdr
 	LEFT JOIN Departments d ON d.id_department = rdr.id_department
-	LEFT JOIN vw_TT03_Recommended v ON v.record_id = rdr.Id
+	LEFT JOIN vw_TT03_Recommended v ON v.record_id = rdr.id
 	LEFT JOIN Dept_Recommended_Config rc ON rc.id_department = rdr.id_department
 	LEFT JOIN Dept_TT03_Config tt03cfg ON tt03cfg.id_department = rdr.id_department
 `;
@@ -71,10 +71,10 @@ async function getAll(req, res, next) {
 		const result = await request.query(`
 			SELECT dr.id_report, dr.report_code, dr.report_date, dr.created_at, dr.updated_at,
 				u.full_name AS created_by_name,
-				CASE WHEN EXISTS (
-					SELECT 1 FROM [Report_Department_Records ] rdr
+				EXISTS (
+					SELECT 1 FROM report_department_records rdr
 					WHERE rdr.id_report = dr.id_report
-				) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS has_records
+				) AS has_records
 			FROM Daily_Reports dr
 			LEFT JOIN Users u ON u.id_user = dr.created_by
 			${whereClause}
@@ -102,7 +102,7 @@ async function getById(req, res, next) {
 			pool.request().input('id_report', sql.Int, req.params.id).query(`
 				${RECORD_SELECT}
 				WHERE rdr.id_report = @id_report
-				ORDER BY rdr.sort_order
+				ORDER BY rdr.sort_order NULLS FIRST
 			`),
 			getClsRecordsForReport(pool, req.params.id),
 		]);
@@ -148,7 +148,7 @@ async function getByDepartment(req, res, next) {
 			.input('to', sql.Date, to).query(`
 				${RECORD_SELECT.replace(
 					'SELECT',
-					'SELECT CONVERT(varchar(10), dr.report_date, 23) AS report_date,',
+					"SELECT to_char(dr.report_date, 'YYYY-MM-DD') AS report_date,",
 				)}
 				INNER JOIN Daily_Reports dr ON dr.id_report = rdr.id_report
 				WHERE rdr.id_department = @dept
@@ -215,13 +215,9 @@ async function create(req, res, next) {
 				.input('report_date', sql.Date, report_date)
 				.input('report_code', sql.NVarChar(50), report_code ?? null)
 				.input('created_by', sql.Int, req.user.id_user).query(`
-					DECLARE @tmp TABLE (id_report INT);
 					INSERT INTO Daily_Reports (report_date, report_code, created_by)
-					OUTPUT INSERTED.id_report INTO @tmp
-					VALUES (@report_date, @report_code, @created_by);
-					SELECT dr.id_report, dr.report_date, dr.report_code, dr.created_at
-					FROM Daily_Reports dr
-					INNER JOIN @tmp t ON t.id_report = dr.id_report;
+					VALUES (@report_date, @report_code, @created_by)
+					RETURNING id_report, report_date, report_code, created_at
 				`);
 
 			const id_report = reportResult.recordset[0].id_report;
@@ -238,22 +234,22 @@ async function create(req, res, next) {
 						.input('id_report', sql.Int, id_report)
 						.input('id_department', sql.Int, r.id_department ?? null)
 						.input('sort_order', sql.SmallInt, r.sort_order ?? null)
-						.input('patient_level_1', sql.Decimal(10, 4), r.patient_level_1 ?? null)
-						.input('patient_level_2', sql.Decimal(10, 4), r.patient_level_2 ?? null)
-						.input('patient_level_3', sql.Decimal(10, 4), r.patient_level_3 ?? null)
-						.input('total_patients', sql.Decimal(10, 4), r.total_patients ?? null)
-						.input('outpatient_cnt', sql.Decimal(10, 4), r.outpatient_cnt ?? null)
-						.input('total_staff', sql.Decimal(10, 4), r.total_staff ?? null)
+						.input('patient_level_1', sql.SmallInt, r.patient_level_1 ?? null)
+						.input('patient_level_2', sql.SmallInt, r.patient_level_2 ?? null)
+						.input('patient_level_3', sql.SmallInt, r.patient_level_3 ?? null)
+						.input('total_patients', sql.SmallInt, r.total_patients ?? null)
+						.input('outpatient_cnt', sql.SmallInt, r.outpatient_cnt ?? null)
+						.input('total_staff', sql.SmallInt, r.total_staff ?? null)
 						.input('staff_on_duty', sql.Decimal(10, 4), r.staff_on_duty ?? null)
 						.input('staff_long_leave', sql.Decimal(10, 4), r.staff_long_leave ?? null)
 						.input('staff_working', sql.Decimal(10, 4), r.staff_working ?? null)
 						.input('tt03_ratio', sql.Decimal(10, 4), r.tt03_ratio ?? null)
-						.input('recommended_staff', sql.Decimal(10, 4), recommended)
-						.input('recommended_staff_calc', sql.Decimal(10, 4), recommendedCalc)
-						.input('coordination', sql.Decimal(10, 4), r.coordination ?? null)
+						.input('recommended_staff', sql.SmallInt, recommended)
+						.input('recommended_staff_calc', sql.SmallInt, recommendedCalc)
+						.input('coordination', sql.SmallInt, r.coordination ?? null)
 						.input('note', sql.NVarChar(sql.MAX), r.note ?? null)
 						.input('created_by', sql.Int, req.user.id_user).query(`
-							INSERT INTO [Report_Department_Records ]
+							INSERT INTO report_department_records
 								(id_report, id_department, sort_order,
 								patient_level_1, patient_level_2, patient_level_3,
 								total_patients, outpatient_cnt, total_staff, staff_on_duty,
@@ -283,7 +279,7 @@ async function create(req, res, next) {
 			throw err;
 		}
 	} catch (err) {
-		if (err.number === 2627)
+		if (err.code === '23505')
 			return res
 				.status(409)
 				.json({ success: false, message: 'Báo cáo ngày này đã tồn tại' });
@@ -299,19 +295,22 @@ async function remove(req, res, next) {
 		// Xoá cả báo cáo ngày = xoá dữ liệu của MỌI khoa trong báo cáo → chỉ cho
 		// phép khi user có quyền xoá (can_delete) trên tất cả các khoa đó; điều
 		// phối nhân lực chỉ Quản trị hệ thống được xoá.
-		const deptRes = await pool
-			.request()
-			.input('id_report', sql.Int, req.params.id).query(`
-				SELECT id_department FROM [Report_Department_Records ] WHERE id_report = @id_report
+		// PostgreSQL không chạy nhiều câu có tham số trong 1 lần gọi → tách 2 query
+		const [deptRes, coordRes] = await Promise.all([
+			pool.request().input('id_report', sql.Int, req.params.id).query(`
+				SELECT id_department FROM report_department_records WHERE id_report = @id_report
 				UNION
-				SELECT id_department FROM Report_CLS_Records WHERE id_report = @id_report;
-				SELECT COUNT(*) AS cnt FROM Staff_Coordination_Records WHERE id_report = @id_report;
-			`);
+				SELECT id_department FROM Report_CLS_Records WHERE id_report = @id_report
+			`),
+			pool.request().input('id_report', sql.Int, req.params.id).query(`
+				SELECT COUNT(*) AS cnt FROM Staff_Coordination_Records WHERE id_report = @id_report
+			`),
+		]);
 		const access = await loadUserDeptAccess(pool, req.user);
-		const deniedDept = deptRes.recordsets[0].find(
+		const deniedDept = deptRes.recordset.find(
 			(r) => r.id_department != null && !canAccessDept(access, r.id_department, 'can_delete'),
 		);
-		if (deniedDept || (deptRes.recordsets[1][0].cnt > 0 && !isAdmin(req.user)))
+		if (deniedDept || (coordRes.recordset[0].cnt > 0 && !isAdmin(req.user)))
 			return res.status(403).json({
 				success: false,
 				message: 'Bạn không có quyền xoá dữ liệu của một hoặc nhiều khoa trong báo cáo này',
@@ -320,9 +319,7 @@ async function remove(req, res, next) {
 		const result = await pool
 			.request()
 			.input('id_report', sql.Int, req.params.id).query(`
-				DECLARE @dout TABLE (id_report INT);
-				DELETE FROM Daily_Reports OUTPUT DELETED.id_report INTO @dout WHERE id_report = @id_report;
-				SELECT * FROM @dout;
+				DELETE FROM Daily_Reports WHERE id_report = @id_report RETURNING id_report
 			`);
 
 		if (!result.recordset.length)

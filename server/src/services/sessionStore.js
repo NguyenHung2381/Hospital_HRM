@@ -21,7 +21,7 @@ async function createSession({ jti, id_user, expiresAt, ip, userAgent }) {
 		.input('user_agent', sql.NVarChar(255), userAgent ? String(userAgent).slice(0, 255) : null)
 		.query(`
 			INSERT INTO UserSessions (jti, id_user, ip_address, user_agent, expires_at, last_seen_at)
-			VALUES (@jti, @id_user, @ip_address, @user_agent, @expires_at, SYSUTCDATETIME())
+			VALUES (@jti, @id_user, @ip_address, @user_agent, @expires_at, now())
 		`);
 }
 
@@ -35,9 +35,9 @@ async function isSessionActive(jti, id_user) {
 
 	const pool = await getPool();
 	const result = await pool.request().input('jti', sql.Char(32), jti).query(`
-		UPDATE UserSessions SET last_seen_at = SYSUTCDATETIME()
-		OUTPUT INSERTED.id_user
-		WHERE jti = @jti AND revoked_at IS NULL AND expires_at > SYSUTCDATETIME()
+		UPDATE UserSessions SET last_seen_at = now()
+		WHERE jti = @jti AND revoked_at IS NULL AND expires_at > now()
+		RETURNING id_user
 	`);
 	const row = result.recordset[0];
 	const active = !!row;
@@ -64,7 +64,7 @@ async function revokeSession(jti, id_user = null) {
 		filter = ' AND id_user = @id_user';
 	}
 	const result = await request.query(`
-		UPDATE UserSessions SET revoked_at = SYSUTCDATETIME()
+		UPDATE UserSessions SET revoked_at = now()
 		WHERE jti = @jti AND revoked_at IS NULL${filter}
 	`);
 	sessionCache.delete(jti);
@@ -79,7 +79,7 @@ async function revokeAllSessions(id_user, exceptJti = null) {
 		.request()
 		.input('id_user', sql.Int, id_user)
 		.input('except', sql.Char(32), exceptJti).query(`
-			UPDATE UserSessions SET revoked_at = SYSUTCDATETIME()
+			UPDATE UserSessions SET revoked_at = now()
 			WHERE id_user = @id_user AND revoked_at IS NULL
 			  AND (@except IS NULL OR jti <> @except)
 		`);
@@ -92,7 +92,7 @@ async function listSessions(id_user) {
 	const result = await pool.request().input('id_user', sql.Int, id_user).query(`
 		SELECT jti, ip_address, user_agent, created_at, last_seen_at, expires_at
 		FROM UserSessions
-		WHERE id_user = @id_user AND revoked_at IS NULL AND expires_at > SYSUTCDATETIME()
+		WHERE id_user = @id_user AND revoked_at IS NULL AND expires_at > now()
 		ORDER BY COALESCE(last_seen_at, created_at) DESC
 	`);
 	return result.recordset;
@@ -108,7 +108,7 @@ async function listActiveSessions({ id_user = null } = {}) {
 		FROM UserSessions s
 		JOIN Users u ON u.id_user = s.id_user
 		LEFT JOIN Roles r ON r.id_role = u.id_role
-		WHERE s.revoked_at IS NULL AND s.expires_at > SYSUTCDATETIME()
+		WHERE s.revoked_at IS NULL AND s.expires_at > now()
 		  AND (@id_user IS NULL OR s.id_user = @id_user)
 		ORDER BY COALESCE(s.last_seen_at, s.created_at) DESC
 	`);

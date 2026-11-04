@@ -25,7 +25,7 @@ async function findTrustedDevice(pool, req, id_user) {
 		.input('days', sql.Int, DEVICE_TRUST_DAYS).query(`
 			SELECT device_id, id_user, failed_count FROM TrustedDevices
 			WHERE device_id = @device_id AND id_user = @id_user
-				AND last_used_at > DATEADD(DAY, -@days, SYSUTCDATETIME())
+				AND last_used_at > now() - make_interval(days => @days)
 		`);
 	return result.recordset[0] || null;
 }
@@ -39,13 +39,9 @@ async function trustDevice(req, res, id_user) {
 		.request()
 		.input('device_id', sql.Char(32), deviceId)
 		.input('id_user', sql.Int, id_user).query(`
-			MERGE TrustedDevices WITH (HOLDLOCK) AS t
-			USING (SELECT @device_id AS device_id, @id_user AS id_user) AS s
-				ON t.device_id = s.device_id AND t.id_user = s.id_user
-			WHEN MATCHED THEN
-				UPDATE SET failed_count = 0, last_used_at = SYSUTCDATETIME()
-			WHEN NOT MATCHED THEN
-				INSERT (device_id, id_user) VALUES (s.device_id, s.id_user);
+			INSERT INTO TrustedDevices (device_id, id_user) VALUES (@device_id, @id_user)
+			ON CONFLICT (device_id, id_user)
+			DO UPDATE SET failed_count = 0, last_used_at = now()
 		`);
 	setDeviceCookie(req, res, deviceId, DEVICE_TRUST_DAYS * 24 * 60 * 60 * 1000);
 }
@@ -58,8 +54,8 @@ async function recordDeviceFailure(pool, req, device, reason) {
 		.input('device_id', sql.Char(32), device.device_id)
 		.input('id_user', sql.Int, device.id_user).query(`
 			UPDATE TrustedDevices SET failed_count = failed_count + 1
-			OUTPUT INSERTED.failed_count
 			WHERE device_id = @device_id AND id_user = @id_user
+			RETURNING failed_count
 		`);
 	const count = result.recordset[0]?.failed_count ?? 0;
 	if (count < MAX_DEVICE_FAILED_ATTEMPTS) return;

@@ -45,7 +45,7 @@ async function resetPassword(req, res, next) {
 			.input('password', sql.NVarChar(255), hashedPassword)
 			.query(
 				`UPDATE Users SET password = @password, failed_login_count = 0, locked_until = NULL,
-					lockout_level = 0, updated_at = SYSDATETIMEOFFSET()
+					lockout_level = 0, updated_at = now()
 				 WHERE id_user = @id`,
 			);
 		invalidateUserCache(target.id_user);
@@ -120,7 +120,7 @@ async function changePassword(req, res, next) {
 			.input('id', sql.Int, req.params.id)
 			.input('new_password', sql.NVarChar(255), hashedNewPassword)
 			.query(
-				`UPDATE Users SET password = @new_password, updated_at = SYSDATETIMEOFFSET() WHERE id_user = @id`,
+				`UPDATE Users SET password = @new_password, updated_at = now() WHERE id_user = @id`,
 			);
 		invalidateUserCache(found.id_user);
 
@@ -178,9 +178,9 @@ async function reset2FA(req, res, next) {
 			.request()
 			.input('id', sql.Int, target.id_user)
 			.query(
-				`UPDATE Users SET totp_secret = NULL, totp_enabled = 0,
+				`UPDATE Users SET totp_secret = NULL, totp_enabled = false,
 					totp_verified_at = NULL, totp_last_step = NULL,
-					updated_at = SYSDATETIMEOFFSET()
+					updated_at = now()
 				 WHERE id_user = @id`,
 			);
 		await sessionStore.revokeAllSessions(target.id_user);

@@ -92,8 +92,8 @@ async function create(req, res, next) {
 				department_access_type ?? 'own',
 			).query(`
 				INSERT INTO Roles (name_role, description, icon, color, is_system, department_access_type)
-				OUTPUT INSERTED.*
 				VALUES (@name_role, @description, @icon, @color, @is_system, @department_access_type)
+				RETURNING *
 			`);
 
 		appEmitter.emit('changed', {
@@ -158,9 +158,9 @@ async function update(req, res, next) {
 				UPDATE Roles
 				SET name_role = @name_role, description = @description, icon = @icon,
 					color = @color, department_access_type = @department_access_type,
-					updated_at = SYSDATETIMEOFFSET()
-				OUTPUT INSERTED.*
+					updated_at = now()
 				WHERE id_role = @id_role
+				RETURNING *
 			`);
 
 		invalidateUserCache(); // tên vai trò quyết định quyền của mọi user thuộc vai trò

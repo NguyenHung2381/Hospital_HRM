@@ -134,7 +134,6 @@ async function create(req, res, next) {
 		await transaction.begin();
 
 		try {
-			// Dùng @out TABLE variable để tránh lỗi trigger + OUTPUT clause
 			const result = await transaction
 				.request()
 				.input('name_department', sql.NVarChar(sql.MAX), name)
@@ -146,19 +145,14 @@ async function create(req, res, next) {
 				.input('coef_total', sql.Decimal(5, 4), coef_total ?? 0.12)
 				.input('total_staff', sql.SmallInt, total_staff ?? null)
 				.input('status', sql.NVarChar(10), status ?? 'active').query(`
-					DECLARE @out TABLE (id_department INT);
 					INSERT INTO Departments
 						(name_department, code_department, bed_count, coef_level_1, coef_level_2,
 						coef_level_3, coef_total, total_staff, status)
-					OUTPUT INSERTED.id_department INTO @out
 					VALUES (@name_department, @code_department, @bed_count, @coef_level_1, @coef_level_2,
-						@coef_level_3, @coef_total, @total_staff, @status);
-
-					SELECT d.id_department, d.name_department, d.code_department, d.bed_count,
-						d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total,
-						d.total_staff, d.status, d.created_at, d.updated_at
-					FROM Departments d
-					INNER JOIN @out o ON d.id_department = o.id_department;
+						@coef_level_3, @coef_total, @total_staff, @status)
+					RETURNING id_department, name_department, code_department, bed_count,
+						coef_level_1, coef_level_2, coef_level_3, coef_total,
+						total_staff, status, created_at, updated_at
 				`);
 
 			const newDept = result.recordset[0];
@@ -187,7 +181,7 @@ async function create(req, res, next) {
 			throw err;
 		}
 	} catch (err) {
-		if (err.number === 2627 || err.number === 2601)
+		if (err.code === '23505')
 			return res.status(409).json({
 				success: false,
 				message: 'Mã khoa đã tồn tại, vui lòng chọn mã khác',
@@ -223,7 +217,6 @@ async function update(req, res, next) {
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy khoa' });
 
-		// Dùng @out TABLE variable để tránh lỗi trigger + OUTPUT clause
 		const result = await pool
 			.request()
 			.input('id_department', sql.Int, req.params.id)
@@ -236,21 +229,16 @@ async function update(req, res, next) {
 			.input('coef_total', sql.Decimal(5, 4), coef_total ?? 0.12)
 			.input('total_staff', sql.SmallInt, total_staff ?? null)
 			.input('status', sql.NVarChar(10), status ?? 'active').query(`
-				DECLARE @out TABLE (id_department INT);
 				UPDATE Departments
 				SET name_department = @name_department, code_department = @code_department,
 					bed_count = @bed_count, coef_level_1 = @coef_level_1,
 					coef_level_2 = @coef_level_2, coef_level_3 = @coef_level_3,
 					coef_total = @coef_total, total_staff = @total_staff, status = @status,
-					updated_at = SYSDATETIMEOFFSET()
-				OUTPUT INSERTED.id_department INTO @out
-				WHERE id_department = @id_department;
-
-				SELECT d.id_department, d.name_department, d.code_department, d.bed_count,
-					d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total,
-					d.total_staff, d.status, d.created_at, d.updated_at
-				FROM Departments d
-				INNER JOIN @out o ON d.id_department = o.id_department;
+					updated_at = now()
+					WHERE id_department = @id_department
+					RETURNING id_department, name_department, code_department, bed_count,
+						coef_level_1, coef_level_2, coef_level_3, coef_total,
+						total_staff, status, created_at, updated_at
 			`);
 
 		appEmitter.emit('changed', {
@@ -260,7 +248,7 @@ async function update(req, res, next) {
 		});
 		res.json({ success: true, data: result.recordset[0] });
 	} catch (err) {
-		if (err.number === 2627 || err.number === 2601)
+		if (err.code === '23505')
 			return res.status(409).json({
 				success: false,
 				message: 'Mã khoa đã tồn tại, vui lòng chọn mã khác',
@@ -277,7 +265,7 @@ async function remove(req, res, next) {
 			.request()
 			.input('id_department', sql.Int, req.params.id)
 			.query(
-				`DELETE FROM Departments OUTPUT DELETED.id_department WHERE id_department = @id_department`,
+				`DELETE FROM Departments WHERE id_department = @id_department RETURNING id_department`,
 			);
 
 		if (!result.recordset.length)
@@ -292,7 +280,7 @@ async function remove(req, res, next) {
 		});
 		res.json({ success: true, message: 'Đã xoá khoa thành công' });
 	} catch (err) {
-		if (err.number === 547)
+		if (err.code === '23503')
 			return res.status(409).json({
 				success: false,
 				message:

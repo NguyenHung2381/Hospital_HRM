@@ -33,12 +33,39 @@ types.setTypeParser(types.builtins.INT8, (v) => {
 // → lệch ngày khi TZ=Asia/Ho_Chi_Minh. Giữ đúng hành vi cũ.
 types.setTypeParser(types.builtins.DATE, (v) => (v === null ? null : new Date(`${v}T00:00:00Z`)));
 
+// ── Ép giá trị tham số giống driver cũ (tedious) ────────────────────────────
+// Int/SmallInt/TinyInt: Number() rồi CẮT phần thập phân (7.6 → 7, '' → 0),
+// ngoài khoảng / không phải số → TypeError trước khi gửi DB. Không làm vậy thì
+// PostgreSQL làm tròn (7.6 → 8) hoặc báo lỗi cú pháp.
+function intCoercer(min, max) {
+	return (value) => {
+		const n = typeof value === 'number' ? value : Number(value);
+		if (Number.isNaN(n)) throw new TypeError('Invalid number.');
+		if (n < min || n > max)
+			throw new TypeError(`Value must be between ${min} and ${max}, inclusive.`);
+		return Math.trunc(n);
+	};
+}
+const COERCE = {
+	Int: intCoercer(-2147483648, 2147483647),
+	SmallInt: intCoercer(-32768, 32767),
+	TinyInt: intCoercer(0, 255),
+	BigInt: intCoercer(Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER),
+	// Bit: mọi giá trị truthy → true (1, '1', true...), falsy → false
+	Bit: (value) => !!value,
+};
+// BigInt: chuỗi toàn chữ số giữ nguyên (không mất chính xác khi > 2^53)
+const coerceBigIntNumber = COERCE.BigInt;
+COERCE.BigInt = (value) =>
+	typeof value === 'string' && /^-?\d+$/.test(value) ? value : coerceBigIntNumber(value);
+
 // ── sql.Type: gọi được cả dạng sql.Int lẫn sql.NVarChar(50) / sql.Decimal(5, 4) ─
 function makeType(name, pgType) {
 	const t = () => t;
 	Object.defineProperties(t, {
 		typeName: { value: name },
 		pgType: { value: pgType },
+		coerce: { value: COERCE[name] || null },
 	});
 	return t;
 }
@@ -48,6 +75,7 @@ const sql = {
 	Int: makeType('Int', 'integer'),
 	SmallInt: makeType('SmallInt', 'smallint'),
 	TinyInt: makeType('TinyInt', 'smallint'),
+	// BigInt: giữ chuỗi chữ số dài (vd cursor id) nguyên vẹn, chỉ ép khi là number lẻ
 	BigInt: makeType('BigInt', 'bigint'),
 	Bit: makeType('Bit', 'boolean'),
 	Decimal: makeType('Decimal', 'numeric'),
@@ -164,6 +192,7 @@ class Request {
 			type = null;
 		}
 		const key = String(name).replace(/^@/, '');
+		if (value != null && type?.coerce) value = type.coerce(value);
 		this._params.set(key, { value, pgType: type?.pgType ?? null });
 		return this;
 	}

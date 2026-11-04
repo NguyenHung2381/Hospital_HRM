@@ -23,9 +23,9 @@ async function loadUserDeptAccess(pool, user) {
 		.request()
 		.input('id_user', sql.Int, user.id_user).query(`
 			SELECT uda.id_department,
-				COALESCE(udp.can_edit,   1) AS can_edit,
-				COALESCE(udp.can_delete, 0) AS can_delete,
-				COALESCE(udp.can_export, 1) AS can_export
+				COALESCE(udp.can_edit,   true)  AS can_edit,
+				COALESCE(udp.can_delete, false) AS can_delete,
+				COALESCE(udp.can_export, true)  AS can_export
 			FROM User_Department_Access uda
 			LEFT JOIN User_Dept_Permissions udp
 				ON udp.id_department = uda.id_department AND udp.id_user = uda.id_user

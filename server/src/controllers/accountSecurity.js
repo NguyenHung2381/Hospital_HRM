@@ -50,7 +50,7 @@ async function setup2FA(req, res, next) {
 			.input('id', sql.Int, me.id_user)
 			.input('secret', sql.NVarChar(255), setup.secret)
 			.query(
-				`UPDATE Users SET totp_secret = @secret, totp_enabled = 0,
+				`UPDATE Users SET totp_secret = @secret, totp_enabled = false,
 					totp_verified_at = NULL, totp_last_step = NULL
 				 WHERE id_user = @id`,
 			);
@@ -84,7 +84,7 @@ async function verifySetup2FA(req, res, next) {
 			.input('id', sql.Int, me.id_user)
 			.input('step', sql.BigInt, timeStep)
 			.query(
-				`UPDATE Users SET totp_enabled = 1, totp_verified_at = SYSUTCDATETIME(),
+				`UPDATE Users SET totp_enabled = true, totp_verified_at = now(),
 					totp_last_step = @step
 				 WHERE id_user = @id`,
 			);
@@ -115,7 +115,7 @@ async function disable2FA(req, res, next) {
 			.request()
 			.input('id', sql.Int, me.id_user)
 			.query(
-				`UPDATE Users SET totp_secret = NULL, totp_enabled = 0,
+				`UPDATE Users SET totp_secret = NULL, totp_enabled = false,
 					totp_verified_at = NULL, totp_last_step = NULL
 				 WHERE id_user = @id`,
 			);

@@ -58,11 +58,12 @@ async function listSecurityEvents(req, res, next) {
 			where.push('e.actor_id = @actor_id');
 		}
 		const result = await request.query(`
-			SELECT TOP (@limit) e.*, u.username AS actor_username
+			SELECT e.*, u.username AS actor_username
 			FROM SecurityEvents e
 			LEFT JOIN Users u ON u.id_user = e.actor_id
 			WHERE ${where.join(' AND ')}
 			ORDER BY e.id DESC
+			LIMIT @limit
 		`);
 		const data = result.recordset;
 		const next_cursor = data.length === limit ? String(data[data.length - 1].id) : null;

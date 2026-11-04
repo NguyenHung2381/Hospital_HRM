@@ -24,6 +24,8 @@ function lockedMinutesLeft(user) {
 // Tăng bộ đếm atomically trong DB (tránh 2 request song song cùng đọc 1 giá
 // trị cũ) — đủ ngưỡng thì khoá theo bậc hiện tại, tăng bậc và reset bộ đếm.
 // Trả về số phút bị khoá nếu lần sai này làm tài khoản bị khoá, ngược lại 0.
+// FOR UPDATE: khoá dòng và đọc lại giá trị MỚI NHẤT nếu request khác vừa cập
+// nhật xong, nên prev_count không bị đọc trùng khi sai mật khẩu song song.
 async function recordFailedAttempt(pool, req, user, reason) {
 	const maxLevel = LOCK_MINUTES_BY_LEVEL.length - 1;
 	const result = await pool
@@ -31,23 +33,28 @@ async function recordFailedAttempt(pool, req, user, reason) {
 		.input('id', sql.Int, user.id_user)
 		.input('max', sql.Int, MAX_FAILED_LOGIN_ATTEMPTS)
 		.input('decay_hours', sql.Int, LOCKOUT_LEVEL_DECAY_HOURS).query(`
-			UPDATE u SET
-				locked_until = CASE WHEN u.failed_login_count + 1 >= @max
-					THEN DATEADD(MINUTE, CHOOSE(x.lvl + 1, ${LOCK_MINUTES_BY_LEVEL.join(', ')}), SYSUTCDATETIME())
+			WITH x AS (
+				SELECT id_user, failed_login_count AS prev_count,
+					CASE WHEN locked_until IS NULL
+							OR locked_until < now() - make_interval(hours => @decay_hours)
+						THEN 0 ELSE lockout_level END AS lvl
+				FROM users
+				WHERE id_user = @id
+				FOR UPDATE
+			)
+			UPDATE users u SET
+				locked_until = CASE WHEN x.prev_count + 1 >= @max
+					THEN now() + make_interval(mins => (ARRAY[${LOCK_MINUTES_BY_LEVEL.join(', ')}])[x.lvl + 1])
 					ELSE u.locked_until END,
-				lockout_level = CASE WHEN u.failed_login_count + 1 >= @max
-					THEN CASE WHEN x.lvl < ${maxLevel} THEN x.lvl + 1 ELSE ${maxLevel} END
+				lockout_level = CASE WHEN x.prev_count + 1 >= @max
+					THEN LEAST(x.lvl + 1, ${maxLevel})
 					ELSE x.lvl END,
-				failed_login_count = CASE WHEN u.failed_login_count + 1 >= @max
-					THEN 0 ELSE u.failed_login_count + 1 END
-			OUTPUT DELETED.failed_login_count AS prev_count,
-				DATEDIFF(SECOND, SYSUTCDATETIME(), INSERTED.locked_until) AS lock_seconds
-			FROM Users u
-			CROSS APPLY (SELECT CASE
-				WHEN u.locked_until IS NULL
-					OR u.locked_until < DATEADD(HOUR, -@decay_hours, SYSUTCDATETIME())
-				THEN 0 ELSE u.lockout_level END AS lvl) x
-			WHERE u.id_user = @id
+				failed_login_count = CASE WHEN x.prev_count + 1 >= @max
+					THEN 0 ELSE x.prev_count + 1 END
+			FROM x
+			WHERE u.id_user = x.id_user
+			RETURNING x.prev_count,
+				EXTRACT(EPOCH FROM (u.locked_until - now()))::integer AS lock_seconds
 		`);
 	const row = result.recordset[0];
 	if (!row || row.prev_count + 1 < MAX_FAILED_LOGIN_ATTEMPTS) return 0;

@@ -93,24 +93,22 @@ async function updateConfig(req, res, next) {
 			.input('shift_multiplier', sql.TinyInt, shift_multiplier ?? 2)
 			.input('fixed_add', sql.Decimal(5, 1), fixed_add ?? 0)
 			.input('note', sql.NVarChar(200), note ?? null).query(`
-				IF EXISTS (SELECT 1 FROM Dept_TT03_Config WHERE id_department = @id_department)
-					UPDATE Dept_TT03_Config
-					SET formula_type = @formula_type, patient_ratio = @patient_ratio,
-						shift_divisor = @shift_divisor, shift_multiplier = @shift_multiplier,
-						fixed_add = @fixed_add, note = @note,
-						updated_at = SYSDATETIMEOFFSET()
-					WHERE id_department = @id_department;
-				ELSE
+				WITH cfg AS (
 					INSERT INTO Dept_TT03_Config
 						(id_department, formula_type, patient_ratio, shift_divisor, shift_multiplier, fixed_add, note)
 					VALUES
-						(@id_department, @formula_type, @patient_ratio, @shift_divisor, @shift_multiplier, @fixed_add, @note);
-
+						(@id_department, @formula_type, @patient_ratio, @shift_divisor, @shift_multiplier, @fixed_add, @note)
+					ON CONFLICT (id_department) DO UPDATE
+					SET formula_type = EXCLUDED.formula_type, patient_ratio = EXCLUDED.patient_ratio,
+						shift_divisor = EXCLUDED.shift_divisor, shift_multiplier = EXCLUDED.shift_multiplier,
+						fixed_add = EXCLUDED.fixed_add, note = EXCLUDED.note,
+						updated_at = now()
+					RETURNING *
+				)
 				SELECT cfg.*, d.name_department, d.bed_count,
 					d.coef_level_1, d.coef_level_2, d.coef_level_3, d.coef_total
-				FROM Dept_TT03_Config cfg
+				FROM cfg
 				INNER JOIN Departments d ON d.id_department = cfg.id_department
-				WHERE cfg.id_department = @id_department;
 			`);
 
 		appEmitter.emit('changed', {
@@ -224,27 +222,25 @@ async function updateRecommendedConfig(req, res, next) {
 			.input('outpatient_ratio', sql.Decimal(5, 4), outpatient_ratio ?? null)
 			.input('fixed_add', sql.Decimal(6, 1), fixed_add ?? 0)
 			.input('note', sql.NVarChar(300), note ?? null).query(`
-				IF EXISTS (SELECT 1 FROM Dept_Recommended_Config WHERE id_department = @id_department)
-					UPDATE Dept_Recommended_Config
-					SET formula_type    = @formula_type,
-						coef_l1         = @coef_l1,
-						coef_l2         = @coef_l2,
-						coef_l3         = @coef_l3,
-						outpatient_ratio = @outpatient_ratio,
-						fixed_add       = @fixed_add,
-						note            = @note,
-						updated_at      = SYSDATETIMEOFFSET()
-					WHERE id_department = @id_department;
-				ELSE
+				WITH rc AS (
 					INSERT INTO Dept_Recommended_Config
 						(id_department, formula_type, coef_l1, coef_l2, coef_l3, outpatient_ratio, fixed_add, note)
 					VALUES
-						(@id_department, @formula_type, @coef_l1, @coef_l2, @coef_l3, @outpatient_ratio, @fixed_add, @note);
-
+						(@id_department, @formula_type, @coef_l1, @coef_l2, @coef_l3, @outpatient_ratio, @fixed_add, @note)
+					ON CONFLICT (id_department) DO UPDATE
+					SET formula_type     = EXCLUDED.formula_type,
+						coef_l1          = EXCLUDED.coef_l1,
+						coef_l2          = EXCLUDED.coef_l2,
+						coef_l3          = EXCLUDED.coef_l3,
+						outpatient_ratio = EXCLUDED.outpatient_ratio,
+						fixed_add        = EXCLUDED.fixed_add,
+						note             = EXCLUDED.note,
+						updated_at       = now()
+					RETURNING *
+				)
 				SELECT rc.*, d.name_department, d.code_department
-				FROM Dept_Recommended_Config rc
+				FROM rc
 				INNER JOIN Departments d ON d.id_department = rc.id_department
-				WHERE rc.id_department = @id_department;
 			`);
 
 		appEmitter.emit('changed', {

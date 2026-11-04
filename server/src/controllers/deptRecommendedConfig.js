@@ -86,9 +86,9 @@ async function createRecommendedConfig(req, res, next) {
 				INSERT INTO Dept_Recommended_Config
 					(id_department, formula_type, coef_l1, coef_l2, coef_l3,
 					outpatient_ratio, fixed_add, note)
-				OUTPUT INSERTED.*
-				VALUES (@id_department, @formula_type, @coef_l1, @coef_l2, @coef_l3,
-					@outpatient_ratio, @fixed_add, @note)
+					VALUES (@id_department, @formula_type, @coef_l1, @coef_l2, @coef_l3,
+						@outpatient_ratio, @fixed_add, @note)
+					RETURNING *
 			`);
 
 		appEmitter.emit('changed', {
@@ -153,9 +153,9 @@ async function updateRecommendedConfig(req, res, next) {
 					outpatient_ratio = @outpatient_ratio,
 					fixed_add       = @fixed_add,
 					note            = @note,
-					updated_at      = SYSDATETIMEOFFSET()
-				OUTPUT INSERTED.*
-				WHERE id_department = @id_department
+					updated_at      = now()
+					WHERE id_department = @id_department
+					RETURNING *
 			`);
 
 		appEmitter.emit('changed', {
@@ -177,8 +177,8 @@ async function removeRecommendedConfig(req, res, next) {
 			.request()
 			.input('id_department', sql.Int, req.params.id).query(`
 				DELETE FROM Dept_Recommended_Config
-				OUTPUT DELETED.id
 				WHERE id_department = @id_department
+				RETURNING id
 			`);
 
 		if (!result.recordset.length)
