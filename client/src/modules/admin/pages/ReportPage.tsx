@@ -7,7 +7,14 @@ import { useAuth } from '@/context/useAuth';
 import { useState, useMemo } from 'react';
 import { useExcelExport } from '@/hooks/useExcelExport';
 import RangePicker from './RangePicker';
-import { DEFAULT_DAY, DEFAULT_MONTH, DEFAULT_WEEK, DEFAULT_YEAR, GROUP_TABS } from './reportPageConstants';
+import {
+	DEFAULT_DAY,
+	DEFAULT_MONTH,
+	DEFAULT_WEEK,
+	DEFAULT_YEAR,
+	EXPORT_MAX_DAYS,
+	GROUP_TABS,
+} from './reportPageConstants';
 import {
 	isoWeeksInYear,
 	pad,
@@ -122,10 +129,14 @@ export default function ReportPage({ inModal = false }: { inModal?: boolean }) {
 		return diff > 0 ? diff : 0;
 	}, [groupBy, dayRange, weekRange, monthRange, yearRange]);
 
+	// Giới hạn độ dài khoảng ngày — server kiểm tra lại y hệt (exportReports.js / exportCls.js)
+	const exportLimit = EXPORT_MAX_DAYS[groupBy];
 	const clsRangeError =
-		(scope === 'all' || scope === 'cls') && rangeDayCount > CLS_MAX_DAYS
-			? `Báo cáo hệ CLS chỉ hỗ trợ tối đa ${CLS_MAX_DAYS} ngày/lần xuất (đang chọn ${rangeDayCount} ngày)`
-			: '';
+		scope !== 'cls' && rangeDayCount > exportLimit.days
+			? `Khoảng thời gian quá dài: tối đa ${exportLimit.label}/lần xuất khi gom theo ${exportLimit.unit}`
+			: (scope === 'all' || scope === 'cls') && rangeDayCount > CLS_MAX_DAYS
+				? `Báo cáo hệ CLS chỉ hỗ trợ tối đa ${CLS_MAX_DAYS} ngày/lần xuất (đang chọn ${rangeDayCount} ngày)`
+				: '';
 
 	const { loading, errorMsg, setErrorMsg, handleExportExcel } = useExcelExport(
 		cfg,

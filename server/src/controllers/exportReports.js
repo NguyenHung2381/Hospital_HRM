@@ -23,7 +23,13 @@ const ExcelJS = require('exceljs');
 const { getPool } = require('../config/db');
 const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
 const { fetchRawRecords } = require('../services/reportsRepository');
-const { enumerateDays } = require('../utils/reportDateGrouping');
+const { enumerateDays, daySpan } = require('../utils/reportDateGrouping');
+
+// Số ngày tối đa mỗi lần xuất, theo kiểu gom nhóm. Không giới hạn thì 1 request
+// from=2000-01-01&to=2100-12-31&groupBy=day tạo hàng trăm nghìn dòng Excel →
+// hết RAM, tiến trình bị kill. Khớp EXPORT_MAX_DAYS ở client (reportPageConstants.ts).
+const MAX_DAYS_BY_GROUP = { day: 366, week: 742, month: 1827, year: 3653 };
+const GROUP_LIMIT_LABEL = { day: '366 ngày', week: '2 năm', month: '5 năm', year: '10 năm' };
 const {
 	groupByDepartment,
 	groupKhoaByPeriod,
@@ -48,6 +54,19 @@ async function exportToExcel(req, res, next) {
 			return res.status(400).json({
 				success: false,
 				message: 'groupBy không hợp lệ (day/week/month/year)',
+			});
+		}
+		const span = daySpan(from, to);
+		if (span == null) {
+			return res.status(400).json({
+				success: false,
+				message: 'Khoảng ngày không hợp lệ (YYYY-MM-DD, "from" phải trước hoặc bằng "to")',
+			});
+		}
+		if (span > MAX_DAYS_BY_GROUP[groupBy]) {
+			return res.status(400).json({
+				success: false,
+				message: `Khoảng thời gian quá dài (tối đa ${GROUP_LIMIT_LABEL[groupBy]}/lần xuất với kiểu gom nhóm này)`,
 			});
 		}
 

@@ -11,6 +11,26 @@ function toDateStr(d) {
 	return String(d).slice(0, 10);
 }
 
+// Ngày dạng YYYY-MM-DD có thật (loại 2024-02-30, 0001-01-01...) → true
+const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+function isValidDateStr(s) {
+	const m = typeof s === 'string' && s.match(DATE_RE);
+	if (!m) return false;
+	const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+	if (y < 2000 || y > 2100) return false;
+	const dt = new Date(Date.UTC(y, mo - 1, d));
+	return dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d;
+}
+
+// Số ngày trong [from, to] (tính tay, KHÔNG liệt kê từng ngày) — để kiểm tra
+// giới hạn TRƯỚC khi gọi enumerateDays. Trả null nếu ngày không hợp lệ hoặc
+// from > to.
+function daySpan(from, to) {
+	if (!isValidDateStr(from) || !isValidDateStr(to)) return null;
+	const span = (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000 + 1;
+	return span >= 1 ? span : null;
+}
+
 // Lấy tất cả các ngày trong khoảng [from, to]
 function enumerateDays(from, to) {
 	const days = [];
@@ -59,4 +79,11 @@ function formatGroupLabel(key, groupBy) {
 	}
 }
 
-module.exports = { toDateStr, enumerateDays, getGroupKey, formatGroupLabel };
+module.exports = {
+	toDateStr,
+	isValidDateStr,
+	daySpan,
+	enumerateDays,
+	getGroupKey,
+	formatGroupLabel,
+};

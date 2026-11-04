@@ -44,6 +44,14 @@ const THIS_MONTH = new Date().getMonth() + 1;
 const TODAY = new Date();
 const THIS_WEEK = isoWeek(TODAY);
 
+/** Số ngày tối đa mỗi lần xuất báo cáo nhân lực — khớp MAX_DAYS_BY_GROUP ở server/src/controllers/exportReports.js. */
+export const EXPORT_MAX_DAYS: Record<GroupBy, { days: number; label: string; unit: string }> = {
+	day: { days: 366, label: '366 ngày', unit: 'ngày' },
+	week: { days: 742, label: '2 năm', unit: 'tuần' },
+	month: { days: 1827, label: '5 năm', unit: 'tháng' },
+	year: { days: 3653, label: '10 năm', unit: 'năm' },
+};
+
 export const YEAR_OPTS = Array.from({ length: 10 }, (_, i) => THIS_YEAR - 5 + i);
 
 export const DEFAULT_DAY: DayRange = (() => {

@@ -9,7 +9,7 @@ const {
 	filterByReadScope,
 } = require('../services/deptAccess');
 const appEmitter = require('../events/appEmitter');
-const { isAdmin } = require('../middleware/auth');
+const { isAdmin, isDashboardRole } = require('../middleware/auth');
 
 // Cột + JOIN dùng chung cho bản ghi khoa (getById, getByDepartment)
 const RECORD_SELECT = `
@@ -296,7 +296,7 @@ async function remove(req, res, next) {
 		// phép khi user có quyền xoá (can_delete) trên tất cả các khoa đó; điều
 		// phối nhân lực chỉ Quản trị hệ thống được xoá.
 		// PostgreSQL không chạy nhiều câu có tham số trong 1 lần gọi → tách 2 query
-		const [deptRes, coordRes] = await Promise.all([
+		const [deptRes, coordRes, reportRes] = await Promise.all([
 			pool.request().input('id_report', sql.Int, req.params.id).query(`
 				SELECT id_department FROM report_department_records WHERE id_report = @id_report
 				UNION
@@ -305,27 +305,58 @@ async function remove(req, res, next) {
 			pool.request().input('id_report', sql.Int, req.params.id).query(`
 				SELECT COUNT(*) AS cnt FROM Staff_Coordination_Records WHERE id_report = @id_report
 			`),
+			pool.request().input('id_report', sql.Int, req.params.id).query(`
+				SELECT created_by FROM Daily_Reports WHERE id_report = @id_report
+			`),
 		]);
+		if (!reportRes.recordset.length)
+			return res
+				.status(404)
+				.json({ success: false, message: 'Không tìm thấy báo cáo' });
+
 		const access = await loadUserDeptAccess(pool, req.user);
-		const deniedDept = deptRes.recordset.find(
-			(r) => r.id_department != null && !canAccessDept(access, r.id_department, 'can_delete'),
-		);
-		if (deniedDept || (coordRes.recordset[0].cnt > 0 && !isAdmin(req.user)))
+		const deptIds = deptRes.recordset
+			.map((r) => r.id_department)
+			.filter((id) => id != null);
+		const deniedDept = deptIds.some((id) => !canAccessDept(access, id, 'can_delete'));
+		// Báo cáo chưa có dữ liệu khoa nào thì vòng kiểm tra trên không chặn được
+		// ai → chỉ người tạo báo cáo hoặc người quản lý toàn viện được xoá.
+		const emptyReport = deptIds.length === 0;
+		const deniedEmpty =
+			emptyReport &&
+			reportRes.recordset[0].created_by !== req.user.id_user &&
+			!isDashboardRole(req.user) &&
+			access?.accessType !== 'all';
+		if (deniedDept || deniedEmpty || (coordRes.recordset[0].cnt > 0 && !isAdmin(req.user)))
 			return res.status(403).json({
 				success: false,
 				message: 'Bạn không có quyền xoá dữ liệu của một hoặc nhiều khoa trong báo cáo này',
 			});
 
+		// Báo cáo rỗng: chỉ xoá nếu VẪN rỗng lúc xoá — có người vừa nhập dữ liệu
+		// khoa (sau bước kiểm tra quyền ở trên) thì không xoá kèm dữ liệu đó.
 		const result = await pool
 			.request()
 			.input('id_report', sql.Int, req.params.id).query(`
-				DELETE FROM Daily_Reports WHERE id_report = @id_report RETURNING id_report
+				DELETE FROM Daily_Reports dr WHERE dr.id_report = @id_report
+				${
+					emptyReport
+						? `AND NOT EXISTS (SELECT 1 FROM report_department_records r
+								WHERE r.id_report = dr.id_report AND r.id_department IS NOT NULL)
+						   AND NOT EXISTS (SELECT 1 FROM Report_CLS_Records c
+								WHERE c.id_report = dr.id_report AND c.id_department IS NOT NULL)`
+						: ''
+				}
+				RETURNING dr.id_report
 			`);
 
 		if (!result.recordset.length)
-			return res
-				.status(404)
-				.json({ success: false, message: 'Không tìm thấy báo cáo' });
+			return emptyReport
+				? res.status(409).json({
+						success: false,
+						message: 'Báo cáo vừa có dữ liệu khoa mới, vui lòng tải lại rồi thử lại',
+					})
+				: res.status(404).json({ success: false, message: 'Không tìm thấy báo cáo' });
 
 		appEmitter.emit('changed', {
 			resource: 'reports',

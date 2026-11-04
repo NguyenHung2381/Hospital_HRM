@@ -21,7 +21,7 @@
 const ExcelJS = require('exceljs');
 const { getPool, sql } = require('../config/db');
 const { loadUserDeptAccess } = require('../services/deptAccess');
-const { enumerateDays } = require('../utils/reportDateGrouping');
+const { enumerateDays, daySpan, isValidDateStr } = require('../utils/reportDateGrouping');
 
 const MAX_DAYS = 31;
 
@@ -605,19 +605,27 @@ async function exportClsToExcel(req, res, next) {
 
 		let dateList;
 		if (from && to) {
-			if (from > to) {
-				return res
-					.status(400)
-					.json({ success: false, message: '"from" phải trước hoặc bằng "to"' });
+			// Kiểm tra độ dài TRƯỚC khi liệt kê ngày (không tạo mảng hàng triệu phần tử)
+			const span = daySpan(from, to);
+			if (span == null) {
+				return res.status(400).json({
+					success: false,
+					message: 'Khoảng ngày không hợp lệ (YYYY-MM-DD, "from" phải trước hoặc bằng "to")',
+				});
 			}
-			dateList = enumerateDays(from, to);
-			if (dateList.length > MAX_DAYS) {
+			if (span > MAX_DAYS) {
 				return res.status(400).json({
 					success: false,
 					message: `Khoảng thời gian quá dài để xuất báo cáo CLS (tối đa ${MAX_DAYS} ngày/lần xuất)`,
 				});
 			}
+			dateList = enumerateDays(from, to);
 		} else if (date) {
+			if (!isValidDateStr(date)) {
+				return res
+					.status(400)
+					.json({ success: false, message: 'Ngày không hợp lệ (YYYY-MM-DD)' });
+			}
 			dateList = [date];
 		} else {
 			return res
