@@ -6,7 +6,13 @@
 	"scripts": {
 		"client": "npm run dev --prefix client",
 		"server": "npm run dev --prefix server",
-		"dev": "concurrently -n CLIENT,SERVER -c blue,green \"npm run client\" \"npm run server\""
+		"dev": "concurrently -n CLIENT,SERVER -c blue,green \"npm run client\" \"npm run server\"",
+		"setup": "npm install && npm install --prefix client && npm install --prefix server && node server/scripts/setup.js",
+		"setup:db": "node server/scripts/setup.js",
+		"setup:docker": "npm install --prefix server && node server/scripts/setup.js --docker",
+		"setup:prod": "npm install --prefix server && node server/scripts/setup.js --prod --docker",
+		"docker:dev": "docker compose up -d --build",
+		"docker:prod": "docker compose -f docker-compose.prod.yml up -d --build"
 	},
 	"keywords": [],
 	"author": "",

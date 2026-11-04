@@ -11,6 +11,9 @@ node_modules/
 .env.production
 .env.staging
 *.env
+# Bản sao lưu file env do npm run setup tạo (chứa mật khẩu cũ)
+.env.bak-*
+.env.production.bak-*
 
 # Logs
 logs/

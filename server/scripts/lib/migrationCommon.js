@@ -27,19 +27,21 @@ const TABLES = [
 	{ src: 'UserSessions', dst: 'usersessions' },
 	{ src: 'SecurityEvents', dst: 'securityevents' },
 	{ src: 'TrustedDevices', dst: 'trusteddevices' },
-	{ src: 'Auth_Sessions', dst: 'auth_sessions' },
+	// Bảng mới (refresh token), DB SQL Server cũ có thể chưa có → coi như rỗng.
+	{ src: 'Auth_Sessions', dst: 'auth_sessions', optional: true },
 ];
 
 // ── SQL Server (sqlcmd) ─────────────────────────────────────────────────────
 // MSSQL_USER trống = Windows Authentication (-E). Mật khẩu truyền qua biến môi
 // trường SQLCMDPASSWORD (không đặt trên dòng lệnh → không lộ trong danh sách tiến trình).
-function sqlcmdInvocation() {
+// format mặc định -y 0: không cắt cột (JSON dài), tự bỏ dòng tiêu đề.
+function sqlcmdInvocation(database = process.env.MSSQL_DATABASE || 'HRM_HOSPITAL', format = ['-y', '0']) {
 	const args = [
 		'-S', process.env.MSSQL_SERVER || 'localhost\\SQLEXPRESS',
-		'-d', process.env.MSSQL_DATABASE || 'HRM_HOSPITAL',
+		'-d', database,
 		'-C', // tin chứng chỉ tự ký (chỉ đọc dữ liệu trên máy/mạng nội bộ)
 		'-b', // lỗi SQL → mã thoát khác 0
-		'-y', '0', // không cắt cột (JSON dài); -y 0 tự bỏ dòng tiêu đề
+		...format,
 		'-f', '65001', // UTF-8
 	];
 	const env = { ...process.env };
@@ -52,9 +54,52 @@ function sqlcmdInvocation() {
 	return { args, env };
 }
 
-// Chạy 1 câu ... FOR JSON và trả về mảng object.
 // Ghi kết quả ra FILE (-o) chứ không đọc stdout: ra stdout, sqlcmd đổi chuỗi
 // theo codepage của console (vd cp1252) bất kể -f 65001 → tiếng Việt thành '?'.
+function runSqlcmd(query, invocation) {
+	const { args, env } = invocation;
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hrm-mssql-'));
+	const file = path.join(dir, 'out.txt');
+	try {
+		execFileSync('sqlcmd', [...args, '-o', file, '-Q', `SET NOCOUNT ON; ${query}`], {
+			stdio: ['ignore', 'ignore', 'pipe'],
+			windowsHide: true,
+			env,
+		});
+		return fs.readFileSync(file, 'utf8').replace(/^﻿/, '');
+	} catch (err) {
+		// -b: lỗi SQL → mã thoát khác 0, thông báo lỗi nằm trong file output
+		const detail = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim() : '';
+		throw new Error(`sqlcmd lỗi: ${detail || err.stderr?.toString() || err.message}`);
+	} finally {
+		fs.rmSync(dir, { recursive: true, force: true });
+	}
+}
+
+// Chạy câu lệnh trả về bảng không dùng được FOR JSON (vd RESTORE HEADERONLY /
+// FILELISTONLY) → mảng object theo tên cột. database mặc định master.
+function mssqlTable(query, database = 'master') {
+	const out = runSqlcmd(query, sqlcmdInvocation(database, ['-W', '-s', '|']));
+	const lines = out.split(/\r?\n/);
+	const h = lines.findIndex((l) => l.trim());
+	if (h === -1) return [];
+	const header = lines[h].split('|');
+	const rows = [];
+	// bỏ dòng tiêu đề + dòng gạch ngang; dừng ở dòng trống
+	for (const line of lines.slice(h + 2)) {
+		if (!line.trim()) break;
+		const cells = line.split('|');
+		rows.push(Object.fromEntries(header.map((name, i) => [name, cells[i] === 'NULL' ? null : cells[i]])));
+	}
+	return rows;
+}
+
+// Chạy câu lệnh không cần kết quả (vd RESTORE DATABASE, DROP DATABASE).
+function mssqlExec(query, database = 'master') {
+	return runSqlcmd(query, sqlcmdInvocation(database, []));
+}
+
+// Chạy 1 câu ... FOR JSON và trả về mảng object.
 function mssqlJson(query) {
 	const { args, env } = sqlcmdInvocation();
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hrm-mssql-'));
@@ -102,7 +147,10 @@ function readTable(t) {
 		WHERE c.object_id = OBJECT_ID(N'dbo.${name.replace(/'/g, "''")}')
 		ORDER BY c.column_id
 		FOR JSON PATH`);
-	if (!cols.length) throw new Error(`Không thấy bảng ${t.src} trên SQL Server`);
+	if (!cols.length) {
+		if (t.optional) return [];
+		throw new Error(`Không thấy bảng ${t.src} trên SQL Server`);
+	}
 	const select = cols
 		.map((c) => {
 			const q = quoteMssql(c.name);
@@ -138,4 +186,4 @@ function pgClient(applicationName, extra = {}) {
 	});
 }
 
-module.exports = { TABLES, mssqlJson, readTable, pgClient };
+module.exports = { TABLES, mssqlJson, mssqlTable, mssqlExec, readTable, pgClient };

@@ -7,7 +7,8 @@
     "dev": "nodemon src/index.js",
     "set-account-passwords": "node scripts/setAccountPasswords.js",
     "db:migrate-data": "node scripts/migrate-from-mssql.js",
-    "db:verify-data": "node scripts/verify-migration.js"
+    "db:verify-data": "node scripts/verify-migration.js",
+    "db:export-seed": "node scripts/export-seed.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

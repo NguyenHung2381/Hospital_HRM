@@ -85,6 +85,68 @@ Hospital_HRM/
 - Node.js >= 22
 - PostgreSQL 17 hoặc 18 (bộ cài Windows của EDB, có sẵn ICU), thư mục `bin` đã thêm vào `PATH` — tạo role/DB/schema theo [server/db/README.md](server/db/README.md)
 
+### Cài nhanh bằng 1 lệnh
+
+PostgreSQL đã cài và đang chạy (không cần `psql` trong `PATH`). Từ thư mục gốc:
+
+```bash
+npm run setup
+```
+
+Lệnh này làm lần lượt (chạy lại nhiều lần được, bước nào xong thì bỏ qua):
+
+1. `npm install` cho root, `client/`, `server/`.
+2. Tạo `server/.env` từ `server/.env.example` (đặt `NODE_ENV=development`), sinh `JWT_SECRET` và mật khẩu DB của `hrm_app` nếu còn trống. File `.env` còn cấu hình SQL Server cũ → sao lưu thành `.env.bak-<thời gian>` rồi tạo lại (giữ `JWT_SECRET`, `CORS_ORIGIN`...).
+3. Hỏi mật khẩu superuser `postgres` (nhập ẩn), tạo role `hrm_owner`, `hrm_app`, database `hrm_hospital`, cấp quyền — giống `000_roles_database.sql`.
+4. Tạo bảng (`001_init.sql`, chỉ khi DB còn trống) và view/hàm (`002_views_functions.sql`).
+5. **Dữ liệu** — DB còn trống thì hỏi chọn kiểu cài đặt:
+
+   | Chọn | Việc |
+   |---|---|
+   | 1) Cài mới hoàn toàn | Nạp danh mục từ `010_seed_data.sql`: 5 vai trò, 10 quyền + quyền theo vai trò, 47 khoa phòng (số giường, hệ số), cấu hình TT03 và nhân lực khuyến nghị. Không có tài khoản/báo cáo nào. |
+   | 2) Nhập từ file `.bak` | Khôi phục file vào database tạm `HRM_IMPORT_<thời gian>` trên SQL Server máy này → chuyển toàn bộ dữ liệu sang PostgreSQL → đối chiếu từng ô → xoá database tạm. |
+   | 3) Nhập từ SQL Server đang chạy | Như 2 nhưng đọc thẳng database có sẵn (mặc định `HRM_HOSPITAL`). |
+
+   DB đã có dữ liệu → giữ nguyên, không hỏi. Nhập lại vào DB đã có dữ liệu sẽ **xoá toàn bộ** dữ liệu PostgreSQL rồi nạp lại (phải gõ `yes` xác nhận).
+6. Chưa có tài khoản "Quản trị hệ thống" nào đang hoạt động → tạo tài khoản `admin` với mật khẩu ngẫu nhiên. Nhập dữ liệu cũ thì dùng luôn tài khoản cũ (mật khẩu cũ vẫn đăng nhập được).
+7. Đăng nhập thử bằng `hrm_app`, kiểm tra đủ bảng/view.
+
+Mật khẩu `hrm_owner` và `admin` vừa tạo **chỉ in ra màn hình 1 lần** — lưu lại ngay. Sau đó chạy `npm run dev`.
+
+Chọn sẵn kiểu cài đặt, không hỏi (dùng được với `setup`, `setup:db`, `setup:docker`, `setup:prod`):
+
+```bash
+npm run setup -- --fresh
+npm run setup -- --import-bak=D:\Backup\HRM_HOSPITAL.bak
+npm run setup -- --import-mssql=HRM_HOSPITAL
+```
+
+Thêm `--yes` để không hỏi xác nhận xoá dữ liệu cũ. Nhập từ SQL Server cần `sqlcmd` (có sẵn khi cài SQL Server / SSMS); SQL Server khác `localhost\SQLEXPRESS` hoặc dùng SQL login thì đặt `MSSQL_SERVER`, `MSSQL_USER`, `MSSQL_PASSWORD` trước khi chạy. Lỗi *"Access is denied"* khi khôi phục `.bak`: dịch vụ SQL Server không đọc được file → chép file vào thư mục `...\MSSQL\Backup` của SQL Server rồi chạy lại.
+
+Danh mục cài mới lấy từ DB đang dùng. Sửa danh mục (thêm khoa, đổi hệ số...) rồi muốn bản cài mới có luôn → xuất lại: `cd server && npm run db:export-seed` (đọc SQL Server `HRM_HOSPITAL`), commit file `server/db/postgres/010_seed_data.sql`.
+
+Chạy bằng Docker thay vì `npm run dev` — thêm bước 8: build image + `docker compose up -d --build`, chờ container lên (production chờ healthcheck), lỗi thì in log backend:
+
+| Lệnh | Việc |
+|---|---|
+| `npm run setup:docker` | Dev bằng Docker: `server/.env` + `docker-compose.yml` → `http://localhost:5174` |
+| `npm run setup:prod` | Production: `server/.env.production` + `docker-compose.prod.yml` → `http://localhost:8080` |
+| `npm run docker:dev` / `npm run docker:prod` | Chỉ build + chạy lại container (vd sau khi `git pull`) |
+
+Hai lệnh `setup:*` chỉ `npm install` trong `server/` (script cài DB cần `pg`, `bcrypt` trên máy); client được build trong image. Cần Docker Desktop đang chạy, và PostgreSQL phải nhận kết nối từ mạng Docker — xem [server/db/README.md](server/db/README.md#backend-chạy-trong-docker-postgresql-trên-host).
+
+Tuỳ chọn khác (thêm sau `--`):
+
+| | |
+|---|---|
+| `npm run setup -- --admin-user=quantri` | Đổi tên đăng nhập admin đầu tiên |
+| `npm run setup:db` | Bỏ qua `npm install`, chỉ làm bước 2–6 (thêm `-- --prod`, `-- --docker` nếu cần) |
+| `npm run setup:db -- --skip-db` | Chỉ tạo/điền file env |
+
+Không muốn nhập mật khẩu (vd chạy tự động): đặt `PG_SUPER_PASSWORD` (và `PG_SUPER_USER` nếu không phải `postgres`) trong phiên terminal trước khi chạy.
+
+Hoặc làm thủ công từng bước như dưới.
+
 ### 1. Cài dependencies
 
 ```bash

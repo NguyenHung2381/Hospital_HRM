@@ -6,6 +6,7 @@
 | `postgres/000_roles_database.sql` | Tạo role `hrm_owner`, `hrm_app` + database `hrm_hospital` (chạy bằng `postgres`) |
 | `postgres/001_init.sql` | Toàn bộ bảng, khoá, index |
 | `postgres/002_views_functions.sql` | `vw_tt03_recommended`, `usp_recalc_all()`, `usp_recalc_tt03()` |
+| `postgres/010_seed_data.sql` | Danh mục cho bản cài mới (vai trò, quyền, khoa phòng + hệ số, cấu hình TT03/khuyến nghị) — sinh bằng `npm run db:export-seed`, nạp bởi `npm run setup` |
 | `postgres/900_reset_sequences.sql` | Đẩy sequence IDENTITY lên MAX(id) — `db:migrate-data` đã tự làm; dùng khi nạp dữ liệu bằng cách khác |
 | `../scripts/migrate-from-mssql.js`, `../scripts/verify-migration.js` | Chuyển dữ liệu và đối chiếu từng ô — xem [Chuyển dữ liệu](#chuyển-dữ-liệu-từ-sql-server) |
 
