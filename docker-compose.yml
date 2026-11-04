@@ -27,8 +27,8 @@ services:
       # ở container khác không gọi được).
       HOST: 0.0.0.0
       PORT: "3000"
-      # SQL Server chạy trên máy host: "localhost\SQLEXPRESS" trong server/.env
-      # trỏ vào chính container. DB_PORT vẫn lấy từ server/.env.
+      # PostgreSQL cài trên máy host: "localhost" trong server/.env trỏ vào
+      # chính container. DB_PORT vẫn lấy từ server/.env.
       DB_HOST: host.docker.internal
     extra_hosts:
       - "host.docker.internal:host-gateway"

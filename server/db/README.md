@@ -11,7 +11,7 @@
 ## Cài PostgreSQL trực tiếp trên máy chủ (Windows, không Docker)
 
 1. Cài **PostgreSQL 17** bằng bộ cài EDB (postgresql.org/download/windows). Ghi
-   lại mật khẩu superuser `postgres`. Bộ cài có sẵn ICU và `citext`.
+   lại mật khẩu superuser `postgres`. Bộ cài có sẵn ICU (cần cho collation tiếng Việt).
 2. Thêm `C:\Program Files\PostgreSQL\17\bin` vào `PATH` (để có `psql`, `pg_dump`).
 3. Tạo role + DB (mật khẩu truyền qua biến, không ghi vào file):
 
@@ -48,7 +48,11 @@ nên PostgreSQL phải nhận kết nối từ mạng Docker:
   (`FROM Departments`, `rdr.Id`) vẫn chạy, nhưng **key kết quả là chữ thường**:
   `recordset[0].Id` → `rows[0].id`.
 - `[Report_Department_Records ]` (có dấu cách cuối) → `report_department_records`.
-- `username`, `code_department` dùng `citext` → so sánh không phân biệt hoa thường như cũ.
+- `username`, `code_department` dùng collation ICU `ci_vi` → so sánh/UNIQUE không
+  phân biệt hoa thường như cũ (có phân biệt dấu). Không dùng `LIKE` trực tiếp trên
+  2 cột này (PostgreSQL < 18 báo lỗi) — viết `col COLLATE "default" LIKE ...`.
+- Lớp `src/config/db.js` giữ API kiểu `mssql` (`request().input().query()`,
+  `sql.Transaction`) và tự đổi `@ten` → `$n::kiểu`.
 - Thời gian lưu `timestamptz` (UTC); `SYSUTCDATETIME()`/`SYSDATETIMEOFFSET()` → `now()`.
 - `CAST(numeric AS SMALLINT)` của SQL Server cắt phần thập phân; PostgreSQL làm
   tròn → dùng `trunc(x)::smallint` khi cần giữ hành vi cũ.

@@ -11,7 +11,7 @@
 #   WEB_PORT         mặc định 8080
 #   TRUSTED_PROXIES  IP/CIDR của proxy HTTPS (xem client/docker/40-trusted-proxies.sh)
 #
-# Database: dùng SQL Server có sẵn trên máy host (không nằm trong compose).
+# Database: PostgreSQL cài trực tiếp trên máy host (không nằm trong compose).
 # Cấu hình (DB, JWT_SECRET, COOKIE_SECURE...) đọc từ server/.env.production —
 # tạo từ server/.env.production.example. Nếu không có file đó thì dùng
 # server/.env (tiện chạy thử trên máy dev). Thiếu cả hai → server báo thiếu

@@ -34,7 +34,7 @@ const helmet = require('helmet');
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 const { getPool } = require('./config/db');
-const { ensureSecuritySchema } = require('./config/securitySchema');
+const { checkSchemaAndCleanup } = require('./config/schemaCheck');
 const { authenticate, requireDashboardRole } = require('./middleware/auth');
 const { requestLogger, logError } = require('./utils/auditLog');
 const { pruneOldLogs, RETENTION_DAYS } = require('./services/logReader');
@@ -99,10 +99,10 @@ app.get('/health/db', authenticate, requireDashboardRole, async (req, res) => {
 		const pool = await getPool();
 		const result = await pool.request().query(`
       SELECT
-        GETDATE()        AS server_time,
-        @@VERSION        AS sql_version,
-        DB_NAME()        AS database_name,
-        SYSTEM_USER      AS login_user
+        now()              AS server_time,
+        version()          AS sql_version,
+        current_database() AS database_name,
+        current_user       AS login_user
     `);
 		res.json({
 			status: 'ok',
@@ -115,7 +115,7 @@ app.get('/health/db', authenticate, requireDashboardRole, async (req, res) => {
 		console.error('[health/db]', err);
 		res.status(503).json({
 			status: 'error',
-			code: err.code || err.number || null,
+			code: err.code || null,
 		});
 	}
 });
@@ -173,15 +173,12 @@ function startServer() {
 	});
 }
 
-// Tạo bảng/cột bảo mật (khoá TK, 2FA, phiên, sự kiện bảo mật) trước khi nhận
-// request — thiếu schema thì đăng nhập sẽ lỗi, nên dừng hẳn và báo rõ.
-ensureSecuritySchema()
+// Xác nhận DB đã có đủ schema (tạo bằng server/db/postgres/*.sql) và dọn
+// phiên/thiết bị quá hạn trước khi nhận request — thiếu schema thì đăng nhập
+// sẽ lỗi, nên dừng hẳn và báo rõ.
+checkSchemaAndCleanup()
 	.then(startServer)
 	.catch((err) => {
-		console.error('❌ Không cập nhật được schema bảo mật:', err.message);
-		console.error(
-			'   Nếu tài khoản DB của app không có quyền ALTER/CREATE TABLE, hãy chạy 1 lần bằng tài khoản có quyền:',
-		);
-		console.error('   node src/config/securitySchema.js');
+		console.error('❌ Không khởi động được vì lỗi database:', err.message);
 		process.exit(1);
 	});
