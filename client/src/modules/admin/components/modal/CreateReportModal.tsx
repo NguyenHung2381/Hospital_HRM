@@ -156,7 +156,7 @@ export default function CreateReportModal({
 						style={{
 							textAlign: 'center',
 							padding: 48,
-							color: '#9aaab6',
+							color: 'var(--color-gray-400)',
 							fontSize: '.85rem',
 						}}
 					>
@@ -174,8 +174,8 @@ export default function CreateReportModal({
 								/>
 								<p
 									style={{
-										fontSize: '.68rem',
-										color: '#9aaab6',
+										fontSize: '.72rem',
+										color: 'var(--color-gray-400)',
 										marginTop: 8,
 										marginBottom: 0,
 									}}

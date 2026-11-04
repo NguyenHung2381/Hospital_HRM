@@ -9,13 +9,11 @@ import StatCard from '../components/StatCard';
 import DataPager from './DataPager';
 import type { DeptPerm } from './WardTable';
 import WardTable from './WardTable';
-import type { MissingDept } from './WardTabActions';
 
 export interface WardTabPanelProps {
 	selDate: string;
 	report: ApiReport | null;
 	loadingReport: boolean;
-	missingDepts: MissingDept[];
 	onOpenCreateReport: () => void;
 
 	stats: ReturnType<typeof aggregateDashboardStats>;
@@ -46,7 +44,6 @@ export default function WardTabPanel({
 	selDate,
 	report,
 	loadingReport,
-	missingDepts,
 	onOpenCreateReport,
 	stats,
 	filtered,
@@ -79,9 +76,6 @@ export default function WardTabPanel({
 					stats.totalTT03,
 					Number(stats.totalKhuyenNghi.toFixed(2)),
 					stats.totalKC,
-					filtered.length,
-					37,
-					missingDepts.length,
 				).map((s) => (
 					<StatCard
 						key={s.label}

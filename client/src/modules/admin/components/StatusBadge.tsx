@@ -11,7 +11,7 @@ export default function StatusBadge({
 }: StatusBadgeProps) {
 	const isActive = status === 'active';
 	return (
-		<span className={`badge ${isActive ? 'badge-green' : 'badge-gray'}`}>
+		<span className={`status-dot ${isActive ? 'status-dot-on' : 'status-dot-off'}`}>
 			{isActive ? activeLabel : inactiveLabel}
 		</span>
 	);

@@ -1,0 +1,89 @@
+/* =========================================================
+   Design tokens — nguồn màu/khoảng cách duy nhất cho toàn hệ thống.
+   Bảng màu đồng bộ với Hospital_RMS (styles/variables.css):
+   xanh Tây Ban Nha RGB 10,155,74 + hồng tím RGB 223,9,132.
+   ========================================================= */
+:root {
+	/* MÀU CHỦ ĐẠO: Xanh Tây Ban Nha — RGB 10,155,74 */
+	--color-primary: #0a9b4a;
+	--color-primary-dark: #087c3b;
+	--color-primary-light: #4fc47e;
+	--color-primary-pale: #e7f5ed;
+	--color-primary-border: #bbf7d0;
+
+	/* MÀU BỔ TRỢ: Hồng tím — RGB 223,9,132 */
+	--color-accent: #df0984;
+	--color-accent-dark: #b3076a;
+	--color-accent-light: #ee84c3;
+
+	--color-secondary: #34b8d8;
+	--color-secondary-dark: #1a9abe;
+
+	/* MÀU TRUNG TÍNH */
+	--color-white: #ffffff;
+	--color-gray-50: #f8fafb;
+	--color-gray-100: #f0f4f6;
+	--color-gray-200: #e2e8ec;
+	--color-gray-300: #cbd5dc;
+	--color-gray-400: #9aaab6;
+	--color-gray-500: #6b8090;
+	--color-gray-600: #4a6070;
+	--color-gray-700: #2d4050;
+	--color-gray-800: #1a2a35;
+	--color-gray-900: #0d1820;
+
+	/* MÀU TRẠNG THÁI */
+	--color-success: #0a9b4a;
+	--color-success-bg: #f0fdf4;
+	--color-success-border: #bbf7d0;
+	--color-warning: #d97706;
+	--color-warning-bg: #fffbeb;
+	--color-warning-border: #fde68a;
+	--color-error: #e84545;
+	--color-error-dark: #b91c1c;
+	--color-error-bg: #fef2f2;
+	--color-error-border: #fecaca;
+	--color-info: #1d4ed8;
+	--color-info-bg: #eff6ff;
+	--color-info-border: #bfdbfe;
+
+	/* Alias ngắn dùng trong HRM */
+	--p: var(--color-primary);
+	--pd: var(--color-primary-dark);
+	--pl: #d3f1df;
+	--acc: var(--color-accent);
+	--bg: var(--color-gray-50);
+	--sur: var(--color-white);
+	--bdr: var(--color-gray-200);
+	--txt: var(--color-gray-800);
+	--mut: var(--color-gray-500);
+
+	/* Colors */
+	--blue: #3b82f6;
+	--blue-l: #dbeafe;
+	--purple: #7c3aed;
+	--purple-l: #ede9fe;
+	--teal: #0d9488;
+	--teal-l: #ccfbf1;
+	--red: var(--color-error);
+	--red-l: #fee2e2;
+	--yellow: #d97706;
+	--yellow-l: #fef3c7;
+	--green: var(--color-success);
+	--gray-l: var(--color-gray-100);
+
+	/* Layout */
+	--nav-w: 232px;
+	--nav-bg: #0a783b;
+	/* Gradient sidebar: xanh chủ đạo ở trên, đậm dần xuống dưới */
+	--nav-gradient: linear-gradient(180deg, #0a9b4a 0%, #0a783b 55%, #075a2c 100%);
+	--topbar-h: 56px;
+
+	/* Bo góc */
+	--r: 8px;
+	--rs: 6px;
+
+	/* Đổ bóng — chỉ dùng cho lớp nổi (dropdown, modal) */
+	--shadow-pop: 0 4px 16px rgba(13, 24, 32, 0.08), 0 1px 3px rgba(13, 24, 32, 0.06);
+	--focus-ring: 0 0 0 3px rgba(10, 155, 74, 0.15);
+}

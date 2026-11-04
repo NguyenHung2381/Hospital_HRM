@@ -42,70 +42,33 @@ export default function WardTabActions({
 			>
 				<XIcon size={16} /> Bộ lọc
 			</button>
-			{report && (
-				<button
-					className='btn-outline'
-					style={{
-						fontSize: '0.82rem',
-						fontWeight: 600,
-						border: '1.5px solid var(--p)',
-						borderRadius: '8px',
-						padding: '6px 12px',
-						display: 'inline-flex',
-						alignItems: 'center',
-						gap: '6px',
-					}}
-					onClick={onOpenAddRecord}
-				>
-					+ Thêm khoa
-				</button>
-			)}
 			{selKhoa.size > 0 && selKhoa.size < allRows.length && (
 				<button
 					className='btn-ghost'
-					style={{
-						fontSize: '0.82rem',
-						fontWeight: 600,
-						color: 'var(--red)',
-						border: '1.5px solid #fecaca',
-						backgroundColor: '#fff5f5',
-						borderRadius: '8px',
-						padding: '6px 12px',
-						display: 'inline-flex',
-						alignItems: 'center',
-						gap: '6px',
-						cursor: 'pointer',
-					}}
 					onClick={onClearFilter}
 				>
-					<X size={13} /> Bỏ lọc ({selKhoa.size})
+					<X size={14} /> Bỏ lọc ({selKhoa.size})
 				</button>
 			)}
 			{report && canDeleteReport && (
 				<button
-					className='btn-ghost'
-					style={{
-						fontSize: '0.82rem',
-						fontWeight: 600,
-						color: 'var(--red)',
-						border: '1.5px solid #fecaca',
-						backgroundColor: '#fff5f5',
-						borderRadius: '8px',
-						padding: '6px 12px',
-						display: 'inline-flex',
-						alignItems: 'center',
-						gap: '6px',
-						cursor: 'pointer',
-					}}
+					className='btn-ghost dv-btn-del-report'
 					onClick={onOpenDeleteReport}
 				>
 					Xóa báo cáo
 				</button>
 			)}
+			{report && (
+				<button
+					className='btn-outline'
+					onClick={onOpenAddRecord}
+				>
+					<Plus size={15} /> Thêm khoa
+				</button>
+			)}
 			{!report && !loadingReport && (
 				<button
 					className='btn-primary'
-					style={{ fontSize: '.78rem' }}
 					onClick={onOpenCreateReport}
 				>
 					<Plus size={15} /> Tạo báo cáo

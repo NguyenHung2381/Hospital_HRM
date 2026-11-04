@@ -1,77 +1,56 @@
-.role-admin {
-	background: #fee2e2;
-	color: #b91c1c;
-}
-.role-giam-doc {
-	background: #dbeafe;
-	color: #1d4ed8;
-}
-.role-ddt-bv {
-	background: #ede9fe;
-	color: #6d28d9;
-}
-.role-ddt-khoa {
-	background: #ccfbf1;
-	color: #0f766e;
-}
+/* ── Vai trò: badge trung tính, chỉ quản trị viên được nhấn nhẹ ── */
+.role-admin,
+.role-giam-doc,
+.role-ddt-bv,
+.role-ddt-khoa,
 .role-nhan-vien {
-	background: #f0f4f6;
-	color: #4a6070;
+	background: var(--color-gray-100);
+	color: var(--color-gray-700);
+	border-color: var(--bdr);
+}
+.role-admin {
+	background: var(--color-primary-pale);
+	color: var(--pd);
+	border-color: var(--color-primary-border);
 }
 
-/* ── Avatar màu theo cấp bậc ── */
-.td-avatar.acc-av-admin {
-	background: #b91c1c;
-}
-.td-avatar.acc-av-giam_doc {
-	background: #1d4ed8;
-}
-.td-avatar.acc-av-dieu_duong_truong {
-	background: #6d28d9;
-}
-.td-avatar.acc-av-ddt_khoa {
-	background: #0f766e;
-}
-.td-avatar.acc-av-nhan_vien {
-	background: #4a6070;
-}
-
-/* ── Thanh tóm tắt cấp bậc (chip trên toolbar) ── */
+/* ── Thanh lọc theo cấp bậc (chip trên toolbar) ── */
 .acc-rank-chip {
 	display: flex;
 	align-items: center;
-	gap: 5px;
+	gap: 6px;
+	height: 32px;
 	background: var(--sur);
-	border: 1px solid var(--bdr);
-	border-radius: 8px;
-	padding: 5px 11px;
-	font-size: 0.75rem;
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--rs);
+	padding: 0 10px;
+	font-size: 0.82rem;
+	color: var(--txt);
+	user-select: none;
+	transition: background-color 0.15s, border-color 0.15s;
+}
+.acc-rank-chip:hover {
+	background: var(--color-gray-50);
 }
 .acc-rank-label {
-	font-weight: 600;
-	color: var(--txt);
+	font-weight: 500;
+	color: inherit;
 }
 .acc-rank-count {
-	background: #f0f4f6;
 	color: var(--mut);
-	border-radius: 9999px;
-	font-size: 0.68rem;
-	font-weight: 700;
-	padding: 1px 6px;
+	font-size: 0.78rem;
+	font-weight: 500;
 }
 
 /* ── Gợi ý vai trò trong modal ── */
 .acc-role-hint {
 	display: flex;
 	align-items: center;
-	gap: 7px;
-	font-size: 0.75rem;
-	color: #4a6070;
-	background: #f8fafb;
+	gap: 8px;
+	font-size: 0.8rem;
+	color: var(--color-gray-600);
+	background: var(--color-gray-50);
 	border: 1px solid var(--bdr);
-	border-radius: 8px;
+	border-radius: var(--rs);
 	padding: 8px 12px;
 }
-
-/* Ví dụ: highlight row active theo trạng thái */
-/* .tbl tbody tr:has(.badge-green):hover td { background: #e7f5ed; } */

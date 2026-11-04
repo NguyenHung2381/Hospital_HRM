@@ -7,23 +7,21 @@
 .dept-stat-card {
 	background: var(--sur);
 	border: 1px solid var(--bdr);
-	border-top: 3px solid var(--dc, #1a2a35);
 	border-radius: var(--r);
 	padding: 14px 18px;
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
-	box-shadow: 0 4px 6px -1px rgba(13, 24, 32, 0.02);
+	gap: 2px;
 }
 .dept-stat-val {
-	font-size: 1.6rem;
-	font-weight: 800;
-	color: var(--dc, #1a2a35);
+	font-size: 1.4rem;
+	font-weight: 600;
+	color: var(--dc, var(--color-gray-800));
 	line-height: 1;
-	letter-spacing: -0.03em;
+	letter-spacing: -0.01em;
 }
 .dept-stat-lbl {
-	font-size: 0.72rem;
+	font-size: 0.8rem;
 	color: var(--mut);
 	font-weight: 500;
 }
@@ -32,10 +30,10 @@
 .dept-icon {
 	width: 26px;
 	height: 26px;
-	border-radius: 7px;
-	background: var(--pl);
-	border: 1px solid rgba(10, 155, 74, 0.25);
-	color: var(--pd);
+	border-radius: var(--rs);
+	background: var(--color-gray-100);
+	border: 1px solid var(--bdr);
+	color: var(--color-gray-500);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -43,7 +41,7 @@
 	flex-shrink: 0;
 }
 .dept-icon-off {
-	background: #f8fafb;
+	background: var(--color-gray-50);
 	border-color: var(--bdr);
 	opacity: 0.5;
 }
@@ -54,24 +52,24 @@
 	font-weight: 600;
 }
 .dept-hs-c1 {
-	color: #dc2626;
+	color: var(--color-error);
 }
 .dept-hs-c2 {
-	color: #d97706;
+	color: var(--color-warning);
 }
 .dept-hs-c3 {
-	color: #2563eb;
+	color: var(--blue);
 }
 .dept-hs-tong {
-	color: #7c3aed;
+	color: var(--purple);
 	font-weight: 700 !important;
 }
 
 /* ── Section hệ số trong modal ── */
 .dept-heso-section {
-	background: #fafafa;
+	background: var(--color-gray-50);
 	border: 1px solid var(--bdr);
-	border-radius: 10px;
+	border-radius: var(--r);
 	padding: 14px 16px;
 	display: flex;
 	flex-direction: column;
@@ -92,8 +90,8 @@
 .dept-hs-hint {
 	font-weight: 400;
 	font-style: italic;
-	color: #9aaab6;
-	font-size: 0.65rem;
+	color: var(--color-gray-400);
+	font-size: 0.7rem;
 }
 
 /* ── Preview kết quả hệ số TT03 ── */
@@ -101,20 +99,20 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	background: #f0fdf4;
-	border: 1px solid #bbf7d0;
+	background: var(--color-primary-pale);
+	border: 1px solid var(--color-primary-border);
 	border-radius: 8px;
 	padding: 8px 12px;
 	margin-top: 4px;
 }
 .dept-heso-preview-label {
 	font-size: 0.72rem;
-	color: #6b8090;
+	color: var(--color-gray-500);
 }
 .dept-heso-preview-val {
 	font-size: 0.85rem;
 	font-weight: 700;
-	color: #087c3b;
+	color: var(--pd);
 }
 
 /* ── Responsive ── */
@@ -143,6 +141,6 @@
 		font-size: 1.35rem;
 	}
 	.dept-stat-lbl {
-		font-size: 0.68rem;
+		font-size: 0.72rem;
 	}
 }

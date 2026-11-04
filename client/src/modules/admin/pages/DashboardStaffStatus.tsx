@@ -35,7 +35,7 @@ export default function DashboardStaffStatus({
 							cy='40'
 							r='32'
 							fill='none'
-							stroke='#f0f4f6'
+							stroke='var(--color-gray-100)'
 							strokeWidth='10'
 						/>
 						<circle
@@ -43,7 +43,7 @@ export default function DashboardStaffStatus({
 							cy='40'
 							r='32'
 							fill='none'
-							stroke='#0a9b4a'
+							stroke='var(--p)'
 							strokeWidth='10'
 							strokeDasharray={`${2 * Math.PI * 32 * rateDiLam} ${2 * Math.PI * 32 * (1 - rateDiLam)}`}
 							strokeLinecap='round'
@@ -58,16 +58,16 @@ export default function DashboardStaffStatus({
 				</div>
 				<div className='ov-nl-stats'>
 					{[
-						{ lbl: 'Tổng NL', val: totalNL, col: '#1a2a35' },
-						{ lbl: 'Đi làm', val: totalDiLam, col: '#0a9b4a' },
-						{ lbl: 'Nghỉ trực', val: totalNghiTruc, col: '#d97706' },
-						{ lbl: 'Nghỉ > 2 ngày', val: totalNghiDai, col: '#dc2626' },
+						{ lbl: 'Tổng NL', val: totalNL, col: 'var(--color-gray-800)' },
+						{ lbl: 'Đi làm', val: totalDiLam, col: 'var(--p)' },
+						{ lbl: 'Nghỉ trực', val: totalNghiTruc, col: 'var(--color-warning)' },
+						{ lbl: 'Nghỉ > 2 ngày', val: totalNghiDai, col: 'var(--color-error)' },
 					].map((s) => (
 						<div
 							key={s.lbl}
 							className='ov-nl-stat-row'
 						>
-							<span style={{ fontSize: '.72rem', color: '#6b8090' }}>
+							<span style={{ fontSize: '.72rem', color: 'var(--color-gray-500)' }}>
 								{s.lbl}
 							</span>
 							<span
@@ -88,31 +88,28 @@ export default function DashboardStaffStatus({
 					{
 						lbl: 'KC theo TT03',
 						val: totalTT03.toFixed(1),
-						col: '#2563eb',
-						bg: '#eff6ff',
+						col: 'var(--txt)',
 					},
 					{
 						lbl: 'Khuyến nghị',
 						val: totalKC > 0 ? totalKC.toFixed(1) : '—',
-						col: '#7c3aed',
-						bg: '#f5f3ff',
+						col: 'var(--txt)',
 					},
 				].map((t) => (
 					<div
 						key={t.lbl}
 						className='ov-tt03-card'
-						style={{ background: t.bg }}
 					>
 						<span
 							style={{
 								fontSize: '1.1rem',
-								fontWeight: 800,
+								fontWeight: 600,
 								color: t.col,
 							}}
 						>
 							{t.val}
 						</span>
-						<span style={{ fontSize: '.65rem', color: '#6b8090' }}>{t.lbl}</span>
+						<span style={{ fontSize: '.72rem', color: 'var(--color-gray-500)' }}>{t.lbl}</span>
 					</div>
 				))}
 			</div>

@@ -25,7 +25,6 @@ export default function TableActions({
 			{onReset && (
 				<button
 					className='tbl-btn tbl-btn-edit'
-					style={{ color: '#d97706', background: '#fef3c7' }}
 					onClick={onReset}
 					title={resetTitle}
 				>

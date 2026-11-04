@@ -54,45 +54,45 @@ export default function ClsTabPanel({
 				<div className='dv-strip' style={{ marginBottom: 16 }}>
 					<div
 						className='dv-strip-card'
-						style={{ '--sc': '#2563eb', '--sb': '#eff6ff' } as React.CSSProperties}
+						style={{ '--sc': 'var(--txt)' } as React.CSSProperties}
 					>
 						<span className='dv-sc-val'>{clsStats.totalKhoiLuong}</span>
-						<span className='dv-sc-lbl'>Tổng khối lượng CV</span>
+						<span className='dv-sc-lbl'>Khối lượng CV</span>
 					</div>
 					<div
 						className='dv-strip-card'
-						style={{ '--sc': '#0f766e', '--sb': '#f0fdf4' } as React.CSSProperties}
+						style={{ '--sc': 'var(--txt)' } as React.CSSProperties}
 					>
 						<span className='dv-sc-val'>{clsStats.totalNL}</span>
-						<span className='dv-sc-lbl'>Tổng nhân lực</span>
+						<span className='dv-sc-lbl'>Nhân lực</span>
 					</div>
 					<div
 						className='dv-strip-card'
-						style={{ '--sc': '#059669', '--sb': '#ecfdf5' } as React.CSSProperties}
+						style={{ '--sc': 'var(--txt)' } as React.CSSProperties}
 					>
 						<span className='dv-sc-val'>{clsStats.totalDiLam}</span>
-						<span className='dv-sc-lbl'>Nhân lực đi làm</span>
+						<span className='dv-sc-lbl'>Đi làm</span>
 					</div>
 					<div
 						className='dv-strip-card'
-						style={{ '--sc': '#7c3aed', '--sb': '#faf5ff' } as React.CSSProperties}
+						style={{ '--sc': 'var(--txt)' } as React.CSSProperties}
 					>
 						<span className='dv-sc-val'>
 							{clsStats.totalKhoiLuong > 0 ? `${clsStats.rateDiLam}%` : '—'}
 						</span>
-						<span className='dv-sc-lbl'>Tỷ lệ đi làm/KLCV</span>
+						<span className='dv-sc-lbl'>Tỷ lệ đi làm</span>
 					</div>
 					<div
 						className='dv-strip-card'
 						style={
 							{
-								'--sc': clsStats.khoaThieu.length > 0 ? '#dc2626' : '#6b8090',
-								'--sb': clsStats.khoaThieu.length > 0 ? '#fef2f2' : '#f8fafb',
+								'--sc': clsStats.khoaThieu.length > 0 ? 'var(--color-error)' : 'var(--color-gray-500)',
+								'--sb': clsStats.khoaThieu.length > 0 ? 'var(--color-error-bg)' : 'var(--color-gray-50)',
 							} as React.CSSProperties
 						}
 					>
 						<span className='dv-sc-val'>{clsStats.khoaThieu.length}</span>
-						<span className='dv-sc-lbl'>Khoa thiếu nhân lực</span>
+						<span className='dv-sc-lbl'>Khoa thiếu</span>
 					</div>
 				</div>
 			)}

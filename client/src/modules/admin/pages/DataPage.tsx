@@ -1,4 +1,3 @@
-import { BedDouble, CalendarDays, FlaskConical } from 'lucide-react';
 import { useAuth } from '@/context/useAuth';
 import { useDeptFilter } from '@/hooks/useDeptFilter';
 import { useDeptPermissions } from '@/hooks/UseDeptPermissionsReturn';
@@ -183,45 +182,15 @@ export default function DataPage() {
 			<div className='dv-main'>
 				<div className='dv-hero-card'>
 					<PageHeader
-						icon={
-							<span
-								className={`pg-hdr-icon${activeTab === 'cls' ? ' pg-hdr-icon--cls' : ''}`}
-							>
-								{activeTab === 'ward' ? <BedDouble size={20} /> : <FlaskConical size={20} />}
-							</span>
-						}
-						title={activeTab === 'ward' ? 'Khoa nội trú' : 'Hệ Cận lâm sàng'}
+						title='Thống kê chi tiết'
 						subtitle={
-							<>
-								<span className='dv-hero-sub-label'>
-									{activeTab === 'ward'
-										? 'NHÂN LỰC ĐD - HỘ SINH - KTV'
-										: 'DỮ LIỆU HỆ CẬN LÂM SÀNG'}
-								</span>
-								<span className='dv-progress-pill'>
-									<span className='dv-progress-track'>
-										<span
-											className='dv-progress-fill'
-											style={{
-												width: `${Math.min(
-													100,
-													Math.round(
-														(activeTab === 'ward'
-															? allRows.length / (allDepts.length || 37)
-															: clsRows.length / (allClsDepts.length || 10)) * 100,
-													),
-												)}%`,
-											}}
-										/>
-									</span>
-									{activeTab === 'ward'
-										? `${allRows.length} / ${allDepts.length || 37} khoa đã nhập`
-										: `${clsRows.length} / ${allClsDepts.length || 10} khoa đã nhập`}
-								</span>
-								<span className='dv-date-badge'>
-									<CalendarDays size={13} /> Ngày xem: {formatDateToVN(selDate)}
-								</span>
-							</>
+							report
+								? `${formatDateToVN(selDate)} · ${
+										activeTab === 'ward'
+											? `${allRows.length}/${allDepts.length || 37}`
+											: `${clsRows.length}/${allClsDepts.length || 10}`
+									} khoa đã nhập`
+								: formatDateToVN(selDate)
 						}
 					>
 						{activeTab === 'ward' ? (
@@ -255,21 +224,19 @@ export default function DataPage() {
 						)}
 					</PageHeader>
 
-					<div className='dv-hero-divider' />
-
 					<div className='tab-bar-wrap'>
 						<div className='tab-bar'>
 							<button
 								className={`tab-btn${activeTab === 'ward' ? ' tab-btn--active' : ''}`}
 								onClick={() => setActiveTab('ward')}
 							>
-								<BedDouble size={15} /> Khoa nội trú
+								Khoa nội trú
 							</button>
 							<button
 								className={`tab-btn${activeTab === 'cls' ? ' tab-btn--active' : ''}`}
 								onClick={() => setActiveTab('cls')}
 							>
-								<FlaskConical size={15} /> Hệ Cận lâm sàng
+								Hệ Cận lâm sàng
 							</button>
 						</div>
 					</div>
@@ -278,13 +245,13 @@ export default function DataPage() {
 				{apiError && (
 					<div
 						style={{
-							background: '#fef2f2',
-							border: '1px solid #fecaca',
+							background: 'var(--color-error-bg)',
+							border: '1px solid var(--color-error-border)',
 							borderRadius: 8,
 							padding: '8px 14px',
 							marginBottom: 12,
 							fontSize: '.82rem',
-							color: '#dc2626',
+							color: 'var(--color-error)',
 						}}
 					>
 						{apiError}
@@ -296,7 +263,6 @@ export default function DataPage() {
 						selDate={selDate}
 						report={report}
 						loadingReport={loadingReport}
-						missingDepts={missingDepts}
 						onOpenCreateReport={() => setShowCreate(true)}
 						stats={stats}
 						filtered={filtered}

@@ -15,11 +15,11 @@
 	gap: 6px;
 }
 .perm-sidebar-label {
-	font-size: 0.63rem;
+	font-size: 0.7rem;
 	font-weight: 700;
 	color: var(--mut);
-	text-transform: uppercase;
-	letter-spacing: 0.07em;
+	text-transform: none;
+	letter-spacing: 0;
 	padding: 0 6px 6px;
 	border-bottom: 1px solid var(--bdr);
 	margin-bottom: 4px;
@@ -35,7 +35,7 @@
 	gap: 9px;
 	padding: 8px 8px;
 	border: 1px solid transparent;
-	border-radius: 9px;
+	border-radius: var(--r);
 	background: transparent;
 	cursor: pointer;
 	font-family: inherit;
@@ -45,7 +45,7 @@
 	position: relative;
 }
 .perm-role-item:hover {
-	background: #f8fafb;
+	background: var(--color-gray-50);
 	border-color: var(--bdr);
 }
 .perm-role-active {
@@ -57,7 +57,7 @@
 	height: 30px;
 	border-radius: 8px;
 	flex-shrink: 0;
-	background: #f0f4f6;
+	background: var(--color-gray-100);
 	font-size: 0.95rem;
 	display: flex;
 	align-items: center;
@@ -77,7 +77,7 @@
 	text-overflow: ellipsis;
 }
 .perm-role-desc {
-	font-size: 0.65rem;
+	font-size: 0.7rem;
 	color: var(--mut);
 }
 .perm-sys-badge {
@@ -109,12 +109,12 @@
 	gap: 12px;
 	padding: 14px 18px;
 	border-bottom: 1px solid var(--bdr);
-	background: #fafafa;
+	background: var(--color-gray-50);
 }
 .perm-detail-icon {
 	width: 40px;
 	height: 40px;
-	border-radius: 10px;
+	border-radius: var(--r);
 	flex-shrink: 0;
 	font-size: 1.3rem;
 	display: flex;
@@ -123,7 +123,7 @@
 }
 .perm-detail-name {
 	font-size: 0.95rem;
-	font-weight: 800;
+	font-weight: 700;
 	color: var(--txt);
 }
 .perm-detail-desc {
@@ -159,8 +159,8 @@
 	font-size: 0.72rem;
 	font-weight: 700;
 	color: var(--mut);
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
+	text-transform: none;
+	letter-spacing: 0;
 	margin-bottom: 10px;
 }
 
@@ -181,18 +181,18 @@
 	transition: all 0.15s;
 }
 .pq-on {
-	background: #e7f5ed;
-	border-color: #d3f1df;
+	background: var(--color-primary-pale);
+	border-color: var(--color-primary-border);
 }
 .pq-on:hover {
-	background: #d3f1df;
+	background: var(--color-primary-border);
 }
 .pq-off {
-	background: #fafafa;
+	background: var(--color-gray-50);
 }
 .pq-off:hover {
-	background: #fef2f2;
-	border-color: #fecaca;
+	background: var(--color-error-bg);
+	border-color: var(--color-error-border);
 }
 .pq-locked {
 	cursor: not-allowed !important;
@@ -208,12 +208,12 @@
 	justify-content: center;
 }
 .pq-toggle-on {
-	background: #d3f1df;
-	color: #087c3b;
+	background: var(--color-primary-border);
+	color: var(--pd);
 }
 .pq-toggle-off {
-	background: #f0f4f6;
-	color: #9aaab6;
+	background: var(--color-gray-100);
+	color: var(--color-gray-400);
 }
 .pq-label {
 	font-size: 0.8rem;
@@ -238,17 +238,17 @@
 	transition: all 0.15s;
 }
 .pk-on {
-	background: #e7f5ed;
-	border-color: #d3f1df;
+	background: var(--color-primary-pale);
+	border-color: var(--color-primary-border);
 }
 .pk-on:hover {
-	background: #d3f1df;
+	background: var(--color-primary-border);
 }
 .pk-off {
-	background: #fafafa;
+	background: var(--color-gray-50);
 }
 .pk-off:hover {
-	background: #f8fafb;
+	background: var(--color-gray-50);
 	border-color: var(--bdr);
 }
 .pk-check {
@@ -259,23 +259,23 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 0.65rem;
+	font-size: 0.7rem;
 }
 .pk-check-on {
-	background: #d3f1df;
-	color: #087c3b;
-	border: 1.5px solid #6ee7b7;
+	background: var(--color-primary-border);
+	color: var(--pd);
+	border: 1px solid var(--color-primary-border);
 }
 .pk-check-off {
 	background: transparent;
-	border: 1.5px solid #cbd5dc;
+	border: 1px solid var(--color-gray-300);
 }
 .pk-num {
 	width: 20px;
 	height: 20px;
 	border-radius: 5px;
-	background: #f0f4f6;
-	font-size: 0.65rem;
+	background: var(--color-gray-100);
+	font-size: 0.7rem;
 	font-weight: 700;
 	color: var(--mut);
 	display: flex;
@@ -297,8 +297,8 @@
 	gap: 8px;
 	padding: 32px 0;
 	text-align: center;
-	background: #e7f5ed;
-	border: 1px dashed #86efac;
+	background: var(--color-primary-pale);
+	border: 1px dashed var(--color-primary-border);
 	border-radius: 8px;
 	font-size: 0.82rem;
 	color: var(--p);
@@ -349,8 +349,8 @@
 	display: flex;
 	align-items: center;
 	gap: 5px;
-	background: var(--rb, #f0f4f6);
-	color: var(--rc, #4a6070);
+	background: var(--rb, var(--color-gray-100));
+	color: var(--rc, var(--color-gray-600));
 	border-radius: 8px;
 	padding: 5px 10px;
 	font-size: 0.75rem;
@@ -362,8 +362,8 @@
 	border-radius: 50%;
 	background: currentColor;
 	color: white;
-	font-size: 0.62rem;
-	font-weight: 800;
+	font-size: 0.7rem;
+	font-weight: 700;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -373,7 +373,7 @@
 	white-space: nowrap;
 }
 .perm-rank-arrow {
-	color: #9aaab6;
+	color: var(--color-gray-400);
 	font-size: 1rem;
 	margin-left: 4px;
 	background: none;
@@ -384,10 +384,10 @@
 	width: 18px;
 	height: 18px;
 	border-radius: 50%;
-	background: #f0f4f6;
+	background: var(--color-gray-100);
 	color: var(--mut);
-	font-size: 0.62rem;
-	font-weight: 800;
+	font-size: 0.7rem;
+	font-weight: 700;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -396,11 +396,11 @@
 
 /* ── Nhóm quyền trong cột trái ── */
 .perm-group-label {
-	font-size: 0.68rem;
+	font-size: 0.72rem;
 	font-weight: 700;
 	color: var(--mut);
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
+	text-transform: none;
+	letter-spacing: 0;
 	padding: 6px 2px 4px;
 	display: flex;
 	align-items: center;

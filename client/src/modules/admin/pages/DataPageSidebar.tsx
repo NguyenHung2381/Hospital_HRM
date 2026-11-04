@@ -116,17 +116,10 @@ export default function DataPageSidebar({
 								)
 								.map((k) => {
 									const checked = selKhoa.has(k.tt);
-									const dp = k.dieuPhoi;
-									const rowAccent =
-										dp !== null && dp < 0
-											? 'dv-kr-deficit'
-											: dp !== null && dp > 0
-												? 'dv-kr-surplus'
-												: '';
 									return (
 										<button
 											key={k.tt}
-											className={`dv-khoa-row ${checked ? 'dv-kr-on' : 'dv-kr-off'} ${rowAccent}`}
+											className={`dv-khoa-row ${checked ? 'dv-kr-on' : 'dv-kr-off'}`}
 											onClick={() => toggleKhoa(k.tt)}
 										>
 											<span
@@ -136,13 +129,6 @@ export default function DataPageSidebar({
 											</span>
 											<span className='dv-kr-num'>{k.tt}</span>
 											<span className='dv-kr-name'>{k.ten}</span>
-											{dp !== null && dp !== 0 && (
-												<span
-													className={`dv-kr-dp ${dp < 0 ? 'dv-kr-dp-red' : 'dv-kr-dp-green'}`}
-												>
-													{dp > 0 ? `+${dp}` : dp}
-												</span>
-											)}
 										</button>
 									);
 								})}
@@ -158,9 +144,9 @@ export default function DataPageSidebar({
 							<div className='dv-khoa-panel-hdr'>
 								<span
 									className='dv-khoa-panel-title'
-									style={{ color: '#d97706' }}
+									style={{ color: 'var(--color-warning)' }}
 								>
-									<TriangleAlert size={13} /> CHƯA NHẬP
+									<TriangleAlert size={13} /> Chưa nhập
 									<span className='dv-missing-badge'>{missingDepts.length}</span>
 								</span>
 							</div>
@@ -190,9 +176,9 @@ export default function DataPageSidebar({
 							<div className='dv-khoa-panel-hdr'>
 								<span
 									className='dv-khoa-panel-title'
-									style={{ color: '#d97706' }}
+									style={{ color: 'var(--color-warning)' }}
 								>
-									<TriangleAlert size={13} /> KHOA CLS CHƯA NHẬP
+									<TriangleAlert size={13} /> Chưa nhập
 									<span className='dv-missing-badge'>
 										{missingClsDepts.length}
 									</span>

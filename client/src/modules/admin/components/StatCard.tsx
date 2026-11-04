@@ -1,12 +1,19 @@
 import type { ReactNode } from 'react';
 
+const SEMANTIC_TONES = new Set([
+	'var(--color-error)',
+	'var(--color-error-dark)',
+	'var(--color-warning)',
+	'var(--red)',
+]);
+
 interface StatCardProps {
 	label: string;
 	value: string | number;
 	icon?: ReactNode;
 	subText?: string;
-	textColor: string; // VD: '#087c3b'
-	bgColor?: string; // VD: '#e7f5ed'
+	textColor: string; // VD: 'var(--pd)'
+	bgColor?: string; // VD: 'var(--color-primary-pale)'
 	className?: string;
 }
 
@@ -19,13 +26,15 @@ export default function StatCard({
 	bgColor,
 	className = 'dept-stat-card',
 }: StatCardProps) {
-	// Dùng CSS variables nội bộ để tuỳ biến màu dễ dàng
+	// Chỉ giữ màu khi mang ý nghĩa cảnh báo (đỏ / vàng); còn lại dùng màu chữ
+	// trung tính để các ô số liệu không bị "loè loẹt".
+	const tone = SEMANTIC_TONES.has(textColor) ? textColor : 'var(--txt)';
 	const style = {
-		'--dc': textColor,
+		'--dc': tone,
 		'--db': bgColor,
-		'--kc': textColor, // Dành cho AdminHomePage (.ov-kpi)
+		'--kc': tone, // Dành cho AdminHomePage (.ov-kpi)
 		'--kb': bgColor,
-		'--sc': textColor, // Dành cho AdminDataPage (.dv-strip-card)
+		'--sc': tone, // Dành cho AdminDataPage (.dv-strip-card)
 		'--sb': bgColor,
 	} as React.CSSProperties;
 

@@ -35,7 +35,7 @@ export default function DashboardPage() {
 					minHeight: 300,
 				}}
 			>
-				<p style={{ color: '#6b8090', fontSize: '0.9rem' }}>
+				<p style={{ color: 'var(--color-gray-500)', fontSize: '0.9rem' }}>
 					Đang tải dữ liệu...
 				</p>
 			</div>
@@ -53,7 +53,7 @@ export default function DashboardPage() {
 					minHeight: 300,
 				}}
 			>
-				<p style={{ color: '#6b8090', fontSize: '0.9rem' }}>
+				<p style={{ color: 'var(--color-gray-500)', fontSize: '0.9rem' }}>
 					Chưa có dữ liệu báo cáo.
 				</p>
 			</div>
@@ -103,32 +103,32 @@ export default function DashboardPage() {
 			val: rows.length,
 			lbl: 'Tổng số khoa',
 			sub: 'đang theo dõi',
-			col: '#2563eb',
-			bg: '#eff6ff',
+			col: 'var(--blue)',
+			bg: 'var(--color-info-bg)',
 		},
 		{
 			icon: <BedDouble size={20} />,
 			val: totalNB,
 			lbl: 'Tổng người bệnh',
 			sub: `${totalNBKham} NB khám/PT KH`,
-			col: '#0a9b4a',
-			bg: '#e7f5ed',
+			col: 'var(--p)',
+			bg: 'var(--color-primary-pale)',
 		},
 		{
 			icon: <Users size={20} />,
 			val: totalNL,
 			lbl: 'Tổng nhân lực',
 			sub: `${totalDiLam} đi làm hôm nay`,
-			col: '#7c3aed',
-			bg: '#f5f3ff',
+			col: 'var(--purple)',
+			bg: 'var(--purple-l)',
 		},
 		{
 			icon: <TriangleAlert size={20} />,
 			val: khoaThieu.length,
 			lbl: 'Khoa thiếu NL',
 			sub: `thiếu ${tongThieu} người theo TT03`,
-			col: '#dc2626',
-			bg: '#fef2f2',
+			col: 'var(--color-error)',
+			bg: 'var(--color-error-bg)',
 		},
 	];
 

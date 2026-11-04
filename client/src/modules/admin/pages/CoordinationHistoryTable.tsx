@@ -62,7 +62,7 @@ export default function CoordinationHistoryTable({
 									<td>{h.to_department_name}</td>
 									<td
 										className='td-center'
-										style={{ fontWeight: 800, color: '#2563eb' }}
+										style={{ fontWeight: 600, color: 'var(--blue)' }}
 									>
 										{h.staff_count}
 									</td>

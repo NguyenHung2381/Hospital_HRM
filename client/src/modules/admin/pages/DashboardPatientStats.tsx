@@ -27,26 +27,26 @@ export default function DashboardPatientStats({
 					{
 						lbl: 'Cấp 1 (nặng)',
 						val: totalCSC1,
-						col: '#dc2626',
-						bg: '#fee2e2',
+						col: 'var(--color-error)',
+						bg: 'var(--color-error-bg)',
 					},
 					{
 						lbl: 'Cấp 2 (trung bình)',
 						val: totalCSC2,
-						col: '#d97706',
-						bg: '#fef3c7',
+						col: 'var(--color-warning)',
+						bg: 'var(--color-warning-bg)',
 					},
 					{
 						lbl: 'Cấp 3 (nhẹ)',
 						val: totalCSC3,
-						col: '#2563eb',
-						bg: '#eff6ff',
+						col: 'var(--blue)',
+						bg: 'var(--color-info-bg)',
 					},
 					{
 						lbl: 'NB khám / PT KH',
 						val: totalNBKham,
-						col: '#7c3aed',
-						bg: '#f5f3ff',
+						col: 'var(--purple)',
+						bg: 'var(--purple-l)',
 					},
 				].map((item) => (
 					<div
@@ -64,8 +64,8 @@ export default function DashboardPatientStats({
 							/>
 							<span
 								style={{
-									fontSize: '.62rem',
-									color: '#9aaab6',
+									fontSize: '.72rem',
+									color: 'var(--color-gray-400)',
 									marginTop: 2,
 									display: 'block',
 								}}
@@ -78,10 +78,10 @@ export default function DashboardPatientStats({
 				))}
 			</div>
 			<div className='ov-nb-total'>
-				<span style={{ fontSize: '.78rem', color: '#6b8090', fontWeight: 600 }}>
+				<span style={{ fontSize: '.78rem', color: 'var(--color-gray-500)', fontWeight: 600 }}>
 					Tổng người bệnh
 				</span>
-				<span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0a9b4a' }}>
+				<span style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--txt)' }}>
 					{totalNB}
 				</span>
 			</div>

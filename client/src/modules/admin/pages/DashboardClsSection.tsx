@@ -22,11 +22,11 @@ export default function DashboardClsSection({
 						justifyContent: 'center',
 						gap: 8,
 						padding: '24px 20px',
-						color: '#6b8090',
+						color: 'var(--color-gray-500)',
 						fontSize: '.85rem',
-						background: '#f8fafb',
+						background: 'var(--color-gray-50)',
 						borderRadius: 10,
-						border: '1px dashed #cbd5dc',
+						border: '1px dashed var(--color-gray-300)',
 					}}
 				>
 					<FlaskConical size={18} />
@@ -42,32 +42,32 @@ export default function DashboardClsSection({
 			val: clsRowsCount,
 			lbl: 'Khoa CLS đã nhập',
 			sub: 'trên 10 khoa',
-			col: '#2563eb',
-			bg: '#eff6ff',
+			col: 'var(--blue)',
+			bg: 'var(--color-info-bg)',
 		},
 		{
 			icon: <ChartColumn size={20} />,
 			val: clsStats.totalKhoiLuong,
 			lbl: 'Tổng khối lượng CV',
 			sub: `${clsStats.totalNL} tổng nhân lực`,
-			col: '#0a9b4a',
-			bg: '#e7f5ed',
+			col: 'var(--p)',
+			bg: 'var(--color-primary-pale)',
 		},
 		{
 			icon: <UserCheck size={20} />,
 			val: clsStats.totalDiLam,
 			lbl: 'Nhân lực đi làm',
 			sub: `${clsStats.rateDiLam}% / khối lượng CV`,
-			col: '#7c3aed',
-			bg: '#f5f3ff',
+			col: 'var(--purple)',
+			bg: 'var(--purple-l)',
 		},
 		{
 			icon: <TriangleAlert size={20} />,
 			val: clsStats.khoaThieu.length,
 			lbl: 'Khoa CLS thiếu NL',
 			sub: `thiếu ${clsStats.tongThieu} người so khuyến cáo`,
-			col: '#dc2626',
-			bg: '#fef2f2',
+			col: 'var(--color-error)',
+			bg: 'var(--color-error-bg)',
 		},
 	];
 
@@ -104,12 +104,12 @@ export default function DashboardClsSection({
 										<MiniBar
 											val={r.diLam ?? 0}
 											max={r.khuyenCao ?? 1}
-											color='#0a9b4a'
+											color='var(--p)'
 										/>
 										<span
 											style={{
-												fontSize: '.65rem',
-												color: '#6b8090',
+												fontSize: '.72rem',
+												color: 'var(--color-gray-500)',
 												whiteSpace: 'nowrap',
 											}}
 										>
@@ -121,13 +121,13 @@ export default function DashboardClsSection({
 									<span
 										style={{
 											fontSize: '.85rem',
-											fontWeight: 800,
-											color: '#dc2626',
+											fontWeight: 600,
+											color: 'var(--color-error)',
 										}}
 									>
 										+{Math.abs(r.chenhLech ?? 0)}
 									</span>
-									<p style={{ fontSize: '.6rem', color: '#9aaab6' }}>
+									<p style={{ fontSize: '.7rem', color: 'var(--color-gray-400)' }}>
 										cần bổ sung
 									</p>
 								</div>

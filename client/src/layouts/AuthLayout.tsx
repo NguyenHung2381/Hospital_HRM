@@ -17,22 +17,13 @@ const features = [
 
 export default function AuthLayout({
 	children,
-	title = 'Bệnh viện\nHữu Nghị Đa Khoa\nNghệ An',
-	subtitle = 'Hệ thống Quản lý Nhân sự\n— Điều dưỡng, Hộ sinh, Kỹ thuật viên',
+	title = 'Bệnh viện Hữu Nghị\nĐa khoa Nghệ An',
+	subtitle = 'Hệ thống quản lý nhân lực\nĐiều dưỡng – Hộ sinh – Kỹ thuật viên',
 }: AuthLayoutProps) {
 	return (
 		<div className='auth-wrapper'>
 			{/* Panel trái - Branding */}
 			<div className='auth-panel-left'>
-				{/* Vòng tròn trang trí */}
-				<div className='auth-panel-decor' />
-				<div className='auth-panel-decor' />
-				<div className='auth-panel-decor' />
-
-				{/* Glow blobs trang trí */}
-				<div className='auth-glow-orb auth-glow-orb-1' />
-				<div className='auth-glow-orb auth-glow-orb-2' />
-
 				<div className='auth-panel-content'>
 					<div className='auth-panel-logo'>
 						<img
@@ -74,15 +65,11 @@ export default function AuthLayout({
 						))}
 					</ul>
 
-					<div className='auth-panel-divider' />
 				</div>
 			</div>
 
 			{/* Panel phải - Nội dung (form) */}
 			<div className='auth-panel-right'>
-				<div className='auth-right-ring auth-right-ring-1' />
-				<div className='auth-right-ring auth-right-ring-2' />
-				<div className='auth-right-ring auth-right-ring-3' />
 
 				<div className='auth-form-wrapper'>{children}</div>
 

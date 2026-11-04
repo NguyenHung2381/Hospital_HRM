@@ -102,8 +102,9 @@ export default function AccountPage() {
 					className='acc-rank-chip'
 					style={{
 						cursor: 'pointer',
-						outline: roleFilter === null ? '2px solid #0f766e' : 'none',
-						background: roleFilter === null ? '#ccfbf1' : undefined,
+						borderColor: roleFilter === null ? 'var(--p)' : undefined,
+						background: roleFilter === null ? 'var(--color-primary-pale)' : undefined,
+						color: roleFilter === null ? 'var(--pd)' : undefined,
 					}}
 					onClick={() => {
 						setRoleFilter(null);
@@ -124,8 +125,9 @@ export default function AccountPage() {
 							className='acc-rank-chip'
 							style={{
 								cursor: 'pointer',
-								outline: active ? '2px solid #0f766e' : 'none',
-								background: active ? '#ccfbf1' : undefined,
+								borderColor: active ? 'var(--p)' : undefined,
+								background: active ? 'var(--color-primary-pale)' : undefined,
+								color: active ? 'var(--pd)' : undefined,
 							}}
 							onClick={() => {
 								setRoleFilter(active ? null : r.id_role);
@@ -183,7 +185,7 @@ export default function AccountPage() {
 														<span
 															style={{
 																fontSize: '.72rem',
-																color: '#9aaab6',
+																color: 'var(--color-gray-400)',
 																marginLeft: 6,
 															}}
 														>
@@ -209,7 +211,7 @@ export default function AccountPage() {
 											{u.is_locked && (
 												<span
 													className='role-badge'
-													style={{ marginLeft: 6, background: '#fee2e2', color: '#b91c1c' }}
+													style={{ marginLeft: 6, background: 'var(--color-error-bg)', color: 'var(--color-error-dark)' }}
 													title='Đăng nhập sai nhiều lần — tự mở sau 15 phút, hoặc đặt lại mật khẩu để mở ngay'
 												>
 													Khoá tạm
@@ -218,7 +220,7 @@ export default function AccountPage() {
 											{u.totp_enabled && (
 												<span
 													className='role-badge'
-													style={{ marginLeft: 6, background: '#dcfce7', color: '#047857' }}
+													style={{ marginLeft: 6, background: 'var(--color-primary-pale)', color: 'var(--pd)' }}
 													title='Đã bật xác thực 2 lớp'
 												>
 													2FA
@@ -344,7 +346,7 @@ export default function AccountPage() {
 								<strong
 									style={{
 										fontFamily: 'monospace',
-										background: '#f0f4f6',
+										background: 'var(--color-gray-100)',
 										padding: '2px 8px',
 										borderRadius: 4,
 										userSelect: 'all',
@@ -353,7 +355,7 @@ export default function AccountPage() {
 									{tempPassword}
 								</strong>
 								<br />
-								<span style={{ fontSize: '.78rem', color: '#6b8090' }}>
+								<span style={{ fontSize: '.78rem', color: 'var(--color-gray-500)' }}>
 									Mật khẩu này chỉ hiển thị 1 lần. Hãy chuyển trực tiếp cho người
 									dùng và yêu cầu họ đổi mật khẩu ngay sau khi đăng nhập.
 								</span>
@@ -381,7 +383,7 @@ export default function AccountPage() {
 								Hệ thống sẽ tạo một mật khẩu tạm ngẫu nhiên, mở khoá tài khoản (nếu
 								đang bị khoá tạm) và đăng xuất tài khoản khỏi mọi thiết bị.
 								<br />
-								<span style={{ fontSize: '.78rem', color: '#6b8090' }}>
+								<span style={{ fontSize: '.78rem', color: 'var(--color-gray-500)' }}>
 									Người dùng cần đổi mật khẩu sau khi đăng nhập lại.
 								</span>
 							</p>
@@ -414,7 +416,7 @@ export default function AccountPage() {
 								</button>
 								<button
 									className='btn-primary'
-									style={{ background: '#d97706' }}
+									style={{ background: 'var(--color-warning)' }}
 									onClick={handleReset}
 									disabled={saving}
 								>

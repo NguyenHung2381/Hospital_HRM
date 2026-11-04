@@ -3,10 +3,10 @@ export default function FormErrorBanner({ error }: { error: string }) {
 	return (
 		<p
 			style={{
-				color: '#dc2626',
+				color: 'var(--color-error)',
 				fontSize: '.82rem',
 				marginBottom: 8,
-				background: '#fef2f2',
+				background: 'var(--color-error-bg)',
 				borderRadius: 6,
 				padding: '6px 10px',
 			}}

@@ -20,7 +20,7 @@ export default function DashboardTopShortage({
 					style={{
 						textAlign: 'center',
 						padding: '24px',
-						color: '#6b8090',
+						color: 'var(--color-gray-500)',
 						fontSize: '.82rem',
 					}}
 				>
@@ -39,10 +39,10 @@ export default function DashboardTopShortage({
 									height: 22,
 									borderRadius: '50%',
 									background:
-										i === 0 ? '#fef2f2' : i === 1 ? '#fef3c7' : '#f0f4f6',
-									color: i === 0 ? '#dc2626' : i === 1 ? '#d97706' : '#9aaab6',
+										i === 0 ? 'var(--color-error-bg)' : i === 1 ? 'var(--color-warning-bg)' : 'var(--color-gray-100)',
+									color: i === 0 ? 'var(--color-error)' : i === 1 ? 'var(--color-warning)' : 'var(--color-gray-400)',
 									fontSize: '.7rem',
-									fontWeight: 800,
+									fontWeight: 600,
 									display: 'flex',
 									alignItems: 'center',
 									justifyContent: 'center',
@@ -69,12 +69,12 @@ export default function DashboardTopShortage({
 									<MiniBar
 										val={r.diLam ?? 0}
 										max={r.nlTong ?? 1}
-										color='#0a9b4a'
+										color='var(--p)'
 									/>
 									<span
 										style={{
-											fontSize: '.65rem',
-											color: '#6b8090',
+											fontSize: '.72rem',
+											color: 'var(--color-gray-500)',
 											whiteSpace: 'nowrap',
 										}}
 									>
@@ -86,13 +86,13 @@ export default function DashboardTopShortage({
 								<span
 									style={{
 										fontSize: '.85rem',
-										fontWeight: 800,
-										color: '#dc2626',
+										fontWeight: 600,
+										color: 'var(--color-error)',
 									}}
 								>
 									+{Math.abs(r.dieuPhoi ?? 0)}
 								</span>
-								<p style={{ fontSize: '.6rem', color: '#9aaab6' }}>
+								<p style={{ fontSize: '.7rem', color: 'var(--color-gray-400)' }}>
 									cần bổ sung
 								</p>
 							</div>

@@ -12,29 +12,26 @@ export const buildStripItems = (
 	totalTT03: number,
 	totalKhuyenNghi: number,
 	totalKC: number,
-	filteredLen: number,
-	totalLen: number,
-	missingCount = 0,
 ): StripItem[] => {
 	const diLamColor =
 		totalDL < totalKC
-			? '#dc2626' // đỏ — thiếu
+			? 'var(--color-error)' // đỏ — thiếu
 			: totalDL === totalKC
-				? '#2563eb' // xanh — đúng chuẩn
-				: '#0a9b4a'; // xanh lá — dư
+				? 'var(--blue)' // xanh — đúng chuẩn
+				: 'var(--p)'; // xanh lá — dư
 
 	const diLamBg =
-		totalDL < totalKC ? '#fef2f2' : totalDL === totalKC ? '#eff6ff' : '#e7f5ed';
+		totalDL < totalKC ? 'var(--color-error-bg)' : totalDL === totalKC ? 'var(--color-info-bg)' : 'var(--color-primary-pale)';
 
 	return [
-		{ label: 'Người bệnh', val: totalNB, color: '#2563eb', bg: '#eff6ff' },
-		{ label: 'Nhân lực', val: totalNL, color: '#0f766e', bg: '#f0fdfa' },
+		{ label: 'Người bệnh', val: totalNB, color: 'var(--blue)', bg: 'var(--color-info-bg)' },
+		{ label: 'Nhân lực', val: totalNL, color: 'var(--teal)', bg: 'var(--teal-l)' },
 		{ label: 'Đi làm', val: totalDL, color: diLamColor, bg: diLamBg },
 		{
 			label: 'KC theo TT03',
 			val: totalTT03.toFixed(1),
-			color: '#7c3aed',
-			bg: '#f5f3ff',
+			color: 'var(--purple)',
+			bg: 'var(--purple-l)',
 		},
 		{
 			label: 'Khuyến nghị',
@@ -42,21 +39,5 @@ export const buildStripItems = (
 			color: '#0369a1',
 			bg: '#f0f9ff',
 		},
-		{
-			label: 'Khoa lọc',
-			val: `${filteredLen}/${totalLen}`,
-			color: '#4a6070',
-			bg: '#f8fafb',
-		},
-		...(missingCount > 0
-			? [
-					{
-						label: 'Chưa nhập',
-						val: `${missingCount} khoa`,
-						color: '#b45309',
-						bg: '#fffbeb',
-					},
-				]
-			: []),
 	];
 };

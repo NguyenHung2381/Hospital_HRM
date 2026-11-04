@@ -63,14 +63,12 @@ export default function MainLayout({
 						className='logo'
 					/>
 					<div className='topbar-info'>
-						<p className='topbar-hospital'>
-							<span className='topbar-hospital-desktop'>{hospitalName}</span>
-							<span className='topbar-hospital-mobile'>BV Hữu Nghị Đa Khoa Nghệ An</span>
-						</p>
 						<h1 className='topbar-dept'>Khoa {deptName}</h1>
-						<p className='topbar-sub'>
-							<span className='topbar-sub-desktop'>Theo dõi nhân lực ĐD - Hộ sinh - KTV</span>
-							<span className='topbar-sub-mobile'>Theo dõi nhân lực ĐD-HS-KTV</span>
+						<p className='topbar-hospital'>
+							<span className='topbar-hospital-desktop'>
+								{hospitalName} · Nhân lực ĐD – HS – KTV
+							</span>
+							<span className='topbar-hospital-mobile'>BV Hữu Nghị Đa Khoa Nghệ An</span>
 						</p>
 					</div>
 				</div>

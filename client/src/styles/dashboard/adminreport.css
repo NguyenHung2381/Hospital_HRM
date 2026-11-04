@@ -53,7 +53,6 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	box-shadow: 0 2px 6px rgba(10, 155, 74, 0.2);
 }
 .rp-step-title {
 	font-size: 0.82rem;
@@ -73,9 +72,9 @@
 	align-items: center;
 	gap: 6px;
 	padding: 7px 10px;
-	border: 1.5px solid var(--bdr);
+	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
-	background: #f8fafb;
+	background: var(--color-gray-50);
 	cursor: pointer;
 	transition:
 		background 0.15s,
@@ -86,15 +85,14 @@
 	color: var(--mut);
 }
 .rp-tab:hover {
-	border-color: var(--p);
-	color: var(--p);
-	background: #e7f5ed;
+	border-color: var(--color-gray-400);
+	color: var(--txt);
 }
-.rp-tab--active {
+.rp-tab--active,
+.rp-tab--active:hover {
 	border-color: var(--p);
-	background: var(--p);
-	color: #fff;
-	box-shadow: 0 3px 8px rgba(10, 155, 74, 0.2);
+	background: var(--color-primary-pale);
+	color: var(--pd);
 }
 .rp-tab-icon {
 	flex-shrink: 0;
@@ -132,17 +130,17 @@
 	font-size: 0.7rem;
 	font-weight: 600;
 	color: var(--mut);
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
+	text-transform: none;
+	letter-spacing: 0;
 }
 .rp-input {
 	padding: 0.44rem 0.65rem;
-	border: 1.5px solid var(--bdr);
+	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
 	font-size: 0.82rem;
 	font-family: inherit;
 	color: var(--txt);
-	background: #fafafa;
+	background: var(--color-gray-50);
 	width: 100%;
 	box-sizing: border-box;
 	outline: none;
@@ -153,7 +151,7 @@
 }
 .rp-input:focus {
 	border-color: var(--p);
-	box-shadow: 0 0 0 3px rgba(10, 155, 74, 0.1);
+	box-shadow: var(--focus-ring);
 	background: #fff;
 }
 .rp-select {
@@ -167,12 +165,12 @@
 .rp-date-badge {
 	margin-top: 10px;
 	font-size: 0.74rem;
-	color: var(--pd, #087c3b);
-	background: #e7f5ed;
-	border: 1px solid #a7f3d0;
-	border-radius: 6px;
+	color: var(--color-gray-700);
+	background: var(--color-gray-50);
+	border: 1px solid var(--bdr);
+	border-radius: var(--rs);
 	padding: 5px 10px;
-	font-weight: 600;
+	font-weight: 500;
 }
 
 /* ── Scope toggle (Toàn BV / Một khoa) ── */
@@ -183,9 +181,9 @@
 }
 .rp-scope-btn {
 	padding: 9px 10px;
-	border: 1.5px solid var(--bdr);
+	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
-	background: #f8fafb;
+	background: var(--color-gray-50);
 	font-size: 0.8rem;
 	font-weight: 600;
 	font-family: inherit;
@@ -198,20 +196,20 @@
 	text-align: center;
 }
 .rp-scope-btn:hover {
-	border-color: var(--p);
-	color: var(--p);
+	border-color: var(--color-gray-400);
+	color: var(--txt);
 }
-.rp-scope-btn--active {
+.rp-scope-btn--active,
+.rp-scope-btn--active:hover {
 	border-color: var(--p);
-	background: var(--p);
-	color: #fff;
-	box-shadow: 0 3px 8px rgba(10, 155, 74, 0.2);
+	background: var(--color-primary-pale);
+	color: var(--pd);
 }
 
 /* ── Lỗi ── */
 .rp-error {
-	background: #fef2f2;
-	border: 1px solid #fecaca;
+	background: var(--color-error-bg);
+	border: 1px solid var(--color-error-border);
 	border-radius: var(--rs);
 	padding: 8px 12px;
 	font-size: 0.8rem;
@@ -241,10 +239,8 @@
 	border: none;
 	background: var(--p);
 	color: #fff;
-	box-shadow: 0 4px 12px rgba(10, 155, 74, 0.25);
 }
 .rp-export-btn:hover:not(:disabled) {
-	box-shadow: 0 6px 18px rgba(10, 155, 74, 0.35);
 }
 .rp-export-btn:disabled {
 	opacity: 0.58;
@@ -253,14 +249,14 @@
 }
 .rp-export-btn--outline {
 	background: transparent;
-	border: 1.5px solid var(--bdr);
+	border: 1px solid var(--bdr);
 	color: var(--mut);
 	box-shadow: none;
 }
 .rp-export-btn--outline:hover:not(:disabled) {
 	border-color: var(--p);
 	color: var(--p);
-	background: #e7f5ed;
+	background: var(--color-primary-pale);
 	box-shadow: none;
 	transform: none;
 }
@@ -268,7 +264,7 @@
 	display: inline-block;
 	width: 13px;
 	height: 13px;
-	border: 2px solid rgba(255, 255, 255, 0.3);
+	border: 1px solid rgba(255, 255, 255, 0.3);
 	border-top-color: #fff;
 	border-radius: 50%;
 	animation: rp-spin 0.7s linear infinite;
@@ -317,7 +313,7 @@
 	display: flex;
 	align-items: center;
 	gap: 9px;
-	background: #f8fafb;
+	background: var(--color-gray-50);
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
 	padding: 10px 11px;
@@ -334,7 +330,7 @@
 	flex-shrink: 0;
 }
 .rp-meta-label {
-	font-size: 0.66rem;
+	font-size: 0.72rem;
 	color: var(--mut);
 	margin: 0 0 2px;
 	line-height: 1;
@@ -360,11 +356,10 @@
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
 	padding: 12px 14px;
-	background: #f8fafb;
+	background: var(--sur);
 }
 .rp-sheet--primary {
-	border-color: #86efac;
-	background: #f0fdf4;
+	border-color: var(--bdr);
 }
 .rp-sheet-hdr {
 	display: flex;
@@ -373,17 +368,15 @@
 	margin-bottom: 10px;
 }
 .rp-sheet-badge {
-	font-size: 0.66rem;
-	font-weight: 700;
-	background: var(--p);
-	color: #fff;
-	border-radius: 5px;
-	padding: 2px 7px;
+	font-size: 0.72rem;
+	font-weight: 500;
+	background: var(--color-gray-100);
+	color: var(--color-gray-700);
+	border: 1px solid var(--bdr);
+	border-radius: 4px;
+	padding: 1px 6px;
 	flex-shrink: 0;
 	white-space: nowrap;
-}
-.rp-sheet-badge--sec {
-	background: #3b82f6;
 }
 .rp-sheet-name {
 	font-size: 0.82rem;
@@ -422,17 +415,17 @@
 
 /* Chú giải màu */
 .rp-legend {
-	background: #f8fafb;
+	background: var(--color-gray-50);
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
 	padding: 12px 14px;
 }
 .rp-legend-title {
-	font-size: 0.68rem;
+	font-size: 0.72rem;
 	font-weight: 700;
 	color: var(--mut);
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
+	text-transform: none;
+	letter-spacing: 0;
 	margin: 0 0 10px;
 }
 .rp-legend-row {
@@ -466,9 +459,9 @@
 .rp-range-block-lbl {
 	font-size: 0.7rem;
 	font-weight: 700;
-	color: var(--pd, #087c3b);
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
+	color: var(--pd, var(--pd));
+	text-transform: none;
+	letter-spacing: 0;
 	margin: 0 0 6px;
 }
 .rp-range-row {
@@ -493,8 +486,8 @@
 	margin-top: 8px;
 	font-size: 0.74rem;
 	color: var(--red);
-	background: #fef2f2;
-	border: 1px solid #fecaca;
+	background: var(--color-error-bg);
+	border: 1px solid var(--color-error-border);
 	border-radius: 6px;
 	padding: 5px 10px;
 }

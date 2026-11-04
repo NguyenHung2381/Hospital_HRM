@@ -68,32 +68,32 @@ export default function DepartmentPage() {
 					{
 						label: 'Tổng khoa',
 						val: depts.length,
-						color: '#1a2a35',
-						bg: '#f8fafb',
+						color: 'var(--color-gray-800)',
+						bg: 'var(--color-gray-50)',
 					},
 					{
 						label: 'Đang hoạt động',
 						val: activeCount,
-						color: '#087c3b',
-						bg: '#e7f5ed',
+						color: 'var(--pd)',
+						bg: 'var(--color-primary-pale)',
 					},
 					{
 						label: 'Tạm dừng',
 						val: inactiveCount,
-						color: '#b45309',
-						bg: '#fef3c7',
+						color: 'var(--color-warning)',
+						bg: 'var(--color-warning-bg)',
 					},
 					{
 						label: 'Có cấu hình TT03',
 						val: depts.filter((k) => k.formula_type !== null).length,
-						color: '#1d4ed8',
-						bg: '#dbeafe',
+						color: 'var(--color-info)',
+						bg: 'var(--color-info-bg)',
 					},
 					{
 						label: 'Có cấu hình KN',
 						val: depts.filter((k) => k.rec_formula_type !== null).length,
-						color: '#6d28d9',
-						bg: '#ede9fe',
+						color: 'var(--purple)',
+						bg: 'var(--purple-l)',
 					},
 				].map((s) => (
 					<StatCard
@@ -167,7 +167,7 @@ export default function DepartmentPage() {
 										</td>
 										<td
 											className='td-center td-mono'
-											style={{ color: '#6b8090', fontSize: '.8rem' }}
+											style={{ color: 'var(--color-gray-500)', fontSize: '.8rem' }}
 										>
 											{k.code_department ?? '—'}
 										</td>
@@ -176,7 +176,7 @@ export default function DepartmentPage() {
 											{ft && badge ? (
 												<span
 													style={{
-														fontSize: '0.68rem',
+														fontSize: '.72rem',
 														fontWeight: 700,
 														padding: '3px 8px',
 														borderRadius: 9999,
@@ -188,14 +188,14 @@ export default function DepartmentPage() {
 													{FORMULA_LABELS[ft]}
 												</span>
 											) : (
-												<span style={{ color: '#9aaab6', fontSize: '0.75rem' }}>
+												<span style={{ color: 'var(--color-gray-400)', fontSize: '0.75rem' }}>
 													Chưa cấu hình
 												</span>
 											)}
 										</td>
 										<td
 											className='td-center td-mono'
-											style={{ fontSize: '0.75rem', color: '#4a6070' }}
+											style={{ fontSize: '0.75rem', color: 'var(--color-gray-600)' }}
 										>
 											{ratioDisplay}
 										</td>
@@ -203,7 +203,7 @@ export default function DepartmentPage() {
 											className='td-center'
 											style={{
 												fontSize: '0.8rem',
-												color: '#7c3aed',
+												color: 'var(--purple)',
 												fontWeight: 600,
 											}}
 										>
@@ -215,12 +215,12 @@ export default function DepartmentPage() {
 											{k.rec_formula_type ? (
 												<span
 													style={{
-														fontSize: '0.68rem',
+														fontSize: '.72rem',
 														fontWeight: 700,
 														padding: '3px 8px',
 														borderRadius: 9999,
-														background: '#ede9fe',
-														color: '#6d28d9',
+														background: 'var(--purple-l)',
+														color: 'var(--purple)',
 														whiteSpace: 'nowrap',
 													}}
 												>
@@ -229,14 +229,14 @@ export default function DepartmentPage() {
 													)?.label ?? k.rec_formula_type}
 												</span>
 											) : (
-												<span style={{ color: '#9aaab6', fontSize: '0.75rem' }}>
+												<span style={{ color: 'var(--color-gray-400)', fontSize: '0.75rem' }}>
 													Chưa cấu hình
 												</span>
 											)}
 										</td>
 										<td
 											className='td-center'
-											style={{ fontWeight: 600, color: '#087c3b' }}
+											style={{ fontWeight: 600, color: 'var(--pd)' }}
 										>
 											{k.total_staff ?? '—'}
 										</td>

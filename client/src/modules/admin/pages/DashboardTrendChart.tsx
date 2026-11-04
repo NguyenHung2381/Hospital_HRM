@@ -55,7 +55,7 @@ export default function DashboardTrendChart({
 											maxTrendNB > 0
 												? `${Math.max(4, (t.nb / maxTrendNB) * 52)}px`
 												: '4px',
-										background: '#3b82f6',
+										background: 'var(--blue)',
 										borderRadius: '4px 4px 0 0',
 										width: 10,
 										transition: 'height .3s',
@@ -68,7 +68,7 @@ export default function DashboardTrendChart({
 											maxTrendNL > 0
 												? `${Math.max(4, (t.nl / maxTrendNL) * 52)}px`
 												: '4px',
-										background: '#0a9b4a',
+										background: 'var(--p)',
 										borderRadius: '4px 4px 0 0',
 										width: 10,
 										transition: 'height .3s',
@@ -78,15 +78,15 @@ export default function DashboardTrendChart({
 							</div>
 							<span
 								style={{
-									fontSize: '.62rem',
-									color: '#9aaab6',
+									fontSize: '.72rem',
+									color: 'var(--color-gray-400)',
 									marginTop: 3,
 									textAlign: 'center',
 								}}
 							>
 								{formatShortDay(t.date)}
 							</span>
-							<span style={{ fontSize: '.6rem', color: '#cbd5dc' }}>{t.nb}</span>
+							<span style={{ fontSize: '.7rem', color: 'var(--color-gray-300)' }}>{t.nb}</span>
 						</div>
 					);
 				})}
@@ -100,8 +100,8 @@ export default function DashboardTrendChart({
 				}}
 			>
 				{[
-					{ lbl: 'Người bệnh', col: '#3b82f6' },
-					{ lbl: 'NL đi làm', col: '#0a9b4a' },
+					{ lbl: 'Người bệnh', col: 'var(--blue)' },
+					{ lbl: 'NL đi làm', col: 'var(--p)' },
 				].map((leg) => (
 					<span
 						key={leg.lbl}
@@ -109,8 +109,8 @@ export default function DashboardTrendChart({
 							display: 'flex',
 							alignItems: 'center',
 							gap: 4,
-							fontSize: '.68rem',
-							color: '#6b8090',
+							fontSize: '.72rem',
+							color: 'var(--color-gray-500)',
 						}}
 					>
 						<span
@@ -132,7 +132,7 @@ export default function DashboardTrendChart({
 					style={{
 						fontSize: '.72rem',
 						fontWeight: 700,
-						color: '#6b8090',
+						color: 'var(--color-gray-500)',
 						marginBottom: 6,
 					}}
 				>
@@ -144,29 +144,30 @@ export default function DashboardTrendChart({
 							lbl: 'Đề xuất giảm (-)',
 							val: rows.filter((r) => r.dieuPhoi !== null && r.dieuPhoi > 0)
 								.length,
-							col: '#0a9b4a',
-							bg: '#e7f5ed',
+							col: 'var(--p)',
+							bg: 'var(--color-primary-pale)',
 						},
 						{
 							lbl: 'Cần điều phối (+)',
 							val: rows.filter((r) => r.dieuPhoi !== null && r.dieuPhoi < 0)
 								.length,
-							col: '#dc2626',
-							bg: '#fef2f2',
+							col: 'var(--color-error)',
+							bg: 'var(--color-error-bg)',
 						},
 						{
 							lbl: 'Không điều phối',
 							val: rows.filter((r) => r.dieuPhoi === 0 || r.dieuPhoi === null)
 								.length,
-							col: '#9aaab6',
-							bg: '#f8fafb',
+							col: 'var(--color-gray-400)',
+							bg: 'var(--color-gray-50)',
 						},
 					].map((d) => (
 						<div
 							key={d.lbl}
 							style={{
 								flex: 1,
-								background: d.bg,
+								background: 'var(--sur)',
+								border: '1px solid var(--bdr)',
 								borderRadius: 8,
 								padding: '8px 6px',
 								textAlign: 'center',
@@ -175,7 +176,7 @@ export default function DashboardTrendChart({
 							<p
 								style={{
 									fontSize: '1.1rem',
-									fontWeight: 800,
+									fontWeight: 600,
 									color: d.col,
 								}}
 							>
@@ -183,8 +184,8 @@ export default function DashboardTrendChart({
 							</p>
 							<p
 								style={{
-									fontSize: '.6rem',
-									color: '#6b8090',
+									fontSize: '.7rem',
+									color: 'var(--color-gray-500)',
 									lineHeight: 1.3,
 								}}
 							>

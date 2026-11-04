@@ -13,10 +13,10 @@ export const FORMULA_BADGE_COLOR: Record<
 	FormulaType,
 	{ bg: string; color: string }
 > = {
-	standard: { bg: '#eff6ff', color: '#1d4ed8' },
-	icu: { bg: '#fef2f2', color: '#b91c1c' },
-	surgery: { bg: '#fdf4ff', color: '#7c3aed' },
-	custom_coef: { bg: '#f0fdfa', color: '#0f766e' },
+	standard: { bg: 'var(--color-info-bg)', color: 'var(--color-info)' },
+	icu: { bg: 'var(--color-error-bg)', color: 'var(--color-error-dark)' },
+	surgery: { bg: 'var(--purple-l)', color: 'var(--purple)' },
+	custom_coef: { bg: 'var(--teal-l)', color: 'var(--teal)' },
 };
 
 // ── Hằng hiển thị UI cho RecommendedFormulaType (Khuyến nghị) ───────────
@@ -34,11 +34,11 @@ export const REC_FORMULA_BADGE_COLOR: Record<
 	{ bg: string; color: string }
 > = {
 	coef: { bg: '#ecfeff', color: '#0891b2' }, // xanh cyan
-	coef_with_total: { bg: '#f0fdf4', color: '#15803d' }, // xanh lá
-	coef_with_outpatient: { bg: '#eff6ff', color: '#1d4ed8' }, // xanh dương
+	coef_with_total: { bg: 'var(--color-primary-pale)', color: 'var(--pd)' }, // xanh lá
+	coef_with_outpatient: { bg: 'var(--color-info-bg)', color: 'var(--color-info)' }, // xanh dương
 	total_ratio: { bg: '#fff7ed', color: '#c2410c' }, // cam
-	outpatient_count: { bg: '#fdf4ff', color: '#7c3aed' }, // tím
-	fixed: { bg: '#f0f4f6', color: '#2d4050' }, // xám
+	outpatient_count: { bg: 'var(--purple-l)', color: 'var(--purple)' }, // tím
+	fixed: { bg: 'var(--color-gray-100)', color: 'var(--color-gray-700)' }, // xám
 };
 
 export interface TT03Block {

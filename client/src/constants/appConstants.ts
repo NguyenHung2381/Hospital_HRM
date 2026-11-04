@@ -38,13 +38,13 @@ export const COLOR_MAP: Record<
 	string,
 	{ bg: string; text: string; border: string }
 > = {
-	blue: { bg: '#dbeafe', text: '#1d4ed8', border: '#93c5fd' },
-	teal: { bg: '#ccfbf1', text: '#0f766e', border: '#5eead4' },
-	green: { bg: '#d3f1df', text: '#087c3b', border: '#6ee7b7' },
-	purple: { bg: '#ede9fe', text: '#6d28d9', border: '#c4b5fd' },
-	orange: { bg: '#fef3c7', text: '#b45309', border: '#fcd34d' },
-	red: { bg: '#fee2e2', text: '#b91c1c', border: '#fca5a5' },
-	gray: { bg: '#f0f4f6', text: '#4a6070', border: '#cbd5dc' },
+	blue: { bg: 'var(--color-info-bg)', text: 'var(--color-info)', border: 'var(--color-info-border)' },
+	teal: { bg: 'var(--teal-l)', text: 'var(--teal)', border: '#5eead4' },
+	green: { bg: 'var(--color-primary-border)', text: 'var(--pd)', border: 'var(--color-primary-border)' },
+	purple: { bg: 'var(--purple-l)', text: 'var(--purple)', border: '#c4b5fd' },
+	orange: { bg: 'var(--color-warning-bg)', text: 'var(--color-warning)', border: 'var(--color-warning-border)' },
+	red: { bg: 'var(--color-error-bg)', text: 'var(--color-error-dark)', border: 'var(--color-error-border)' },
+	gray: { bg: 'var(--color-gray-100)', text: 'var(--color-gray-600)', border: 'var(--color-gray-300)' },
 };
 
 export const COLOR_OPTIONS = Object.keys(COLOR_MAP);

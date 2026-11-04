@@ -17,7 +17,7 @@
 	background: none;
 	padding: 10px 16px;
 	font-size: 0.85rem;
-	font-weight: 650;
+	font-weight: 600;
 	color: var(--mut);
 	cursor: pointer;
 	border-bottom: 2.5px solid transparent;
@@ -40,7 +40,7 @@
 	gap: 10px;
 	background: var(--sur);
 	border: 1px solid var(--bdr);
-	border-radius: 12px;
+	border-radius: var(--r);
 	padding: 12px 14px;
 	margin-bottom: 14px;
 }
@@ -51,8 +51,8 @@
 	font-size: 0.7rem;
 	font-weight: 700;
 	color: var(--mut);
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
+	text-transform: none;
+	letter-spacing: 0;
 	min-width: 130px;
 }
 .lg-field-grow {
@@ -94,7 +94,7 @@
 .lg-wrap {
 	background: var(--sur);
 	border: 1px solid var(--bdr);
-	border-radius: 12px;
+	border-radius: var(--r);
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 }
@@ -106,12 +106,12 @@
 	color: var(--txt);
 }
 .lg-tbl th {
-	background: #f8fafb;
-	font-size: 0.68rem;
-	font-weight: 750;
-	color: #4a6070;
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
+	background: var(--color-gray-50);
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: var(--color-gray-600);
+	text-transform: none;
+	letter-spacing: 0;
 	padding: 10px 14px;
 	text-align: left;
 	border-bottom: 1.5px solid var(--bdr);
@@ -119,7 +119,7 @@
 }
 .lg-tbl td {
 	padding: 9px 14px;
-	border-bottom: 1px solid #f0f4f6;
+	border-bottom: 1px solid var(--color-gray-100);
 	vertical-align: middle;
 }
 .lg-row {
@@ -127,7 +127,7 @@
 }
 .lg-row:hover td,
 .lg-row.is-open td {
-	background: #f8fafb;
+	background: var(--color-gray-50);
 }
 .lg-row:focus-visible {
 	outline: 2px solid var(--p);
@@ -148,7 +148,7 @@
 	color: var(--mut);
 	background: var(--sur);
 	border: 1px solid var(--bdr);
-	border-radius: 12px;
+	border-radius: var(--r);
 }
 .lg-nowrap {
 	white-space: nowrap;
@@ -156,7 +156,7 @@
 .lg-mono {
 	font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
 	font-size: 0.76rem;
-	color: #4a6070;
+	color: var(--color-gray-600);
 	word-break: break-all;
 }
 .lg-actions {
@@ -186,9 +186,9 @@
 }
 .lg-method {
 	display: inline-block;
-	font-size: 0.64rem;
-	font-weight: 800;
-	color: #4a6070;
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: var(--color-gray-600);
 	background: var(--gray-l);
 	border-radius: 4px;
 	padding: 1px 5px;
@@ -204,7 +204,7 @@
 	border-radius: 999px;
 	white-space: nowrap;
 	background: var(--gray-l);
-	color: #4a6070;
+	color: var(--color-gray-600);
 }
 .lg-chip-ok {
 	background: var(--pl);
@@ -212,15 +212,15 @@
 }
 .lg-chip-info {
 	background: var(--blue-l);
-	color: #1d4ed8;
+	color: var(--color-info);
 }
 .lg-chip-warn {
 	background: var(--yellow-l);
-	color: #92400e;
+	color: var(--color-warning);
 }
 .lg-chip-err {
 	background: var(--red-l);
-	color: #b91c1c;
+	color: var(--color-error-dark);
 }
 .lg-status {
 	font-family: ui-monospace, Consolas, monospace;
@@ -234,11 +234,11 @@
 	background: var(--pl);
 }
 .lg-status-warn {
-	color: #92400e;
+	color: var(--color-warning);
 	background: var(--yellow-l);
 }
 .lg-status-err {
-	color: #b91c1c;
+	color: var(--color-error-dark);
 	background: var(--red-l);
 }
 .lg-status-muted {
@@ -261,7 +261,7 @@
 
 /* chi tiết 1 dòng log */
 .lg-detail-row td {
-	background: #fbfdfc;
+	background: var(--color-gray-50);
 	padding: 12px 18px 16px;
 }
 .lg-detail dl {
@@ -285,7 +285,7 @@
 	padding: 8px 12px;
 	border-radius: 0 8px 8px 0;
 	font-size: 0.78rem;
-	color: #7f1d1d;
+	color: var(--color-error-dark);
 }
 .lg-error pre {
 	margin: 6px 0 0;
@@ -298,10 +298,10 @@
 
 .lg-banner {
 	background: var(--yellow-l);
-	color: #92400e;
+	color: var(--color-warning);
 	font-size: 0.8rem;
 	padding: 8px 14px;
-	border-bottom: 1px solid #fde68a;
+	border-bottom: 1px solid var(--color-warning-border);
 }
 .lg-note {
 	font-size: 0.8rem;
@@ -315,8 +315,8 @@
 	background: #fff;
 	color: var(--txt);
 	font-size: 0.74rem;
-	font-weight: 650;
-	border-radius: 7px;
+	font-weight: 600;
+	border-radius: var(--rs);
 	padding: 4px 10px;
 	cursor: pointer;
 	white-space: nowrap;
@@ -325,8 +325,8 @@
 	background: var(--gray-l);
 }
 .lg-btn-danger {
-	color: #b91c1c;
-	border-color: #fecaca;
+	color: var(--color-error-dark);
+	border-color: var(--color-error-border);
 }
 .lg-btn-danger:hover:not(:disabled) {
 	background: var(--red-l);
@@ -361,7 +361,7 @@
 	text-align: left;
 	background: var(--sur);
 	border: 1px solid var(--bdr);
-	border-radius: 12px;
+	border-radius: var(--r);
 	padding: 12px 14px;
 	font: inherit;
 	color: var(--txt);
@@ -373,7 +373,6 @@
 .lg-kpi-link:hover,
 .lg-kpi-link:focus-visible {
 	border-color: var(--p);
-	box-shadow: 0 2px 8px rgba(10, 155, 74, 0.1);
 }
 .lg-kpi-lbl {
 	display: flex;
@@ -384,7 +383,7 @@
 }
 .lg-kpi-val {
 	font-size: 1.45rem;
-	font-weight: 800;
+	font-weight: 700;
 	font-variant-numeric: tabular-nums;
 	line-height: 1.15;
 }
@@ -395,13 +394,13 @@
 .lg-card {
 	background: var(--sur);
 	border: 1px solid var(--bdr);
-	border-radius: 12px;
+	border-radius: var(--r);
 	padding: 14px 16px;
 	min-width: 0;
 }
 .lg-card-title {
 	font-size: 0.82rem;
-	font-weight: 750;
+	font-weight: 600;
 	margin: 0 0 10px;
 	color: var(--txt);
 }
@@ -444,7 +443,7 @@
 }
 .lg-rank-link:hover,
 .lg-rank-link:focus-visible {
-	background: #f8fafb;
+	background: var(--color-gray-50);
 }
 .lg-rank-main {
 	flex: 1;
@@ -457,7 +456,7 @@
 	display: flex;
 	align-items: center;
 	font-size: 0.8rem;
-	font-weight: 650;
+	font-weight: 600;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -472,7 +471,7 @@
 }
 .lg-rank-val {
 	font-size: 0.8rem;
-	font-weight: 750;
+	font-weight: 600;
 	font-variant-numeric: tabular-nums;
 	white-space: nowrap;
 }
@@ -483,7 +482,7 @@
 }
 .lg-chart-title {
 	font-size: 0.82rem;
-	font-weight: 750;
+	font-weight: 600;
 	margin-bottom: 12px;
 	color: var(--txt);
 }
@@ -496,7 +495,7 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	font-size: 0.66rem;
+	font-size: 0.72rem;
 	color: var(--mut);
 	text-align: right;
 	min-width: 28px;
@@ -506,13 +505,13 @@
 .lg-chart-plot {
 	position: relative;
 	flex: 1;
-	border-bottom: 1px solid #cbd5dc;
+	border-bottom: 1px solid var(--color-gray-300);
 }
 .lg-chart-grid {
 	position: absolute;
 	left: 0;
 	right: 0;
-	border-top: 1px dashed #eef2f6;
+	border-top: 1px dashed var(--color-gray-100);
 }
 .lg-chart-bars {
 	position: absolute;
@@ -553,7 +552,7 @@
 	position: absolute;
 	top: 4px;
 	pointer-events: none;
-	background: #0d1820;
+	background: var(--color-gray-900);
 	color: #fff;
 	font-size: 0.74rem;
 	padding: 6px 10px;
@@ -567,14 +566,14 @@
 	margin-bottom: 2px;
 }
 .lg-tooltip-sub {
-	color: #cbd5dc;
+	color: var(--color-gray-300);
 	font-size: 0.7rem;
 }
 .lg-chart-xaxis {
 	display: flex;
 	margin-left: 36px;
 	margin-top: 4px;
-	font-size: 0.64rem;
+	font-size: 0.7rem;
 	color: var(--mut);
 }
 .lg-chart-xaxis span {
@@ -599,7 +598,7 @@
 }
 .lg-chart-table td {
 	padding: 3px 8px;
-	border-bottom: 1px solid #f0f4f6;
+	border-bottom: 1px solid var(--color-gray-100);
 }
 .lg-chart-table td:nth-child(2) {
 	text-align: right;

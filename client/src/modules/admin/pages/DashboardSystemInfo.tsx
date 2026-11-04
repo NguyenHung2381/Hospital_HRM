@@ -46,18 +46,17 @@ export default function DashboardSystemInfo({
 									flexDirection: 'column',
 									gap: 4,
 									padding: '10px 12px',
-									background: '#f8fafb',
+									background: 'var(--color-gray-50)',
 									borderRadius: 8,
-									border: '1px solid #e2e8ec',
+									border: '1px solid var(--bdr)',
 								}}
 							>
 								<span
 									style={{
-										fontSize: '.68rem',
-										color: '#6b8090',
+										fontSize: '.72rem',
+										color: 'var(--color-gray-500)',
 										fontWeight: 600,
-										textTransform: 'uppercase',
-										letterSpacing: '0.04em',
+										
 									}}
 								>
 									{k}
@@ -66,7 +65,7 @@ export default function DashboardSystemInfo({
 									style={{
 										fontSize: '.8rem',
 										fontWeight: 700,
-										color: '#1a2a35',
+										color: 'var(--color-gray-800)',
 										lineHeight: 1.3,
 									}}
 								>
@@ -97,19 +96,19 @@ export default function DashboardSystemInfo({
 								alignItems: 'center',
 								justifyContent: 'center',
 								padding: '12px 10px',
-								background: '#e7f5ed',
-								borderRadius: 10,
-								border: '1px solid #bbf7d0',
+								background: 'var(--sur)',
+								borderRadius: 8,
+								border: '1px solid var(--bdr)',
 								textAlign: 'center',
 							}}
 						>
-							<span style={{ fontSize: '.72rem', color: '#166534', fontWeight: 650 }}>
+							<span style={{ fontSize: '.72rem', color: 'var(--pd)', fontWeight: 600 }}>
 								Tổng số khoa
 							</span>
-							<p style={{ fontSize: '1.6rem', fontWeight: 850, color: '#15803d', margin: '4px 0 0' }}>
+							<p style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--pd)', margin: '4px 0 0' }}>
 								{rowsCount}
 							</p>
-							<span style={{ fontSize: '.65rem', color: '#166534', marginTop: 2 }}>khoa active</span>
+							<span style={{ fontSize: '.72rem', color: 'var(--pd)', marginTop: 2 }}>khoa active</span>
 						</div>
 
 						<div
@@ -119,19 +118,19 @@ export default function DashboardSystemInfo({
 								alignItems: 'center',
 								justifyContent: 'center',
 								padding: '12px 10px',
-								background: '#ecfdf5',
-								borderRadius: 10,
-								border: '1px solid #a7f3d0',
+								background: 'var(--sur)',
+								borderRadius: 8,
+								border: '1px solid var(--bdr)',
 								textAlign: 'center',
 							}}
 						>
-							<span style={{ fontSize: '.72rem', color: '#047857', fontWeight: 650 }}>
+							<span style={{ fontSize: '.72rem', color: 'var(--pd)', fontWeight: 600 }}>
 								Đủ nhân lực
 							</span>
-							<p style={{ fontSize: '1.6rem', fontWeight: 850, color: '#059669', margin: '4px 0 0' }}>
+							<p style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--p)', margin: '4px 0 0' }}>
 								{khoaDuCount}
 							</p>
-							<span style={{ fontSize: '.65rem', color: '#047857', marginTop: 2 }}>khoa đáp ứng</span>
+							<span style={{ fontSize: '.72rem', color: 'var(--pd)', marginTop: 2 }}>khoa đáp ứng</span>
 						</div>
 
 						<div
@@ -141,19 +140,19 @@ export default function DashboardSystemInfo({
 								alignItems: 'center',
 								justifyContent: 'center',
 								padding: '12px 10px',
-								background: '#fef2f2',
-								borderRadius: 10,
-								border: '1px solid #fecaca',
+								background: 'var(--sur)',
+								borderRadius: 8,
+								border: '1px solid var(--bdr)',
 								textAlign: 'center',
 							}}
 						>
-							<span style={{ fontSize: '.72rem', color: '#b91c1c', fontWeight: 650 }}>
+							<span style={{ fontSize: '.72rem', color: 'var(--color-error-dark)', fontWeight: 600 }}>
 								Thiếu nhân lực
 							</span>
-							<p style={{ fontSize: '1.6rem', fontWeight: 850, color: '#dc2626', margin: '4px 0 0' }}>
+							<p style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--color-error)', margin: '4px 0 0' }}>
 								{khoaThieuCount}
 							</p>
-							<span style={{ fontSize: '.65rem', color: '#b91c1c', marginTop: 2 }}>khoa cần bù</span>
+							<span style={{ fontSize: '.72rem', color: 'var(--color-error-dark)', marginTop: 2 }}>khoa cần bù</span>
 						</div>
 					</div>
 				</div>

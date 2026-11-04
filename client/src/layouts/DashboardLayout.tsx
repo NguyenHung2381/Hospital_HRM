@@ -26,7 +26,7 @@ import ValiIcon from '@/assets/svg/ValiIcon';
 // ── Nav groups ────────────────────────────────────────────
 const NAV_GROUPS = [
 	{
-		label: 'Tổng quan',
+		label: '',
 		items: [
 			{ path: '/dashboard', label: 'Tổng quan', icon: <HomeIcon size={18} /> },
 		],
@@ -131,7 +131,6 @@ export default function DashboardLayout() {
 	const avatarLetter = user?.hoTen?.charAt(0).toUpperCase() ?? '?';
 	const displayName = user?.hoTen ?? '---';
 	const displayRole = user?.vaiTro ? (ROLE_LABEL[user.vaiTro] ?? '') : '';
-	const displayBadge = user?.chucVu || displayRole;
 
 	const todayDate = new Date().toLocaleDateString('vi-VN', {
 		weekday: 'short',
@@ -165,8 +164,8 @@ export default function DashboardLayout() {
 						className='nav-logo-img'
 					/>
 					<div className='nav-logo-text' style={{ flex: 1, minWidth: 0 }}>
-						<p className='nav-logo-name'>Bệnh viện</p>
-						<p className='nav-logo-sub'>Hữu nghị Đa Khoa Nghệ An</p>
+						<p className='nav-logo-name'>Quản lý nhân lực</p>
+						<p className='nav-logo-sub'>BV Hữu nghị Đa khoa Nghệ An</p>
 					</div>
 					<button
 						className='mobile-nav-close'
@@ -183,7 +182,7 @@ export default function DashboardLayout() {
 							key={group.label}
 							className='nav-group'
 						>
-							<div className='nav-section-label'>{group.label}</div>
+							{group.label && <div className='nav-section-label'>{group.label}</div>}
 							{group.items
 								.filter((n) => !('adminOnly' in n) || user?.vaiTro === 'admin')
 								.map((n) => (
@@ -197,13 +196,8 @@ export default function DashboardLayout() {
 									}
 									title={n.label}
 								>
-									{({ isActive }) => (
-										<>
-											<span className='nav-icon'>{n.icon}</span>
-											<span className='nav-label'>{n.label}</span>
-											{isActive && <span className='nav-indicator' />}
-										</>
-									)}
+									<span className='nav-icon'>{n.icon}</span>
+									<span className='nav-label'>{n.label}</span>
 								</NavLink>
 							))}
 						</div>
@@ -229,12 +223,11 @@ export default function DashboardLayout() {
 							height='13'
 							viewBox='0 0 24 24'
 							fill='none'
-							stroke='white'
+							stroke='currentColor'
 							strokeWidth='2.5'
 							strokeLinecap='round'
 							strokeLinejoin='round'
 							style={{
-								opacity: 0.7,
 								flexShrink: 0,
 								transform: userMenuOpen ? 'rotate(180deg)' : 'none',
 								transition: 'transform 0.2s ease',
@@ -301,20 +294,14 @@ export default function DashboardLayout() {
 						>
 							<MenuIcon size={20} />
 						</button>
-						<div>
-							<p className='topbar-hospital'>
-								<span className='topbar-hospital-desktop'>Bệnh viện Hữu Nghị Đa Khoa Nghệ An</span>
-								<span className='topbar-hospital-mobile'>BV Hữu Nghị Đa Khoa Nghệ An</span>
-							</p>
-							<h1 className='topbar-title'>
-								<span className='topbar-title-desktop'>Hệ thống quản lý nhân lực ĐD – HS – KTV</span>
-								<span className='topbar-title-mobile'>QL Nhân Lực ĐD - HS - KTV</span>
-							</h1>
-						</div>
+						<h1 className='topbar-title'>
+							<span className='topbar-title-desktop'>Hệ thống quản lý nhân lực Điều dưỡng – Hộ sinh – KTV</span>
+							<span className='topbar-title-mobile'>QL nhân lực ĐD – HS – KTV</span>
+						</h1>
 					</div>
 					<div className='topbar-r'>
 						<div className='topbar-date'>
-							<CalendarDays size={13} /> {todayDate}
+							<CalendarDays size={14} /> {todayDate}
 						</div>
 						<button
 							className='topbar-home-btn'
@@ -324,7 +311,6 @@ export default function DashboardLayout() {
 							<HomeIcon size={15} />
 							<span className='topbar-home-btn-text'>Trang nhập liệu</span>
 						</button>
-						<div className='topbar-badge'>{displayBadge}</div>
 					</div>
 				</header>
 

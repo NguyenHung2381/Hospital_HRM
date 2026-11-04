@@ -48,8 +48,8 @@ export default function ShortageBoard({
 			{isAdmin && (
 				<p
 					style={{
-						fontSize: '.68rem',
-						color: '#9aaab6',
+						fontSize: '.72rem',
+						color: 'var(--color-gray-400)',
 						margin: '-4px 0 8px',
 					}}
 				>
@@ -166,10 +166,10 @@ export default function ShortageBoard({
 										style={{
 											cursor: isAdmin && dp > 0 ? 'grab' : undefined,
 											background:
-												dragOverId === r.id_department ? '#fef2f2' : undefined,
+												dragOverId === r.id_department ? 'var(--color-error-bg)' : undefined,
 											outline:
 												dragOverId === r.id_department
-													? '2px dashed #dc2626'
+													? '1px dashed var(--color-error)'
 													: undefined,
 											outlineOffset:
 												dragOverId === r.id_department ? -2 : undefined,
@@ -185,18 +185,18 @@ export default function ShortageBoard({
 										<td
 											className='td-center'
 											style={{
-												fontWeight: 800,
+												fontWeight: 600,
 												color:
-													dp > 0 ? '#0a9b4a' : dp < 0 ? '#dc2626' : '#9aaab6',
+													dp > 0 ? 'var(--p)' : dp < 0 ? 'var(--color-error)' : 'var(--color-gray-400)',
 											}}
 										>
 											{dp > 0 ? `+${dp}` : dp}
 											{adjusted ? (
 												<div
 													style={{
-														fontSize: '.6rem',
+														fontSize: '.7rem',
 														fontWeight: 500,
-														color: '#9aaab6',
+														color: 'var(--color-gray-400)',
 													}}
 												>
 													gốc {rawDp > 0 ? `+${rawDp}` : rawDp}
@@ -209,7 +209,7 @@ export default function ShortageBoard({
 											) : dp < 0 ? (
 												<span
 													className='badge'
-													style={{ background: '#fee2e2', color: '#dc2626' }}
+													style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)' }}
 												>
 													Thiếu
 												</span>

@@ -163,11 +163,11 @@ export default function CoordinationPage() {
 			</PageHeader>
 
 			{loadingReport ? (
-				<div style={{ textAlign: 'center', padding: 48, color: '#9aaab6' }}>
+				<div style={{ textAlign: 'center', padding: 48, color: 'var(--color-gray-400)' }}>
 					Đang tải dữ liệu...
 				</div>
 			) : !report ? (
-				<div style={{ textAlign: 'center', padding: 48, color: '#9aaab6' }}>
+				<div style={{ textAlign: 'center', padding: 48, color: 'var(--color-gray-400)' }}>
 					Chưa có báo cáo ngày {formatDateToVN(selDate)}. Vui lòng nhập số liệu
 					ngày này trước khi điều phối.
 				</div>

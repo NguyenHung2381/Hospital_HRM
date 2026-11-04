@@ -116,12 +116,6 @@ export default function WardTable({
 					</th>
 					<th
 						rowSpan={2}
-						className='dv-th dv-th-c dv-th-upd'
-					>
-						Tạo lúc
-					</th>
-					<th
-						rowSpan={2}
 						className='dv-th dv-th-c'
 					>
 						Thao tác
@@ -197,14 +191,12 @@ export default function WardTable({
 									{r.khuyenNghi != null ? n(r.khuyenNghi, 2) : '—'}
 								</td>
 								<td className='dv-td dv-td-c'>
-									{dp === null ? (
-										<span className='dp-pill dp-pill-null'>—</span>
-									) : dp > 0 ? (
+									{dp !== null && dp > 0 ? (
 										<span className='dp-pill dp-pill-surplus'>+{dp}</span>
-									) : dp < 0 ? (
+									) : dp !== null && dp < 0 ? (
 										<span className='dp-pill dp-pill-deficit'>{dp}</span>
 									) : (
-										<span className='dp-pill dp-pill-zero'>0</span>
+										<span style={{ color: 'var(--mut)' }}>{dp === null ? '—' : 0}</span>
 									)}
 								</td>
 								<td className='dv-td dv-td-note'>{r.ghiChu ?? ''}</td>
@@ -213,12 +205,6 @@ export default function WardTable({
 									title={apiRec?.updated_at ?? ''}
 								>
 									{fmtUpdatedAt(apiRec?.updated_at)}
-								</td>
-								<td
-									className='dv-td dv-td-c dv-td-upd'
-									title={apiRec?.created_at ?? ''}
-								>
-									{fmtUpdatedAt(apiRec?.created_at)}
 								</td>
 								<td className='dv-td dv-td-c'>
 									<div
@@ -275,7 +261,6 @@ export default function WardTable({
 					<td className='dv-td-c dv-td-kc'>
 						{stats.totalKhuyenNghi > 0 ? stats.totalKhuyenNghi.toFixed(1) : '—'}
 					</td>
-					<td />
 					<td />
 					<td />
 					<td />
