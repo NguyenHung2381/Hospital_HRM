@@ -19,10 +19,14 @@ if (process.env.JWT_SECRET.length < 32) {
 }
 // Cảnh báo (không chặn khởi động) 2 rủi ro cấu hình DB phổ biến ở production
 if (process.env.NODE_ENV === 'production') {
-	if (process.env.DB_ENCRYPT !== 'true')
-		console.warn('⚠️  DB_ENCRYPT khác "true" — kết nối tới SQL Server không được mã hoá.');
-	if ((process.env.DB_USER || '').toLowerCase() === 'sa')
-		console.warn('⚠️  DB_USER=sa — nên dùng 1 SQL login riêng, chỉ cấp quyền trên DB của HRM.');
+	// DB cùng máy (hoặc máy host của container) thì không cần TLS
+	const localDbHosts = ['localhost', '127.0.0.1', '::1', 'host.docker.internal'];
+	if (process.env.DB_SSL !== 'true' && !localDbHosts.includes(String(process.env.DB_HOST).toLowerCase()))
+		console.warn('⚠️  DB_SSL khác "true" — kết nối tới PostgreSQL ở máy khác không được mã hoá.');
+	if (['postgres', 'hrm_owner'].includes((process.env.DB_USER || '').toLowerCase()))
+		console.warn(
+			`⚠️  DB_USER=${process.env.DB_USER} — nên dùng role ứng dụng hrm_app (chỉ đọc/ghi dữ liệu, không có quyền DDL).`,
+		);
 }
 
 process.on('unhandledRejection', (reason) => {

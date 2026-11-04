@@ -1,6 +1,6 @@
 # Hospital HRM
 
-Hệ thống quản lý nhân sự bệnh viện (Human Resource Management). Ứng dụng fullstack monorepo gồm client React và server Node.js/Express kết nối MSSQL.
+Hệ thống quản lý nhân sự bệnh viện (Human Resource Management). Ứng dụng fullstack monorepo gồm client React và server Node.js/Express kết nối PostgreSQL.
 
 ## Tech Stack
 
@@ -9,7 +9,7 @@ Hệ thống quản lý nhân sự bệnh viện (Human Resource Management). �
 | Frontend | React 19, TypeScript, Vite |
 | Routing | React Router DOM v7 |
 | Backend | Node.js, Express |
-| Database | Microsoft SQL Server (MSSQL) |
+| Database | PostgreSQL 17 (node-postgres) — cài trực tiếp trên máy chủ, không chạy trong Docker |
 | Auth | JWT trong cookie HttpOnly (jsonwebtoken), bcrypt |
 | Bảo mật | Helmet, CSP, CORS whitelist, chống CSRF, rate limit đăng nhập, phân quyền xem/ghi theo phòng ban, audit log |
 | Realtime | Server-Sent Events (SSE) |
@@ -41,11 +41,16 @@ Hospital_HRM/
 │       ├── utils/                  # Tiện ích
 │       └── styles/                 # CSS / style (bao gồm styles/dashboard)
 └── server/                         # Node.js + Express backend
+    ├── db/
+    │   ├── postgres/               # Script tạo role/DB, schema, view (chạy bằng psql)
+    │   ├── mssql/                  # Snapshot schema SQL Server cũ (tham chiếu)
+    │   └── README.md               # Cài PostgreSQL, chuyển dữ liệu, backup
     ├── scripts/
-    │   └── setAccountPasswords.js  # Script set mật khẩu tài khoản (không commit output plaintext)
+    │   ├── migrate-from-mssql.js   # Chuyển dữ liệu SQL Server → PostgreSQL (npm run db:migrate-data)
+    │   └── verify-migration.js     # Đối chiếu từng ô dữ liệu 2 DB (npm run db:verify-data)
     └── src/
         ├── index.js                # Entry point (helmet, CORS, health check)
-        ├── config/                 # Cấu hình DB (db.js)
+        ├── config/                 # db.js (pool pg, API kiểu request().input().query()), schemaCheck.js
         ├── controllers/            # auth, users, departments, roles, reports,
         │                           # clsRecords, coordination, tt03,
         │                           # userDepartmentAccess, userPassword,
@@ -77,8 +82,8 @@ Hospital_HRM/
 
 ### Yêu cầu
 
-- Node.js >= 18
-- Microsoft SQL Server
+- Node.js >= 22
+- PostgreSQL 17 (bộ cài Windows của EDB, có sẵn ICU) — tạo role/DB/schema theo [server/db/README.md](server/db/README.md)
 
 ### 1. Cài dependencies
 
@@ -89,7 +94,18 @@ npm install --prefix client
 npm install --prefix server
 ```
 
-### 2. Cấu hình environment
+### 2. Tạo database
+
+```bat
+cd server\db\postgres
+psql -U postgres -v ON_ERROR_STOP=1 -v owner_password="<mk-owner>" -v app_password="<mk-app>" -f 000_roles_database.sql
+psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 001_init.sql
+psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 002_views_functions.sql
+```
+
+Chuyển dữ liệu cũ từ SQL Server: xem [server/db/README.md → Chuyển dữ liệu](server/db/README.md#chuyển-dữ-liệu-từ-sql-server).
+
+### 3. Cấu hình environment
 
 Tạo file `server/.env` (xem đầy đủ các biến trong `server/.env.example`):
 
@@ -97,16 +113,18 @@ Tạo file `server/.env` (xem đầy đủ các biến trong `server/.env.exampl
 NODE_ENV=development           # máy dev; production dùng server/.env.production (xem mục Môi trường)
 PORT=3000
 HOST=127.0.0.1                 # đổi nếu server cần nhận traffic trực tiếp từ máy khác
-DB_HOST=localhost\SQLEXPRESS   # hoặc tên server\instance
-DB_NAME=Hospital_HRM
-DB_USER=sa
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=hrm_hospital
+DB_USER=hrm_app                # role ứng dụng — KHÔNG dùng postgres / hrm_owner
 DB_PASSWORD=your_password
+DB_SSL=false                   # true khi PostgreSQL ở máy khác
 JWT_SECRET=                    # chuỗi ngẫu nhiên >= 32 ký tự: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 COOKIE_SECURE=false            # đặt true khi site chạy HTTPS
 CORS_ORIGIN=                   # domain thật nếu cần gọi API từ origin khác, cách nhau bởi dấu phẩy
 ```
 
-### 3. Chạy ứng dụng
+### 4. Chạy ứng dụng
 
 ```bash
 # Chạy đồng thời client + server
@@ -128,7 +146,7 @@ Dự án tách thành 2 môi trường độc lập. Mỗi môi trường có fi
 | Tên project Compose | `hospital_hrm_dev` | `hospital_hrm` |
 | Stage Dockerfile | `dev` (nodemon + Vite dev server) | `prod` (Node + nginx, build tĩnh) |
 | File cấu hình server | `server/.env` | `server/.env.production` (không có → dùng `server/.env`) |
-| `NODE_ENV` | `development` — trả chi tiết lỗi DB về client | `production` — ẩn chi tiết lỗi, cảnh báo nếu `DB_ENCRYPT≠true` hoặc `DB_USER=sa` |
+| `NODE_ENV` | `development` — trả chi tiết lỗi DB về client | `production` — ẩn chi tiết lỗi, cảnh báo nếu DB ở máy khác mà `DB_SSL≠true`, hoặc `DB_USER` là `postgres`/`hrm_owner` |
 | Giao diện | `http://localhost:5173` (npm) / `http://localhost:5174` (Docker) | `https://dieuduong.bvnghean.vn` → máy chủ `:8080` |
 | API | `http://localhost:3000` (npm) / `http://127.0.0.1:3002` (Docker) | Không mở ra ngoài, chỉ nginx gọi qua mạng nội bộ |
 | Source code | Mount từ máy host, sửa là chạy lại | Đóng vào image lúc build, phải build lại khi cập nhật |
@@ -136,7 +154,7 @@ Dự án tách thành 2 môi trường độc lập. Mỗi môi trường có fi
 | Bảo mật container | Không giới hạn (tiện debug) | read-only, không root, `cap_drop: ALL`, giới hạn RAM |
 | Log | `server/logs/` trên máy | volume `hospital_hrm_api-logs` |
 
-> Cả hai môi trường dùng SQL Server có sẵn trên máy (không nằm trong compose). Chạy trong Docker thì SQL Server phải bật **TCP/IP ở cổng cố định** (SQL Server Configuration Manager → Protocols → TCP/IP).
+> Cả hai môi trường dùng PostgreSQL cài trực tiếp trên máy (không nằm trong compose). Backend chạy trong Docker gọi DB qua `host.docker.internal`, nên PostgreSQL phải nghe trên interface mạng Docker và `pg_hba.conf` phải cho phép dải đó — xem [server/db/README.md](server/db/README.md#backend-chạy-trong-docker-postgresql-trên-host).
 
 ### Dev
 
@@ -166,7 +184,7 @@ docker compose down            # dừng
 - Cấu hình đọc từ `server/.env` (dùng chung với cách 1). Compose tự ghi đè:
   - `NODE_ENV=development`
   - `HOST=0.0.0.0`: để container frontend gọi được backend
-  - `DB_HOST=host.docker.internal`: vì `localhost\SQLEXPRESS` bên trong container là chính container. `DB_PORT` vẫn lấy từ `server/.env`.
+  - `DB_HOST=host.docker.internal`: vì `localhost` bên trong container là chính container. `DB_PORT` vẫn lấy từ `server/.env`.
 - `node_modules` nằm trong container (bản Linux), không dùng thư mục của Windows (`bcrypt` là native module). Thêm dependency mới thì chạy lại với `--build --renew-anon-volumes`.
 
 ### Production
@@ -176,14 +194,14 @@ Gồm 2 container:
 - `frontend`: nginx phục vụ giao diện đã build, reverse-proxy `/api`, header bảo mật, rate-limit, lấy IP thật của người dùng qua proxy tin cậy. Đây là container duy nhất mở cổng ra ngoài.
 - `backend`: Node, không mở cổng ra ngoài, read-only, không chạy bằng root. Có healthcheck `/health`; `frontend` chỉ khởi động khi `backend` đã healthy.
 
-Luồng truy cập: `https://dieuduong.bvnghean.vn` → reverse proxy HTTPS → máy chủ `:8080` → `frontend` (nginx) → `backend:3000` → SQL Server trên host.
+Luồng truy cập: `https://dieuduong.bvnghean.vn` → reverse proxy HTTPS → máy chủ `:8080` → `frontend` (nginx) → `backend:3000` → PostgreSQL trên host.
 
 #### Triển khai lần đầu
 
 ```bash
 # 1. Tạo cấu hình server
 cp server/.env.production.example server/.env.production
-#    Điền DB_USER / DB_PASSWORD (login riêng, KHÔNG dùng sa) và JWT_SECRET
+#    Điền DB_USER=hrm_app / DB_PASSWORD (KHÔNG dùng postgres/hrm_owner) và JWT_SECRET
 #    (khác với máy dev). Xem chú thích trong file mẫu.
 
 # 2. (Tuỳ chọn) Tạo file .env ở thư mục gốc cho biến của compose — xem bảng dưới
@@ -226,7 +244,8 @@ docker compose -f docker-compose.prod.yml exec backend ls logs       # xem danh 
 - `COOKIE_SECURE=true` thì cookie chỉ gửi qua HTTPS. Thử nhanh bằng `http://localhost:8080` (không qua proxy) thì tạm đặt `false`, nếu không sẽ không đăng nhập được.
 - `NODE_ENV`, `HOST`, `PORT`, `TRUST_PROXY` đã cố định trong `docker-compose.prod.yml`, đặt trong `.env.production` cũng không có tác dụng.
 - Không đổi `name: hospital_hrm` trong `docker-compose.prod.yml`: tên volume log thật (`hospital_hrm_api-logs`) phụ thuộc vào nó.
-- Lần chạy đầu server tự tạo bảng/cột bảo mật, nên login DB cần quyền `ALTER`/`CREATE TABLE` (hoặc chạy trước `node src/config/securitySchema.js` bằng tài khoản có quyền).
+- Server **không** tự tạo/sửa bảng: role `hrm_app` không có quyền DDL. Schema tạo trước bằng `server/db/postgres/*.sql` (role `hrm_owner`); lúc khởi động server chỉ kiểm tra đủ bảng, thiếu thì dừng và báo file cần chạy.
+- Backup PostgreSQL hằng ngày bằng `pg_dump` — xem [server/db/README.md](server/db/README.md#backup-postgresql).
 
 ### Các file cấu hình
 
@@ -254,7 +273,7 @@ Ghi bằng **pino + pino-roll** (giống dự án RMS): mỗi request `/api` là
 
 Base URL: `http://localhost:3000/api`
 
-Các endpoint (trừ nhóm đăng nhập) yêu cầu phiên đăng nhập hợp lệ: cookie HttpOnly `hrm_session` do `/auth/login` đặt (JWT, mặc định 8 giờ — `JWT_EXPIRES`). Mỗi phiên được lưu trong bảng `UserSessions` (server tự tạo khi khởi động) nên có thể xem và đăng xuất từ xa. Mọi request POST/PUT/DELETE phải kèm header `X-Requested-With: XMLHttpRequest` (chống CSRF). Đổi/đặt lại mật khẩu, khoá tài khoản → mọi phiên của tài khoản bị thu hồi.
+Các endpoint (trừ nhóm đăng nhập) yêu cầu phiên đăng nhập hợp lệ: cookie HttpOnly `hrm_session` do `/auth/login` đặt (JWT, mặc định 8 giờ — `JWT_EXPIRES`). Mỗi phiên được lưu trong bảng `usersessions` nên có thể xem và đăng xuất từ xa. Mọi request POST/PUT/DELETE phải kèm header `X-Requested-With: XMLHttpRequest` (chống CSRF). Đổi/đặt lại mật khẩu, khoá tài khoản → mọi phiên của tài khoản bị thu hồi.
 
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
