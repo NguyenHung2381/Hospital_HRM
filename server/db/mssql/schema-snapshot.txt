@@ -1,0 +1,505 @@
+# Snapshot schema SQL Server (HRM_HOSPITAL @ localhost\SQLEXPRESS, SQL Server 17.0) — 2026-11-04
+# Sinh tự động từ sys.* catalog; chỉ dùng làm mốc tham chiếu khi chuyển sang PostgreSQL.
+# Lưu ý: tên bảng thật là [Report_Department_Records ] (có dấu cách ở cuối).
+
+##OBJECTS
+sch|name|type_desc
+dbo|usp_Recalc_All|SQL_STORED_PROCEDURE
+dbo|usp_Recalc_TT03|SQL_STORED_PROCEDURE
+dbo|Auth_Sessions|USER_TABLE
+dbo|Daily_Reports|USER_TABLE
+dbo|Departments|USER_TABLE
+dbo|Dept_Recommended_Config|USER_TABLE
+dbo|Dept_TT03_Config|USER_TABLE
+dbo|Permissions|USER_TABLE
+dbo|Report_CLS_Records|USER_TABLE
+dbo|Report_Department_Records|USER_TABLE
+dbo|Role_Department_Access|USER_TABLE
+dbo|Role_Permissions|USER_TABLE
+dbo|Roles|USER_TABLE
+dbo|SecurityEvents|USER_TABLE
+dbo|Staff_Coordination_Records|USER_TABLE
+dbo|TrustedDevices|USER_TABLE
+dbo|User_Department_Access|USER_TABLE
+dbo|User_Dept_Permissions|USER_TABLE
+dbo|Users|USER_TABLE
+dbo|UserSessions|USER_TABLE
+dbo|vw_TT03_Recommended|VIEW
+##COLUMNS
+tbl|column_id|col|typ|max_length|precision|scale|is_nullable|is_identity|is_computed|computed_def|default_name|default_def|collation_name
+Auth_Sessions|1|id_session|char|32|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Auth_Sessions|2|id_user|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Auth_Sessions|3|client_type|varchar|10|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Auth_Sessions|4|remember|bit|1|1|0|0|0|0|NULL|DF_Auth_Sessions_remember|((0))|NULL
+Auth_Sessions|5|refresh_hash|char|64|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Auth_Sessions|6|prev_refresh_hash|char|64|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Auth_Sessions|7|rotated_at|datetime2|6|19|0|1|0|0|NULL|NULL|NULL|NULL
+Auth_Sessions|8|pwf|varchar|32|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Auth_Sessions|9|ip_address|varchar|64|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Auth_Sessions|10|user_agent|nvarchar|600|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Auth_Sessions|11|created_at|datetime2|6|19|0|0|0|0|NULL|DF_Auth_Sessions_created|(sysutcdatetime())|NULL
+Auth_Sessions|12|last_used_at|datetime2|6|19|0|0|0|0|NULL|DF_Auth_Sessions_used|(sysutcdatetime())|NULL
+Auth_Sessions|13|expires_at|datetime2|6|19|0|0|0|0|NULL|NULL|NULL|NULL
+Auth_Sessions|14|max_expires_at|datetime2|6|19|0|0|0|0|NULL|NULL|NULL|NULL
+Auth_Sessions|15|revoked_at|datetime2|6|19|0|1|0|0|NULL|NULL|NULL|NULL
+Auth_Sessions|16|revoked_reason|nvarchar|100|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Daily_Reports|1|id_report|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Daily_Reports|2|report_code|nvarchar|100|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Daily_Reports|3|report_date|date|3|10|0|1|0|0|NULL|NULL|NULL|NULL
+Daily_Reports|4|created_by|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Daily_Reports|5|created_at|datetimeoffset|10|34|7|0|0|0|NULL|DF__Daily_Rep__creat__70DDC3D8|(sysdatetimeoffset())|NULL
+Daily_Reports|6|updated_at|datetimeoffset|10|34|7|1|0|0|NULL|DF__Daily_Rep__updat__71D1E811|(sysdatetimeoffset())|NULL
+Departments|1|id_department|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Departments|2|name_department|nvarchar|-1|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Departments|3|code_department|nvarchar|20|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Departments|4|bed_count|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Departments|5|coef_level_1|decimal|5|5|4|0|0|0|NULL|NULL|NULL|NULL
+Departments|6|coef_level_2|decimal|5|5|4|0|0|0|NULL|NULL|NULL|NULL
+Departments|7|coef_level_3|decimal|5|5|4|0|0|0|NULL|NULL|NULL|NULL
+Departments|8|coef_total|decimal|5|5|4|0|0|0|NULL|NULL|NULL|NULL
+Departments|9|total_staff|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Departments|10|status|nvarchar|20|0|0|0|0|0|NULL|check_department_status CHECK (status IN ('active', 'inactive'))|('active')|SQL_Latin1_General_CP1_CI_AS
+Departments|11|created_at|datetimeoffset|10|34|7|0|0|0|NULL|DF__Departmen__creat__73BA3083|(sysdatetimeoffset())|NULL
+Departments|12|updated_at|datetimeoffset|10|34|7|1|0|0|NULL|DF__Departmen__updat__74AE54BC|(sysdatetimeoffset())|NULL
+Departments|13|formula_type|nvarchar|40|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Departments|14|fixed_staff_add|decimal|5|5|1|1|0|0|NULL|NULL|NULL|NULL
+Departments|15|dept_group|nvarchar|20|0|0|0|0|0|NULL|DF_Departments_dept_group|('ward')|SQL_Latin1_General_CP1_CI_AS
+Dept_Recommended_Config|1|id|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Dept_Recommended_Config|2|id_department|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Dept_Recommended_Config|3|formula_type|nvarchar|40|0|0|0|0|0|NULL|DF_DRC_formula_type|('coef')|SQL_Latin1_General_CP1_CI_AS
+Dept_Recommended_Config|4|coef_l1|decimal|5|5|4|0|0|0|NULL|DF_DRC_coef_l1|((0.5000))|NULL
+Dept_Recommended_Config|5|coef_l2|decimal|5|5|4|0|0|0|NULL|DF_DRC_coef_l2|((0.1040))|NULL
+Dept_Recommended_Config|6|coef_l3|decimal|5|5|4|0|0|0|NULL|DF_DRC_coef_l3|((0.1040))|NULL
+Dept_Recommended_Config|7|outpatient_ratio|decimal|5|5|4|1|0|0|NULL|NULL|NULL|NULL
+Dept_Recommended_Config|8|fixed_add|decimal|5|6|1|0|0|0|NULL|DF_DRC_fixed_add|((0.0))|NULL
+Dept_Recommended_Config|9|note|nvarchar|600|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Dept_Recommended_Config|10|created_at|datetimeoffset|10|34|7|0|0|0|NULL|DF_DRC_created_at|(sysdatetimeoffset())|NULL
+Dept_Recommended_Config|11|updated_at|datetimeoffset|10|34|7|1|0|0|NULL|NULL|NULL|NULL
+Dept_TT03_Config|1|id|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Dept_TT03_Config|2|id_department|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Dept_TT03_Config|3|formula_type|nvarchar|40|0|0|0|0|0|NULL|DF__Dept_TT03__formu__7C4F7684|('standard')|SQL_Latin1_General_CP1_CI_AS
+Dept_TT03_Config|4|patient_ratio|decimal|5|4|3|0|0|0|NULL|DF__Dept_TT03__patie__7D439ABD|((0.600))|NULL
+Dept_TT03_Config|5|shift_divisor|tinyint|1|3|0|1|0|0|NULL|NULL|NULL|NULL
+Dept_TT03_Config|6|shift_multiplier|tinyint|1|3|0|1|0|0|NULL|NULL|NULL|NULL
+Dept_TT03_Config|7|fixed_add|decimal|5|5|1|1|0|0|NULL|DF__Dept_TT03__fixed__7E37BEF6|((0))|NULL
+Dept_TT03_Config|8|note|nvarchar|400|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Dept_TT03_Config|9|created_at|datetimeoffset|10|34|7|0|0|0|NULL|DF__Dept_TT03__creat__7F2BE32F|(sysdatetimeoffset())|NULL
+Dept_TT03_Config|10|updated_at|datetimeoffset|10|34|7|1|0|0|NULL|DF__Dept_TT03__updat__00200768|(sysdatetimeoffset())|NULL
+Permissions|1|id_permission|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Permissions|2|code_permission|nvarchar|200|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Permissions|3|label|nvarchar|400|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Permissions|4|group_name|nvarchar|400|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Permissions|5|sort_order|smallint|2|5|0|0|0|0|NULL|DF__Permissio__sort___01142BA1|((0))|NULL
+Report_CLS_Records|1|Id|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|2|id_report|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|3|id_department|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|4|sort_order|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|5|sample_or_visit_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|6|xray_us_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|7|ct_endoscopy_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|8|mri_bonedensity_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|9|ecg_intervention_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|10|linen_media_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|11|tool_metal_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|12|tool_plastic_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|13|supervised_dept_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|14|pending_sample_or_visit_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|15|pending_xray_us_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|16|pending_ct_endoscopy_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|17|pending_mri_bonedensity_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|18|pending_ecg_intervention_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|19|pending_linen_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|20|pending_tool_metal_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|21|pending_tool_plastic_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|22|total_staff|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|23|staff_on_duty|decimal|9|10|4|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|24|staff_long_leave|decimal|9|10|4|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|25|staff_working|decimal|9|10|4|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|26|work_ratio|decimal|5|6|2|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|27|recommended_staff|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|28|coordination|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|29|note|nvarchar|-1|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Report_CLS_Records|30|created_by|int|4|10|0|1|0|0|NULL|NULL|NULL|NULL
+Report_CLS_Records|31|created_at|datetimeoffset|10|34|7|0|0|0|NULL|DF_Report_CLS_Records_created_at|(sysdatetimeoffset())|NULL
+Report_CLS_Records|32|updated_at|datetimeoffset|10|34|7|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|1|Id|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Report_Department_Records|2|id_report|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|3|id_department|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|4|sort_order|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|5|patient_level_1|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|6|patient_level_2|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|7|patient_level_3|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|8|total_patients|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|9|outpatient_cnt|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|10|total_staff|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|11|staff_on_duty|decimal|9|10|4|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|12|staff_long_leave|decimal|9|10|4|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|13|staff_working|decimal|9|10|4|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|14|tt03_ratio|decimal|5|6|2|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|15|recommended_staff|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|16|coordination|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|17|note|nvarchar|-1|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Report_Department_Records|18|created_by|int|4|10|0|1|0|0|NULL|NULL|NULL|NULL
+Report_Department_Records|19|created_at|datetimeoffset|10|34|7|0|0|0|NULL|DF__Report_De__creat__02FC7413|(sysdatetimeoffset())|NULL
+Report_Department_Records|20|updated_at|datetimeoffset|10|34|7|1|0|0|NULL|DF__Report_De__updat__03F0984C|(sysdatetimeoffset())|NULL
+Report_Department_Records|21|recommended_staff_calc|smallint|2|5|0|1|0|0|NULL|NULL|NULL|NULL
+Role_Department_Access|1|id_role|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Role_Department_Access|2|id_deparment|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Role_Permissions|1|id_role|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Role_Permissions|2|id_permission|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Role_Permissions|3|is_granted|bit|1|1|0|0|0|0|NULL|DF__Role_Perm__is_gr__04E4BC85|((0))|NULL
+Roles|1|id_role|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Roles|2|name_role|nvarchar|200|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Roles|3|description|nvarchar|-1|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Roles|4|icon|nvarchar|40|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Roles|5|color|nvarchar|40|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Roles|6|is_system|bit|1|1|0|0|0|0|NULL|DF__Roles__is_system__05D8E0BE|((0))|NULL
+Roles|7|department_access_type|nvarchar|20|0|0|0|0|0|NULL|check_role_access CHECK (dept_access_type IN ('all', 'assigned', 'own'))|('own')|SQL_Latin1_General_CP1_CI_AS
+Roles|8|created_at|datetimeoffset|10|34|7|0|0|0|NULL|DF__Roles__created_a__07C12930|(sysdatetimeoffset())|NULL
+Roles|9|updated_at|datetimeoffset|10|34|7|1|0|0|NULL|DF__Roles__updated_a__08B54D69|(sysdatetimeoffset())|NULL
+SecurityEvents|1|id|bigint|8|19|0|0|1|0|NULL|NULL|NULL|NULL
+SecurityEvents|2|event_type|varchar|50|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+SecurityEvents|3|actor_id|int|4|10|0|1|0|0|NULL|NULL|NULL|NULL
+SecurityEvents|4|target_type|varchar|50|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+SecurityEvents|5|target_id|varchar|50|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+SecurityEvents|6|ip_address|varchar|64|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+SecurityEvents|7|user_agent|nvarchar|510|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+SecurityEvents|8|detail|nvarchar|2000|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+SecurityEvents|9|created_at|datetime2|8|27|7|0|0|0|NULL|DF_SecurityEvents_created_at|(sysutcdatetime())|NULL
+Staff_Coordination_Records|1|id|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Staff_Coordination_Records|2|id_report|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Staff_Coordination_Records|3|id_department_from|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Staff_Coordination_Records|4|id_department_to|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Staff_Coordination_Records|5|staff_count|smallint|2|5|0|0|0|0|NULL|NULL|NULL|NULL
+Staff_Coordination_Records|6|note|nvarchar|600|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Staff_Coordination_Records|7|created_by|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Staff_Coordination_Records|8|created_at|datetimeoffset|10|34|7|0|0|0|NULL|DF_SCR_created_at|(sysdatetimeoffset())|NULL
+Staff_Coordination_Records|9|updated_at|datetimeoffset|10|34|7|1|0|0|NULL|NULL|NULL|NULL
+TrustedDevices|1|device_id|char|32|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+TrustedDevices|2|id_user|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+TrustedDevices|3|failed_count|int|4|10|0|0|0|0|NULL|DF_TrustedDevices_failed_count|((0))|NULL
+TrustedDevices|4|created_at|datetime2|8|27|7|0|0|0|NULL|DF_TrustedDevices_created_at|(sysutcdatetime())|NULL
+TrustedDevices|5|last_used_at|datetime2|8|27|7|0|0|0|NULL|DF_TrustedDevices_last_used_at|(sysutcdatetime())|NULL
+User_Department_Access|1|id_user|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+User_Department_Access|2|id_department|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+User_Dept_Permissions|1|id_user|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+User_Dept_Permissions|2|id_department|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+User_Dept_Permissions|3|can_edit|bit|1|1|0|0|0|0|NULL|DF__User_Dept__can_e__0E6E26BF|((0))|NULL
+User_Dept_Permissions|4|can_delete|bit|1|1|0|0|0|0|NULL|DF__User_Dept__can_d__0F624AF8|((0))|NULL
+User_Dept_Permissions|5|can_export|bit|1|1|0|0|0|0|NULL|DF__User_Dept__can_e__10566F31|((0))|NULL
+Users|1|id_user|int|4|10|0|0|1|0|NULL|NULL|NULL|NULL
+Users|2|username|nvarchar|100|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Users|3|password|nvarchar|510|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Users|4|user_code|nvarchar|20|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Users|5|full_name|nvarchar|300|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Users|6|id_department|int|4|10|0|1|0|0|NULL|NULL|NULL|NULL
+Users|7|position|nvarchar|200|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Users|8|id_role|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+Users|9|status|nvarchar|20|0|0|0|0|0|NULL|chk_user_status CHECK (status IN ('active', 'inactive'))|('active')|SQL_Latin1_General_CP1_CI_AS
+Users|10|created_at|datetimeoffset|10|34|7|0|0|0|NULL|DF__Users__created_a__123EB7A3|(sysdatetimeoffset())|NULL
+Users|11|updated_at|datetimeoffset|10|34|7|1|0|0|NULL|DF__Users__updated_a__1332DBDC|(sysdatetimeoffset())|NULL
+Users|12|failed_login_count|int|4|10|0|0|0|0|NULL|DF_Users_failed_login_count|((0))|NULL
+Users|13|locked_until|datetime2|8|27|7|1|0|0|NULL|NULL|NULL|NULL
+Users|14|lockout_level|int|4|10|0|0|0|0|NULL|DF_Users_lockout_level|((0))|NULL
+Users|15|totp_secret|nvarchar|510|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+Users|16|totp_enabled|bit|1|1|0|0|0|0|NULL|DF_Users_totp_enabled|((0))|NULL
+Users|17|totp_verified_at|datetime2|8|27|7|1|0|0|NULL|NULL|NULL|NULL
+Users|18|totp_last_step|bigint|8|19|0|1|0|0|NULL|NULL|NULL|NULL
+UserSessions|1|jti|char|32|0|0|0|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+UserSessions|2|id_user|int|4|10|0|0|0|0|NULL|NULL|NULL|NULL
+UserSessions|3|ip_address|varchar|64|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+UserSessions|4|user_agent|nvarchar|510|0|0|1|0|0|NULL|NULL|NULL|SQL_Latin1_General_CP1_CI_AS
+UserSessions|5|created_at|datetime2|8|27|7|0|0|0|NULL|DF_UserSessions_created_at|(sysutcdatetime())|NULL
+UserSessions|6|last_seen_at|datetime2|8|27|7|1|0|0|NULL|NULL|NULL|NULL
+UserSessions|7|expires_at|datetime2|8|27|7|0|0|0|NULL|NULL|NULL|NULL
+UserSessions|8|revoked_at|datetime2|8|27|7|1|0|0|NULL|NULL|NULL|NULL
+##INDEXES
+tbl|idx|type_desc|is_primary_key|is_unique_constraint|is_unique|filter_definition|key_ordinal|is_included_column|is_descending_key|col
+Auth_Sessions|IX_Auth_Sessions_prev|NONCLUSTERED|0|0|0|NULL|1|0|0|prev_refresh_hash
+Auth_Sessions|IX_Auth_Sessions_user|NONCLUSTERED|0|0|0|NULL|1|0|0|id_user
+Auth_Sessions|IX_Auth_Sessions_user|NONCLUSTERED|0|0|0|NULL|2|0|0|revoked_at
+Auth_Sessions|IX_Auth_Sessions_user|NONCLUSTERED|0|0|0|NULL|3|0|0|expires_at
+Auth_Sessions|PK_Auth_Sessions|CLUSTERED|1|0|1|NULL|1|0|0|id_session
+Auth_Sessions|UX_Auth_Sessions_refresh|NONCLUSTERED|0|0|1|NULL|1|0|0|refresh_hash
+Daily_Reports|IX_DailyReports_created_by|NONCLUSTERED|0|0|0|NULL|1|0|0|created_by
+Daily_Reports|IX_DailyReports_report_date|NONCLUSTERED|0|0|0|NULL|1|0|1|report_date
+Daily_Reports|PK_Daily_Reports|CLUSTERED|1|0|1|NULL|1|0|0|id_report
+Departments|PK_Departments|CLUSTERED|1|0|1|NULL|1|0|0|id_department
+Departments|UQ_Departments_code|NONCLUSTERED|0|0|1|([code_department] IS NOT NULL)|1|0|0|code_department
+Dept_Recommended_Config|PK_Dept_Recommended_Config|CLUSTERED|1|0|1|NULL|1|0|0|id
+Dept_Recommended_Config|UQ_DRC_Department|NONCLUSTERED|0|1|1|NULL|1|0|0|id_department
+Dept_TT03_Config|PK_Dept_TT03_Config|CLUSTERED|1|0|1|NULL|1|0|0|id
+Dept_TT03_Config|UQ_Dept_TT03_Config_Dept|NONCLUSTERED|0|1|1|NULL|1|0|0|id_department
+Permissions|PK_Permissions|CLUSTERED|1|0|1|NULL|1|0|0|id_permission
+Report_CLS_Records|IX_RCR_id_department|NONCLUSTERED|0|0|0|NULL|1|0|0|id_department
+Report_CLS_Records|IX_RCR_id_report|NONCLUSTERED|0|0|0|NULL|1|0|0|id_report
+Report_CLS_Records|PK_Report_CLS_Records|CLUSTERED|1|0|1|NULL|1|0|0|Id
+Report_Department_Records|IX_RDR_id_department|NONCLUSTERED|0|0|0|NULL|1|0|0|id_department
+Report_Department_Records|IX_RDR_id_report|NONCLUSTERED|0|0|0|NULL|1|0|0|id_report
+Report_Department_Records|IX_RDR_report_department|NONCLUSTERED|0|0|0|NULL|1|0|0|id_report
+Report_Department_Records|IX_RDR_report_department|NONCLUSTERED|0|0|0|NULL|2|0|0|id_department
+Report_Department_Records|IX_RDR_report_department|NONCLUSTERED|0|0|0|NULL|0|1|0|total_staff
+Report_Department_Records|IX_RDR_report_department|NONCLUSTERED|0|0|0|NULL|0|1|0|staff_working
+Report_Department_Records|IX_RDR_report_department|NONCLUSTERED|0|0|0|NULL|0|1|0|recommended_staff
+Report_Department_Records|IX_RDR_report_department|NONCLUSTERED|0|0|0|NULL|0|1|0|recommended_staff_calc
+Report_Department_Records|PK_Report_Department_Records|CLUSTERED|1|0|1|NULL|1|0|0|Id
+Role_Department_Access|IX_RDA_department|NONCLUSTERED|0|0|0|NULL|1|0|0|id_deparment
+Role_Department_Access|PK_Role_Department_Access|CLUSTERED|1|0|1|NULL|1|0|0|id_role
+Role_Department_Access|PK_Role_Department_Access|CLUSTERED|1|0|1|NULL|2|0|0|id_deparment
+Role_Permissions|IX_RolePermissions_permission|NONCLUSTERED|0|0|0|NULL|1|0|0|id_permission
+Role_Permissions|PK_Role_Permissions|CLUSTERED|1|0|1|NULL|1|0|0|id_role
+Role_Permissions|PK_Role_Permissions|CLUSTERED|1|0|1|NULL|2|0|0|id_permission
+Roles|PK_Roles|CLUSTERED|1|0|1|NULL|1|0|0|id_role
+SecurityEvents|PK_SecurityEvents|CLUSTERED|1|0|1|NULL|1|0|0|id
+Staff_Coordination_Records|IX_SCR_dept_from|NONCLUSTERED|0|0|0|NULL|1|0|0|id_department_from
+Staff_Coordination_Records|IX_SCR_dept_to|NONCLUSTERED|0|0|0|NULL|1|0|0|id_department_to
+Staff_Coordination_Records|IX_SCR_id_report|NONCLUSTERED|0|0|0|NULL|1|0|0|id_report
+Staff_Coordination_Records|PK_Staff_Coordination_Records|CLUSTERED|1|0|1|NULL|1|0|0|id
+TrustedDevices|IX_TrustedDevices_user|NONCLUSTERED|0|0|0|NULL|1|0|0|id_user
+TrustedDevices|PK_TrustedDevices|CLUSTERED|1|0|1|NULL|1|0|0|device_id
+TrustedDevices|PK_TrustedDevices|CLUSTERED|1|0|1|NULL|2|0|0|id_user
+User_Department_Access|IX_UDA_department|NONCLUSTERED|0|0|0|NULL|1|0|0|id_department
+User_Department_Access|PK_User_Department_Access|CLUSTERED|1|0|1|NULL|1|0|0|id_user
+User_Department_Access|PK_User_Department_Access|CLUSTERED|1|0|1|NULL|2|0|0|id_department
+User_Dept_Permissions|IX_UDP_department|NONCLUSTERED|0|0|0|NULL|1|0|0|id_department
+User_Dept_Permissions|PK_User_Dept_Permissions|CLUSTERED|1|0|1|NULL|1|0|0|id_user
+User_Dept_Permissions|PK_User_Dept_Permissions|CLUSTERED|1|0|1|NULL|2|0|0|id_department
+Users|IX_Users_id_department|NONCLUSTERED|0|0|0|NULL|1|0|0|id_department
+Users|IX_Users_id_role|NONCLUSTERED|0|0|0|NULL|1|0|0|id_role
+Users|PK_Users|CLUSTERED|1|0|1|NULL|1|0|0|id_user
+Users|UQ_Users_username|NONCLUSTERED|0|0|1|NULL|1|0|0|username
+UserSessions|IX_UserSessions_user|NONCLUSTERED|0|0|0|NULL|1|0|0|id_user
+UserSessions|IX_UserSessions_user|NONCLUSTERED|0|0|0|NULL|2|0|0|expires_at
+UserSessions|PK_UserSessions|CLUSTERED|1|0|1|NULL|1|0|0|jti
+##FOREIGN_KEYS
+fk|tbl|col|ref_tbl|ref_col|constraint_column_id|on_delete|on_update
+FK_Auth_Sessions_Users|Auth_Sessions|id_user|Users|id_user|1|CASCADE|NO_ACTION
+FK_Daily_Reports_Users|Daily_Reports|created_by|Users|id_user|1|NO_ACTION|NO_ACTION
+FK_DRC_Departments|Dept_Recommended_Config|id_department|Departments|id_department|1|CASCADE|NO_ACTION
+FK_Dept_TT03_Config_Departments|Dept_TT03_Config|id_department|Departments|id_department|1|CASCADE|NO_ACTION
+FK_Report_CLS_Records_Daily_Reports|Report_CLS_Records|id_report|Daily_Reports|id_report|1|CASCADE|NO_ACTION
+FK_Report_CLS_Records_Departments|Report_CLS_Records|id_department|Departments|id_department|1|NO_ACTION|NO_ACTION
+FK_Report_Department_Records _Daily_Reports|Report_Department_Records|id_report|Daily_Reports|id_report|1|CASCADE|NO_ACTION
+FK_Report_Department_Records _Departments_1|Report_Department_Records|id_department|Departments|id_department|1|NO_ACTION|NO_ACTION
+FK_Role_Department_Access_Departments_1|Role_Department_Access|id_deparment|Departments|id_department|1|CASCADE|NO_ACTION
+FK_Role_Department_Access_Roles|Role_Department_Access|id_role|Roles|id_role|1|CASCADE|NO_ACTION
+FK_Role_Permissions _Permissions|Role_Permissions|id_permission|Permissions|id_permission|1|CASCADE|NO_ACTION
+FK_Role_Permissions _Roles|Role_Permissions|id_role|Roles|id_role|1|CASCADE|NO_ACTION
+FK_SCR_Daily_Reports|Staff_Coordination_Records|id_report|Daily_Reports|id_report|1|CASCADE|NO_ACTION
+FK_SCR_Departments_From|Staff_Coordination_Records|id_department_from|Departments|id_department|1|NO_ACTION|NO_ACTION
+FK_SCR_Departments_To|Staff_Coordination_Records|id_department_to|Departments|id_department|1|NO_ACTION|NO_ACTION
+FK_SCR_Users|Staff_Coordination_Records|created_by|Users|id_user|1|NO_ACTION|NO_ACTION
+FK_UDA_Departments|User_Department_Access|id_department|Departments|id_department|1|CASCADE|NO_ACTION
+FK_UDA_Users|User_Department_Access|id_user|Users|id_user|1|CASCADE|NO_ACTION
+FK_UDP_Departments|User_Dept_Permissions|id_department|Departments|id_department|1|CASCADE|NO_ACTION
+FK_UDP_Users|User_Dept_Permissions|id_user|Users|id_user|1|CASCADE|NO_ACTION
+FK_Users_Departments|Users|id_department|Departments|id_department|1|NO_ACTION|NO_ACTION
+FK_Users_Roles|Users|id_role|Roles|id_role|1|NO_ACTION|NO_ACTION
+##CHECKS
+tbl|name|definition
+Staff_Coordination_Records|CK_SCR_diff_dept|([id_department_from]<>[id_department_to])
+Staff_Coordination_Records|CK_SCR_positive_count|([staff_count]>(0))
+##ROWCOUNTS
+tbl|row_count
+Auth_Sessions|3
+Daily_Reports|123
+Departments|47
+Dept_Recommended_Config|47
+Dept_TT03_Config|37
+Permissions|10
+Report_CLS_Records|4
+Report_Department_Records|3538
+Role_Department_Access|0
+Role_Permissions|30
+Roles|5
+SecurityEvents|0
+Staff_Coordination_Records|5
+TrustedDevices|3
+User_Department_Access|17
+User_Dept_Permissions|89
+Users|51
+UserSessions|3
+##DB
+db_collation|version
+SQL_Latin1_General_CP1_CI_AS|17.0.1000.7
+##MODULES
+name|type_desc|trigger_parent|definition
+usp_Recalc_All|SQL_STORED_PROCEDURE|NULL|
+CREATE PROCEDURE [dbo].[usp_Recalc_All]
+  @id_report INT = NULL
+-- NULL = tính lại tất cả báo cáo
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  -- Cập nhật cả recommended_staff (TT03) và recommended_staff_calc (Khuyến nghị)
+  UPDATE r
+    SET
+        r.[recommended_staff]      = CAST(v.tt03_staff_calc    AS SMALLINT),
+        r.[recommended_staff_calc] = CAST(v.rec_staff_calc     AS SMALLINT),
+        r.[updated_at]             = SYSDATETIMEOFFSET()
+    FROM [dbo].[Report_Department_Records ] r
+    INNER JOIN [dbo].[vw_TT03_Recommended] v
+    ON r.[Id] = v.record_id
+    WHERE
+        (v.tt03_staff_calc IS NOT NULL OR v.rec_staff_calc IS NOT NULL)
+    AND (@id_report IS NULL OR r.[id_report] = @id_report);
+
+  PRINT CAST(@@ROWCOUNT AS NVARCHAR) + N' bản ghi đã được cập nhật (TT03 + Khuyến nghị).';
+END
+
+
+usp_Recalc_TT03|SQL_STORED_PROCEDURE|NULL|
+CREATE PROCEDURE [dbo].[usp_Recalc_TT03]
+  @id_report INT = NULL
+AS
+BEGIN
+  EXEC [dbo].[usp_Recalc_All] @id_report = @id_report;
+END
+
+vw_TT03_Recommended|VIEW|NULL|
+CREATE VIEW [dbo].[vw_TT03_Recommended]
+AS
+  SELECT
+    r.[Id]                          AS record_id,
+    r.[id_report],
+    r.[id_department],
+    d.[name_department],
+    d.[code_department],
+
+    -- ── Công thức TT03 ─────────────────────────────────────
+    cfg_tt.[formula_type]           AS tt03_formula_type,
+    cfg_tt.[note]                   AS tt03_formula_note,
+
+    -- Đầu vào
+    r.[patient_level_1]             AS L1,
+    r.[patient_level_2]             AS L2,
+    r.[patient_level_3]             AS L3,
+    ISNULL(r.[patient_level_1],0)
+      + ISNULL(r.[patient_level_2],0)
+      + ISNULL(r.[patient_level_3],0) AS total_NB,
+    r.[outpatient_cnt],
+    d.[bed_count],
+
+    -- Nhân lực hiện tại
+    r.[total_staff],
+    r.[staff_working],
+
+    -- TT03 đã lưu (giữ nguyên)
+    r.[recommended_staff]           AS tt03_staff_saved,
+
+    -- TT03 tính lại theo công thức
+    CAST(
+        CASE cfg_tt.[formula_type]
+            WHEN 'standard' THEN
+                ( CAST( ISNULL(r.[patient_level_1],0)
+                      + ISNULL(r.[patient_level_2],0)
+                      + ISNULL(r.[patient_level_3],0) AS DECIMAL(10,3) )
+                  * cfg_tt.[patient_ratio]
+                  / cfg_tt.[shift_divisor]
+                  * cfg_tt.[shift_multiplier]
+                ) + ISNULL(cfg_tt.[fixed_add], 0)
+            WHEN 'icu' THEN
+                ( CAST( ISNULL(r.[patient_level_1],0)
+                      + ISNULL(r.[patient_level_2],0)
+                      + ISNULL(r.[patient_level_3],0) AS DECIMAL(10,3) )
+                  * cfg_tt.[patient_ratio]
+                  / cfg_tt.[shift_divisor]
+                  * cfg_tt.[shift_multiplier]
+                )
+            WHEN 'surgery' THEN
+                ( CAST( ISNULL(d.[bed_count], 0) AS DECIMAL(10,3) )
+                  * cfg_tt.[patient_ratio]
+                  / cfg_tt.[shift_divisor]
+                  * cfg_tt.[shift_multiplier]
+                )
+            WHEN 'custom_coef' THEN
+                ( ISNULL(r.[patient_level_1],0) * CAST(d.[coef_level_1] AS DECIMAL(10,3)) )
+              + ( ISNULL(r.[patient_level_2],0) * CAST(d.[coef_level_2] AS DECIMAL(10,3)) )
+              + ( ISNULL(r.[patient_level_3],0) * CAST(d.[coef_level_3] AS DECIMAL(10,3)) )
+              + ( CAST( ISNULL(r.[patient_level_1],0)
+                      + ISNULL(r.[patient_level_2],0)
+                      + ISNULL(r.[patient_level_3],0) AS DECIMAL(10,3) )
+                  * CAST(d.[coef_total] AS DECIMAL(10,3)) )
+            ELSE NULL
+        END
+    AS DECIMAL(8,2))                AS tt03_staff_calc,
+
+    -- ── Nhân lực Khuyến nghị ───────────────────────────────
+    cfg_rc.[formula_type]           AS rec_formula_type,
+    cfg_rc.[note]                   AS rec_formula_note,
+
+    -- Khuyến nghị đã lưu
+    r.[recommended_staff_calc]      AS rec_staff_saved,
+
+    -- Khuyến nghị tính lại
+    CAST(
+        CASE cfg_rc.[formula_type]
+
+            -- Phổ biến: L1*coef_l1 + L2*coef_l2 + L3*coef_l3 + fixed_add
+            WHEN 'coef' THEN
+                ( ISNULL(r.[patient_level_1],0) * CAST(cfg_rc.[coef_l1] AS DECIMAL(10,4)) )
+              + ( ISNULL(r.[patient_level_2],0) * CAST(cfg_rc.[coef_l2] AS DECIMAL(10,4)) )
+              + ( ISNULL(r.[patient_level_3],0) * CAST(cfg_rc.[coef_l3] AS DECIMAL(10,4)) )
+              + ISNULL(cfg_rc.[fixed_add], 0)
+
+            -- Cấp cứu: (L1+L2+L3) * ratio
+            WHEN 'total_ratio' THEN
+                CAST( ISNULL(r.[patient_level_1],0)
+                    + ISNULL(r.[patient_level_2],0)
+                    + ISNULL(r.[patient_level_3],0) AS DECIMAL(10,3) )
+                * ISNULL(cfg_rc.[outpatient_ratio], 0)
+              + ISNULL(cfg_rc.[fixed_add], 0)
+
+            -- Gây mê: outpatient_cnt * ratio
+            WHEN 'outpatient_count' THEN
+                CAST( ISNULL(r.[outpatient_cnt], 0) AS DECIMAL(10,3) )
+                * ISNULL(cfg_rc.[outpatient_ratio], 0)
+              + ISNULL(cfg_rc.[fixed_add], 0)
+
+            ELSE NULL
+        END
+    AS DECIMAL(8,2))                AS rec_staff_calc,
+
+    -- Chênh lệch TT03
+    r.[staff_working] - CAST(
+        CASE cfg_tt.[formula_type]
+            WHEN 'standard' THEN
+                ( CAST( ISNULL(r.[patient_level_1],0)
+                      + ISNULL(r.[patient_level_2],0)
+                      + ISNULL(r.[patient_level_3],0) AS DECIMAL(10,3) )
+                  * cfg_tt.[patient_ratio] / cfg_tt.[shift_divisor] * cfg_tt.[shift_multiplier]
+                ) + ISNULL(cfg_tt.[fixed_add], 0)
+            WHEN 'icu' THEN
+                ( CAST( ISNULL(r.[patient_level_1],0)
+                      + ISNULL(r.[patient_level_2],0)
+                      + ISNULL(r.[patient_level_3],0) AS DECIMAL(10,3) )
+                  * cfg_tt.[patient_ratio] / cfg_tt.[shift_divisor] * cfg_tt.[shift_multiplier] )
+            WHEN 'surgery' THEN
+                ( CAST( ISNULL(d.[bed_count],0) AS DECIMAL(10,3) )
+                  * cfg_tt.[patient_ratio] / cfg_tt.[shift_divisor] * cfg_tt.[shift_multiplier] )
+            WHEN 'custom_coef' THEN
+                ( ISNULL(r.[patient_level_1],0) * CAST(d.[coef_level_1] AS DECIMAL(10,3)) )
+              + ( ISNULL(r.[patient_level_2],0) * CAST(d.[coef_level_2] AS DECIMAL(10,3)) )
+              + ( ISNULL(r.[patient_level_3],0) * CAST(d.[coef_level_3] AS DECIMAL(10,3)) )
+              + ( CAST( ISNULL(r.[patient_level_1],0)
+                      + ISNULL(r.[patient_level_2],0)
+                      + ISNULL(r.[patient_level_3],0) AS DECIMAL(10,3) )
+                  * CAST(d.[coef_total] AS DECIMAL(10,3)) )
+            ELSE NULL
+        END
+    AS DECIMAL(8,2))                AS tt03_surplus_deficit,
+
+    r.[coordination],
+    r.[note]                        AS record_note,
+    r.[created_at],
+    r.[updated_at]
+
+  FROM [dbo].[Report_Department_Records ] r
+    INNER JOIN [dbo].[Departments] d
+    ON r.[id_department] = d.[id_department]
+    LEFT JOIN [dbo].[Dept_TT03_Config] cfg_tt
+    ON r.[id_department] = cfg_tt.[id_department]
+    LEFT JOIN [dbo].[Dept_Recommended_Config] cfg_rc
+    ON r.[id_department] = cfg_rc.[id_department];
+
