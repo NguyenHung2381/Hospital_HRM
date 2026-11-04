@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "set-account-passwords": "node scripts/setAccountPasswords.js"
+    "set-account-passwords": "node scripts/setAccountPasswords.js",
+    "db:migrate-data": "node scripts/migrate-from-mssql.js",
+    "db:verify-data": "node scripts/verify-migration.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -17,7 +19,6 @@
     "helmet": "^8.3.0",
     "hospital-hrm": "file:..",
     "jsonwebtoken": "^9.0.3",
-    "mssql": "^10.0.1",
     "otplib": "^13.5.0",
     "pg": "^8.23.1",
     "pino": "^9.14.0",
