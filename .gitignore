@@ -43,6 +43,8 @@ desktop.ini
 *.sln
 *.sw?
 *.sql
+# Ngoại lệ: script schema/migration PostgreSQL phải nằm trong repo
+!server/db/postgres/*.sql
 
 # Lock files (keep only one, remove if you prefer to commit these)
 # package-lock.json
