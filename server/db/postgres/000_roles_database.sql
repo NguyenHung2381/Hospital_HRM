@@ -14,6 +14,10 @@
 
 \set ON_ERROR_STOP on
 
+-- File lưu UTF-8. psql trên Windows mặc định đọc theo bảng mã console (WIN1252)
+-- → tiếng Việt lỗi "byte sequence 0x.. in encoding WIN1252". Ép UTF-8 cho phiên này:
+SET client_encoding = 'UTF8';
+
 SELECT format('CREATE ROLE hrm_owner LOGIN PASSWORD %L', :'owner_password')
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hrm_owner') \gexec
 
@@ -27,6 +31,7 @@ SELECT 'CREATE DATABASE hrm_hospital OWNER hrm_owner ENCODING ''UTF8''
 WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'hrm_hospital') \gexec
 
 \connect hrm_hospital
+SET client_encoding = 'UTF8';  -- phiên mới sau \connect
 
 -- Không cho PUBLIC tạo object trong schema public; chỉ hrm_owner được.
 REVOKE ALL ON DATABASE hrm_hospital FROM PUBLIC;

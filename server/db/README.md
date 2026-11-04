@@ -11,19 +11,37 @@
 
 ## Cài PostgreSQL trực tiếp trên máy chủ (Windows, không Docker)
 
-1. Cài **PostgreSQL 17** bằng bộ cài EDB (postgresql.org/download/windows). Ghi
-   lại mật khẩu superuser `postgres`. Bộ cài có sẵn ICU (cần cho collation tiếng Việt).
-2. Thêm `C:\Program Files\PostgreSQL\17\bin` vào `PATH` (để có `psql`, `pg_dump`).
-3. Tạo role + DB (mật khẩu truyền qua biến, không ghi vào file):
+1. Cài **PostgreSQL 17 hoặc 18** (đã kiểm tra cả hai) bằng bộ cài EDB
+   (postgresql.org/download/windows). Ghi lại mật khẩu superuser `postgres`.
+   Bộ cài có sẵn ICU (cần cho collation tiếng Việt).
+2. Cho `psql`/`pg_dump` chạy được trong terminal. Bộ cài **không** tự thêm thư
+   mục `bin` vào `PATH` — gõ `psql` sẽ báo *"is not recognized"*. Tìm thư mục
+   cài (không nhất thiết ở `C:\Program Files`):
 
-   ```bat
+   ```powershell
+   (Get-CimInstance Win32_Service -Filter "Name LIKE 'postgresql%'").PathName
+   # vd: "D:\PostgreSQL\18\bin\pg_ctl.exe" ... -D "D:\PostgreSQL\18\data"  → bin = D:\PostgreSQL\18\bin
+   ```
+
+   Thêm vào `PATH` của tài khoản Windows (mở terminal **mới** sau khi chạy):
+
+   ```powershell
+   [Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'User') + ';D:\PostgreSQL\18\bin', 'User')
+   ```
+
+   Chỉ cần cho phiên terminal hiện tại: `$env:Path += ';D:\PostgreSQL\18\bin'`.
+3. Tạo role + DB (mật khẩu truyền qua biến, không ghi vào file). Thay
+   `<mk-owner>`/`<mk-app>` bằng mật khẩu thật, **bỏ cả dấu `< >`**; `psql` sẽ
+   hỏi mật khẩu của `postgres`:
+
+   ```powershell
    cd server\db\postgres
    psql -U postgres -v ON_ERROR_STOP=1 -v owner_password="<mk-owner>" -v app_password="<mk-app>" -f 000_roles_database.sql
    ```
 
-4. Tạo schema:
+4. Tạo schema (hỏi mật khẩu `hrm_owner` vừa đặt):
 
-   ```bat
+   ```powershell
    psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 001_init.sql
    psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 002_views_functions.sql
    ```
@@ -41,10 +59,11 @@ nên PostgreSQL phải nhận kết nối từ mạng Docker:
   host  hrm_hospital  hrm_app  172.16.0.0/12  scram-sha-256
   ```
 
-- Restart service `postgresql-x64-17` sau khi sửa.
+- Restart service PostgreSQL sau khi sửa (`Restart-Service postgresql-x64-18`
+  — tên theo phiên bản đã cài).
 - Không chắc kết nối từ container tới với IP nguồn nào (Docker Desktop/WSL2 mỗi
   máy một khác)? Khởi động backend, xem log PostgreSQL
-  (`C:\Program Files\PostgreSQL\17\data\log`) dòng
+  (`<thư mục data>\log`, vd `D:\PostgreSQL\18\data\log`) dòng
   `no pg_hba.conf entry for host "x.x.x.x"` rồi thêm đúng IP/dải đó — đừng mở `0.0.0.0/0`.
 
 ## Chuyển dữ liệu từ SQL Server
@@ -70,12 +89,16 @@ Biến môi trường (đặt trong phiên cmd/PowerShell, **không** ghi vào `
 | `PG_HOST`, `PG_PORT`, `PG_DATABASE` | lấy `DB_*` trong `server/.env` | |
 | `PG_USER`, `PG_PASSWORD` | lấy `DB_*` | Dùng **`hrm_owner`** — `hrm_app` không được `TRUNCATE`. |
 
-```bat
+PowerShell (mật khẩu nhập ẩn, không lưu vào lịch sử lệnh; biến chỉ tồn tại trong cửa sổ này):
+
+```powershell
 cd server
-set PG_USER=hrm_owner
-set PG_PASSWORD=<mk-owner>
-npm run db:migrate-data -- --truncate
+$env:PG_HOST = 'localhost'; $env:PG_PORT = '5432'; $env:PG_DATABASE = 'hrm_hospital'; $env:PG_USER = 'hrm_owner'
+$s = Read-Host 'Mat khau hrm_owner' -AsSecureString
+$env:PG_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))
+npm run db:migrate-data            # lần đầu (bảng trống); chạy lại thì thêm:  -- --truncate
 npm run db:verify-data
+Remove-Item Env:PG_PASSWORD        # xoá mật khẩu khỏi phiên khi xong
 ```
 
 ### Quy trình chuyển hệ thống thật

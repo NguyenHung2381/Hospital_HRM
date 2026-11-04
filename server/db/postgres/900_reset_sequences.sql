@@ -5,6 +5,9 @@
 --   psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 900_reset_sequences.sql
 -- ============================================================================
 
+-- File lưu UTF-8. psql trên Windows mặc định đọc theo bảng mã console (WIN1252)
+-- → tiếng Việt lỗi "byte sequence 0x.. in encoding WIN1252". Ép UTF-8 cho phiên này:
+SET client_encoding = 'UTF8';
 DO $$
 DECLARE
 	rec record;

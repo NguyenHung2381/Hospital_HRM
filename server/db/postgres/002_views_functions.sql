@@ -12,6 +12,9 @@
 -- nghị KHÔNG có trong view → rec_staff_calc = NULL cho loại này.
 -- ============================================================================
 
+-- File lưu UTF-8. psql trên Windows mặc định đọc theo bảng mã console (WIN1252)
+-- → tiếng Việt lỗi "byte sequence 0x.. in encoding WIN1252". Ép UTF-8 cho phiên này:
+SET client_encoding = 'UTF8';
 BEGIN;
 
 CREATE OR REPLACE VIEW vw_tt03_recommended AS

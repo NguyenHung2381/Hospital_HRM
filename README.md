@@ -9,7 +9,7 @@ Hệ thống quản lý nhân sự bệnh viện (Human Resource Management). �
 | Frontend | React 19, TypeScript, Vite |
 | Routing | React Router DOM v7 |
 | Backend | Node.js, Express |
-| Database | PostgreSQL 17 (node-postgres) — cài trực tiếp trên máy chủ, không chạy trong Docker |
+| Database | PostgreSQL 17 hoặc 18 (node-postgres) — cài trực tiếp trên máy chủ, không chạy trong Docker |
 | Auth | JWT trong cookie HttpOnly (jsonwebtoken), bcrypt |
 | Bảo mật | Helmet, CSP, CORS whitelist, chống CSRF, rate limit đăng nhập, phân quyền xem/ghi theo phòng ban, audit log |
 | Realtime | Server-Sent Events (SSE) |
@@ -83,7 +83,7 @@ Hospital_HRM/
 ### Yêu cầu
 
 - Node.js >= 22
-- PostgreSQL 17 (bộ cài Windows của EDB, có sẵn ICU) — tạo role/DB/schema theo [server/db/README.md](server/db/README.md)
+- PostgreSQL 17 hoặc 18 (bộ cài Windows của EDB, có sẵn ICU), thư mục `bin` đã thêm vào `PATH` — tạo role/DB/schema theo [server/db/README.md](server/db/README.md)
 
 ### 1. Cài dependencies
 

@@ -33,6 +33,9 @@
 --    Dữ liệu hiện tại (2026-11-04) đã hợp lệ với các CHECK này.
 -- ============================================================================
 
+-- File lưu UTF-8. psql trên Windows mặc định đọc theo bảng mã console (WIN1252)
+-- → tiếng Việt lỗi "byte sequence 0x.. in encoding WIN1252". Ép UTF-8 cho phiên này:
+SET client_encoding = 'UTF8';
 BEGIN;
 
 CREATE COLLATION IF NOT EXISTS ci_vi (
