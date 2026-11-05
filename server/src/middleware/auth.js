@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { getPool, sql } = require('../config/db');
 const { readSessionCookie } = require('../utils/sessionCookie');
 const sessionStore = require('../services/sessionStore');
+const { loadRolePermissions, hasPermission } = require('../services/rolePermissions');
 
 // KHÔNG được fallback về 1 chuỗi cố định hay secret ngẫu nhiên — nếu thiếu,
 // kẻ tấn công biết trước giá trị mặc định có thể tự ký JWT hợp lệ (kể cả
@@ -295,6 +296,24 @@ function requireSelf(paramName = 'id') {
 	};
 }
 
+// Yêu cầu vai trò được cấp ít nhất 1 trong các quyền (Role_Permissions — trang
+// "Phân quyền"). Quản trị hệ thống luôn qua. Đặt SAU requireDashboardRole /
+// requireAdmin: middleware này chỉ thu hẹp thêm, không mở rộng quyền.
+function requireRolePermission(...codes) {
+	return (req, res, next) => {
+		if (isAdmin(req.user)) return next();
+		loadRolePermissions(null, req.user?.id_role)
+			.then((perms) => {
+				if (codes.some((c) => hasPermission(perms, c))) return next();
+				return res.status(403).json({
+					success: false,
+					message: 'Vai trò của bạn chưa được cấp quyền thực hiện thao tác này',
+				});
+			})
+			.catch(next);
+	};
+}
+
 module.exports = {
 	JWT_SECRET,
 	ADMIN_ROLE_NAME,
@@ -313,6 +332,7 @@ module.exports = {
 	isDashboardRole,
 	requireAdmin,
 	requireDashboardRole,
+	requireRolePermission,
 	requireSelfOrAdmin,
 	requireSelf,
 };

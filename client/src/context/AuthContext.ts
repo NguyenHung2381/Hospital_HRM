@@ -5,7 +5,7 @@ import { createContext } from 'react';
 export type LoginResult =
 	| { status: 'ok'; user: UserAccount }
 	| { status: 'requires_2fa'; preAuthToken: string }
-	| { status: 'wrong_pass' }
+	| { status: 'wrong_pass'; message?: string }
 	| { status: 'wrong_code'; message: string }
 	| { status: 'pre_auth_expired' }
 	| { status: 'locked'; message: string }

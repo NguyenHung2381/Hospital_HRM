@@ -7,6 +7,7 @@
 | `postgres/001_init.sql` | Toàn bộ bảng, khoá, index |
 | `postgres/002_views_functions.sql` | `vw_tt03_recommended`, `usp_recalc_all()`, `usp_recalc_tt03()` |
 | `postgres/003_password_change.sql` | Thêm cột `must_change_password`, `password_changed_at` cho DB tạo bằng `001_init.sql` bản cũ (idempotent — `npm run setup` tự chạy) |
+| `postgres/004_auth_rate_limits.sql` | Bảng bộ đếm giới hạn đăng nhập sai (thay cho bộ nhớ tiến trình — không mất khi restart). Idempotent — `npm run setup` tự chạy |
 | `postgres/010_seed_data.sql` | Danh mục cho bản cài mới (vai trò, quyền, khoa phòng + hệ số, cấu hình TT03/khuyến nghị) — sinh bằng `npm run db:export-seed`, nạp bởi `npm run setup` |
 | `postgres/900_reset_sequences.sql` | Đẩy sequence IDENTITY lên MAX(id) — `db:migrate-data` đã tự làm; dùng khi nạp dữ liệu bằng cách khác |
 | `../scripts/migrate-from-mssql.js`, `../scripts/verify-migration.js` | Chuyển dữ liệu và đối chiếu từng ô — xem [Chuyển dữ liệu](#chuyển-dữ-liệu-từ-sql-server) |
@@ -47,6 +48,7 @@
    psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 001_init.sql
    psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 002_views_functions.sql
    psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 003_password_change.sql
+   psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 004_auth_rate_limits.sql
    ```
 
 ### Backend chạy trong Docker, PostgreSQL trên host

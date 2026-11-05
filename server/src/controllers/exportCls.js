@@ -20,7 +20,7 @@
 
 const ExcelJS = require('exceljs');
 const { getPool, sql } = require('../config/db');
-const { loadUserDeptAccess } = require('../services/deptAccess');
+const { loadUserDeptAccess, canAccessAllDepts } = require('../services/deptAccess');
 const { enumerateDays, daySpan, isValidDateStr } = require('../utils/reportDateGrouping');
 
 const MAX_DAYS = 31;
@@ -638,7 +638,7 @@ async function exportClsToExcel(req, res, next) {
 		// Báo cáo gộp toàn bộ khoa hệ CLS → chỉ role có quyền xem toàn bệnh viện
 		// (department_access_type = 'all') mới được xuất.
 		const access = await loadUserDeptAccess(pool, req.user);
-		if (access?.accessType !== 'all') {
+		if (!canAccessAllDepts(access, 'can_export')) {
 			return res.status(403).json({
 				success: false,
 				message: 'Bạn không có quyền xuất báo cáo hệ CLS toàn bệnh viện',

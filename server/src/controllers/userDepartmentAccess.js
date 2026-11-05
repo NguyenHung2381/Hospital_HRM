@@ -1,5 +1,24 @@
 const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
+const { assertCanManageUser, findUserWithRole } = require('../services/accountGuard');
+const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
+
+// Phân khoa / quyền khoa = cấp quyền đọc-ghi dữ liệu khoa → chỉ cho tài khoản
+// có vai trò thấp hơn người thao tác (không tự cấp cho chính mình). Trả về
+// true nếu đã gửi response lỗi.
+async function denyIfCannotManage(pool, req, res) {
+	const target = await findUserWithRole(pool, req.params.id);
+	if (!target) {
+		res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+		return true;
+	}
+	const denied = assertCanManageUser(req.user, target);
+	if (denied) {
+		res.status(403).json({ success: false, message: denied });
+		return true;
+	}
+	return false;
+}
 
 // GET /api/users/:id/departments
 // Trả về danh sách khoa user được phép xem theo department_access_type
@@ -116,6 +135,7 @@ async function setAssignedDepartments(req, res, next) {
 				.status(400)
 				.json({ success: false, message: 'department_ids phải là mảng' });
 		const pool = await getPool();
+		if (await denyIfCannotManage(pool, req, res)) return;
 		const transaction = new sql.Transaction(pool);
 		await transaction.begin();
 		try {
@@ -152,79 +172,38 @@ async function setAssignedDepartments(req, res, next) {
 }
 
 // GET /api/users/:id/dept-permissions
+// Quyền sửa / xoá / xuất theo từng khoa — tính bằng đúng hàm server dùng để
+// kiểm tra quyền (services/deptAccess.js, gồm cả ma trận quyền vai trò) để
+// nút trên giao diện khớp với việc server cho / chặn.
 async function getDeptPermissions(req, res, next) {
 	try {
 		const pool = await getPool();
-
-		const userResult = await pool.request().input('id', sql.Int, req.params.id)
-			.query(`
-				SELECT u.id_department, r.department_access_type
-				FROM Users u
-				INNER JOIN Roles r ON r.id_role = u.id_role
-				WHERE u.id_user = @id AND u.status = 'active'
-			`);
-
-		if (!userResult.recordset.length)
+		const access = await loadUserDeptAccess(pool, { id_user: Number(req.params.id) });
+		if (!access)
 			return res
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy người dùng' });
 
-		const { id_department, department_access_type } = userResult.recordset[0];
-
-		// ── all: toàn bộ khoa, full quyền ─────────────────────
-		if (department_access_type === 'all') {
-			const r = await pool.request().query(`
-				SELECT id_department, name_department,
-					true AS can_edit,
-					true AS can_delete,
-					true AS can_export
-				FROM Departments WHERE status = 'active' ORDER BY id_department ASC
-			`);
-			return res.json({ success: true, data: r.recordset });
+		const request = pool.request();
+		let where = `status = 'active'`;
+		if (access.accessType !== 'all') {
+			const ids = [...access.permsByDept.keys()];
+			if (!ids.length) return res.json({ success: true, data: [] });
+			ids.forEach((id, i) => request.input(`d${i}`, sql.Int, id));
+			where += ` AND id_department IN (${ids.map((_, i) => `@d${i}`).join(', ')})`;
 		}
-
-		// ── assigned: khoa được phân, quyền từ User_Dept_Permissions ──
-		if (department_access_type === 'assigned') {
-			const r = await pool
-				.request()
-				.input('id', sql.Int, req.params.id)
-				.input('id_department', sql.Int, id_department ?? null).query(`
-					SELECT DISTINCT d.id_department, d.name_department,
-						COALESCE(udp.can_edit,   true)  AS can_edit,
-						COALESCE(udp.can_delete, false) AS can_delete,
-						COALESCE(udp.can_export, true)  AS can_export
-					FROM Departments d
-					LEFT JOIN User_Dept_Permissions udp
-						ON udp.id_department = d.id_department AND udp.id_user = @id
-					WHERE d.status = 'active'
-					  AND (
-						d.id_department IN (
-							SELECT uda.id_department FROM User_Department_Access uda WHERE uda.id_user = @id
-						)
-						OR d.id_department = @id_department
-					  )
-					ORDER BY d.id_department ASC
-				`);
-			return res.json({ success: true, data: r.recordset });
-		}
-
-		// ── own: chỉ khoa công tác, quyền từ User_Dept_Permissions ──
-		if (!id_department) return res.json({ success: true, data: [] });
-
-		const r = await pool
-			.request()
-			.input('id', sql.Int, req.params.id)
-			.input('id_department', sql.Int, id_department).query(`
-				SELECT d.id_department, d.name_department,
-					COALESCE(udp.can_edit,   true)  AS can_edit,
-					COALESCE(udp.can_delete, false) AS can_delete,
-					COALESCE(udp.can_export, false) AS can_export
-				FROM Departments d
-				LEFT JOIN User_Dept_Permissions udp
-					ON udp.id_department = d.id_department AND udp.id_user = @id
-				WHERE d.id_department = @id_department AND d.status = 'active'
-			`);
-		res.json({ success: true, data: r.recordset });
+		const r = await request.query(`
+			SELECT id_department, name_department FROM Departments
+			WHERE ${where} ORDER BY id_department ASC
+		`);
+		const data = r.recordset.map((d) => ({
+			id_department: d.id_department,
+			name_department: d.name_department,
+			can_edit: canAccessDept(access, d.id_department, 'can_edit'),
+			can_delete: canAccessDept(access, d.id_department, 'can_delete'),
+			can_export: canAccessDept(access, d.id_department, 'can_export'),
+		}));
+		res.json({ success: true, data });
 	} catch (err) {
 		next(err);
 	}
@@ -239,6 +218,7 @@ async function setDeptPermissions(req, res, next) {
 				.status(400)
 				.json({ success: false, message: 'permissions phải là mảng' });
 		const pool = await getPool();
+		if (await denyIfCannotManage(pool, req, res)) return;
 		const transaction = new sql.Transaction(pool);
 		await transaction.begin();
 		try {

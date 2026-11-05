@@ -47,7 +47,7 @@ export default function LoginForm() {
 				setError('Tài khoản không tồn tại hoặc đã bị khoá.');
 				return;
 			case 'wrong_pass':
-				setError('Tên đăng nhập hoặc mật khẩu không đúng.');
+				setError(result.message ?? 'Tên đăng nhập hoặc mật khẩu không đúng.');
 				return;
 			case 'wrong_code':
 				setError(result.message);

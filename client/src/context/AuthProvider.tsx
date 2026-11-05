@@ -204,7 +204,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			});
 
 			if (res.status === 404) return { status: 'not_found' };
-			if (res.status === 401) return { status: 'wrong_pass' };
+			if (res.status === 401) {
+				const body = await readMessage(res);
+				return { status: 'wrong_pass', message: body.message };
+			}
 			if (res.status === 403) {
 				const body = await readMessage(res);
 				if (body.code === 'TEMP_PASSWORD_EXPIRED')

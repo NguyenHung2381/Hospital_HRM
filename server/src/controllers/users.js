@@ -1,19 +1,13 @@
 const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
 const { hashPassword, validatePasswordPolicy } = require('../utils/password');
-const { invalidateUserCache } = require('../middleware/auth');
+const { invalidateUserCache, isAdmin } = require('../middleware/auth');
 const { revokeAllSessions } = require('../services/sessionStore');
-const { assertCanManageUser, assertCanAssignRole } = require('../services/accountGuard');
-
-// Lấy tài khoản kèm tên vai trò hiện tại (để kiểm tra quyền quản lý)
-async function findUserWithRole(pool, id) {
-	const r = await pool.request().input('id', sql.Int, id).query(`
-		SELECT u.id_user, u.username, r.name_role
-		FROM Users u LEFT JOIN Roles r ON r.id_role = u.id_role
-		WHERE u.id_user = @id
-	`);
-	return r.recordset[0] ?? null;
-}
+const {
+	assertCanManageUser,
+	assertCanAssignRole,
+	findUserWithRole,
+} = require('../services/accountGuard');
 
 // GET /api/users
 async function getAll(req, res, next) {
@@ -148,15 +142,25 @@ async function update(req, res, next) {
 			return res
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy người dùng' });
-		const denied =
-			assertCanManageUser(req.user, target) ||
-			(await assertCanAssignRole(pool, req.user, id_role));
-		if (denied) return res.status(403).json({ success: false, message: denied });
-		if (target.id_user === req.user.id_user && (status ?? 'active') !== 'active')
+		const isSelf = target.id_user === req.user.id_user;
+		if (isSelf && (status ?? 'active') !== 'active')
 			return res.status(400).json({
 				success: false,
 				message: 'Không thể tự khoá tài khoản đang đăng nhập',
 			});
+		let denied = assertCanManageUser(req.user, target, { allowSelf: true });
+		// Chính chủ (không phải Quản trị hệ thống) chỉ được sửa thông tin cá
+		// nhân — tự đổi vai trò / khoa công tác là tự cấp thêm quyền.
+		const sameRole = id_role != null && Number(id_role) === target.id_role;
+		const sameDept =
+			id_department == null
+				? target.id_department == null
+				: Number(id_department) === target.id_department;
+		if (!denied && isSelf && !isAdmin(req.user) && (!sameRole || !sameDept))
+			denied = 'Không thể tự đổi vai trò hoặc khoa công tác của chính mình';
+		if (!denied && !(isSelf && sameRole))
+			denied = await assertCanAssignRole(pool, req.user, id_role);
+		if (denied) return res.status(403).json({ success: false, message: denied });
 		const result = await pool
 			.request()
 			.input('id', sql.Int, req.params.id)

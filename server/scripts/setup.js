@@ -520,6 +520,8 @@ async function setupDatabase(env) {
 	ok('Đã tạo/cập nhật view + hàm (002_views_functions.sql)');
 	await runSqlFile(db, '003_password_change.sql');
 	ok('Đã cập nhật cột đổi mật khẩu bắt buộc (003_password_change.sql)');
+	await runSqlFile(db, '004_auth_rate_limits.sql');
+	ok('Đã tạo bảng bộ đếm đăng nhập sai (004_auth_rate_limits.sql)');
 	// Bảng tạo trước khi có ALTER DEFAULT PRIVILEGES (vd DB cũ) → cấp lại cho chắc.
 	await db.query(`
 		GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${app};

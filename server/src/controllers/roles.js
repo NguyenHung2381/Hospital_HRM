@@ -2,6 +2,7 @@ const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
 const { isAdmin, invalidateUserCache } = require('../middleware/auth');
 const { isReservedRoleName } = require('../services/accountGuard');
+const { invalidateRolePermissionCache } = require('../services/rolePermissions');
 
 const DEPARTMENT_ACCESS_TYPES = ['all', 'assigned', 'own'];
 
@@ -130,6 +131,13 @@ async function update(req, res, next) {
 				success: false,
 				message: 'Không thể sửa vai trò hệ thống',
 			});
+		// Sửa vai trò dashboard (loại truy cập khoa...) = tự cấp thêm quyền cho
+		// mọi tài khoản dashboard, kể cả chính mình → chỉ Quản trị hệ thống.
+		if (isReservedRoleName(check.recordset[0].name_role) && !isAdmin(req.user))
+			return res.status(403).json({
+				success: false,
+				message: 'Chỉ Quản trị hệ thống mới được sửa vai trò quản trị',
+			});
 		// Đổi tên thành / từ 1 vai trò dashboard sẽ trao / tước quyền quản trị
 		// của mọi tài khoản thuộc vai trò đó → không cho phép qua API.
 		const renaming =
@@ -164,6 +172,7 @@ async function update(req, res, next) {
 			`);
 
 		invalidateUserCache(); // tên vai trò quyết định quyền của mọi user thuộc vai trò
+		invalidateRolePermissionCache();
 		appEmitter.emit('changed', {
 			resource: 'roles',
 			action: 'updated',
@@ -189,7 +198,7 @@ async function updatePermissions(req, res, next) {
 		const check = await pool
 			.request()
 			.input('id_role', sql.Int, req.params.id)
-			.query(`SELECT id_role, is_system FROM Roles WHERE id_role = @id_role`);
+			.query(`SELECT id_role, name_role, is_system FROM Roles WHERE id_role = @id_role`);
 		if (!check.recordset.length)
 			return res
 				.status(404)
@@ -198,6 +207,11 @@ async function updatePermissions(req, res, next) {
 			return res.status(403).json({
 				success: false,
 				message: 'Không thể sửa quyền của vai trò hệ thống',
+			});
+		if (isReservedRoleName(check.recordset[0].name_role) && !isAdmin(req.user))
+			return res.status(403).json({
+				success: false,
+				message: 'Chỉ Quản trị hệ thống mới được sửa quyền của vai trò quản trị',
 			});
 
 		const transaction = new sql.Transaction(pool);
@@ -219,6 +233,7 @@ async function updatePermissions(req, res, next) {
 					`);
 			}
 			await transaction.commit();
+			invalidateRolePermissionCache();
 			appEmitter.emit('changed', {
 				resource: 'roles',
 				action: 'updated',

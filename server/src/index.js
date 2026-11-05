@@ -23,6 +23,16 @@ if (process.env.NODE_ENV === 'production') {
 	const localDbHosts = ['localhost', '127.0.0.1', '::1', 'host.docker.internal'];
 	if (process.env.DB_SSL !== 'true' && !localDbHosts.includes(String(process.env.DB_HOST).toLowerCase()))
 		console.warn('⚠️  DB_SSL khác "true" — kết nối tới PostgreSQL ở máy khác không được mã hoá.');
+	if (process.env.COOKIE_SECURE !== 'true')
+		console.warn(
+			'⚠️  COOKIE_SECURE khác "true" — cookie phiên có thể bị gửi qua HTTP không mã hoá. ' +
+				'Bật HTTPS (xem client/public/.htaccess hoặc proxy HTTPS) rồi đặt COOKIE_SECURE=true.',
+		);
+	if (!process.env.TOTP_ENCRYPTION_KEY)
+		console.warn(
+			'⚠️  Chưa đặt TOTP_ENCRYPTION_KEY — secret 2FA được mã hoá bằng khoá suy ra từ JWT_SECRET ' +
+				'(đổi JWT_SECRET sẽ làm 2FA đang bật không dùng được).',
+		);
 	if (['postgres', 'hrm_owner'].includes((process.env.DB_USER || '').toLowerCase()))
 		console.warn(
 			`⚠️  DB_USER=${process.env.DB_USER} — nên dùng role ứng dụng hrm_app (chỉ đọc/ghi dữ liệu, không có quyền DDL).`,
@@ -42,6 +52,7 @@ const { checkSchemaAndCleanup } = require('./config/schemaCheck');
 const { authenticate, requirePasswordChanged, requireDashboardRole } = require('./middleware/auth');
 const { requestLogger, logError } = require('./utils/auditLog');
 const { pruneOldLogs, RETENTION_DAYS } = require('./services/logReader');
+const { pruneRateLimits } = require('./middleware/loginRateLimit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -151,6 +162,11 @@ async function housekeeping() {
 		if (removed) console.log(`🧹 Đã xoá ${removed} file log cũ hơn ${RETENTION_DAYS} ngày`);
 	} catch (err) {
 		console.error('[housekeeping] Dọn log lỗi:', err.message);
+	}
+	try {
+		await pruneRateLimits();
+	} catch (err) {
+		console.error('[housekeeping] Dọn bộ đếm đăng nhập lỗi:', err.message);
 	}
 }
 setTimeout(housekeeping, 10 * 1000).unref();

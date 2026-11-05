@@ -21,7 +21,11 @@
 
 const ExcelJS = require('exceljs');
 const { getPool } = require('../config/db');
-const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
+const {
+	loadUserDeptAccess,
+	canAccessDept,
+	canAccessAllDepts,
+} = require('../services/deptAccess');
 const { fetchRawRecords } = require('../services/reportsRepository');
 const { enumerateDays, daySpan } = require('../utils/reportDateGrouping');
 
@@ -74,7 +78,7 @@ async function exportToExcel(req, res, next) {
 
 		const access = await loadUserDeptAccess(pool, req.user);
 		if (department === 'all') {
-			if (access?.accessType !== 'all') {
+			if (!canAccessAllDepts(access, 'can_export')) {
 				return res.status(403).json({
 					success: false,
 					message: 'Bạn không có quyền xuất báo cáo toàn bệnh viện',

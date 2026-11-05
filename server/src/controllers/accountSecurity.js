@@ -44,11 +44,11 @@ async function setup2FA(req, res, next) {
 				message: 'Xác thực 2 lớp đang bật. Hãy tắt trước khi thiết lập lại.',
 			});
 
-		const setup = await createTotpSetup(me.username);
+		const { sealed_secret, ...setup } = await createTotpSetup(me.username);
 		await pool
 			.request()
 			.input('id', sql.Int, me.id_user)
-			.input('secret', sql.NVarChar(255), setup.secret)
+			.input('secret', sql.NVarChar(255), sealed_secret)
 			.query(
 				`UPDATE Users SET totp_secret = @secret, totp_enabled = false,
 					totp_verified_at = NULL, totp_last_step = NULL
@@ -100,7 +100,9 @@ async function verifySetup2FA(req, res, next) {
 	}
 }
 
-// POST /api/auth/2fa/disable { password } — yêu cầu nhập lại mật khẩu
+// POST /api/auth/2fa/disable { password, code } — yêu cầu nhập lại mật khẩu
+// VÀ mã OTP hiện tại: chỉ mật khẩu thì người biết mật khẩu + chiếm được 1 phiên
+// (máy dùng chung bỏ quên) gỡ được 2FA — đúng thứ 2FA sinh ra để chặn.
 async function disable2FA(req, res, next) {
 	try {
 		const pool = await getPool();
@@ -110,6 +112,21 @@ async function disable2FA(req, res, next) {
 		const ok = await comparePassword(req.body?.password, me.password);
 		// 400 (không phải 401) để client không hiểu nhầm là hết phiên
 		if (!ok) return res.status(400).json({ success: false, message: 'Mật khẩu không đúng' });
+		if (me.totp_enabled) {
+			const code = typeof req.body?.code === 'string' ? req.body.code.trim() : '';
+			const timeStep = await verifyTotpCode(me.totp_secret, code, me.totp_last_step);
+			if (timeStep == null) {
+				await logSecurityEvent(req, {
+					eventType: '2fa_disable_failed',
+					actorId: me.id_user,
+					targetId: me.id_user,
+					detail: 'Sai mã xác thực khi tắt 2FA',
+				});
+				return res
+					.status(400)
+					.json({ success: false, message: 'Mã xác thực không đúng hoặc đã hết hạn' });
+			}
+		}
 
 		await pool
 			.request()

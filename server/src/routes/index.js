@@ -9,6 +9,7 @@ const {
 	requireCsrfHeader,
 	requireAdmin,
 	requireDashboardRole,
+	requireRolePermission,
 	requireSelf,
 	requireSelfOrAdmin,
 } = require('../middleware/auth');
@@ -36,6 +37,15 @@ const sensitiveLimiter = limiter(
 	10,
 	'Quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.',
 );
+
+// Vai trò dashboard + quyền tương ứng trong ma trận "Phân quyền" (Role_Permissions)
+const canManageAccounts = [requireDashboardRole, requireRolePermission('manage_accounts')];
+const canManageRoles = [requireDashboardRole, requireRolePermission('manage_roles')];
+const canManageDepartments = [requireDashboardRole, requireRolePermission('manage_departments')];
+const canEditDepartments = [
+	requireDashboardRole,
+	requireRolePermission('manage_departments', 'edit_dept_info'),
+];
 
 router.get('/', (req, res) => {
 	res.send('OK');
@@ -156,9 +166,9 @@ router.get('/subscribe', (req, res) => {
 router.get('/departments/simple', departments.getSimple);
 router.get('/departments', departments.getAll);
 router.get('/departments/:id', departments.getById);
-router.post('/departments', requireDashboardRole, departments.create);
-router.put('/departments/:id', requireDashboardRole, departments.update);
-router.delete('/departments/:id', requireDashboardRole, departments.remove);
+router.post('/departments', canManageDepartments, departments.create);
+router.put('/departments/:id', canEditDepartments, departments.update);
+router.delete('/departments/:id', canManageDepartments, departments.remove);
 
 // Cấu hình Khuyến nghị theo khoa (trang quản lý Khoa — dashboard)
 router.get(
@@ -167,17 +177,17 @@ router.get(
 );
 router.post(
 	'/departments/:id/recommended-config',
-	requireDashboardRole,
+	canEditDepartments,
 	deptRecommendedConfig.createRecommendedConfig,
 );
 router.put(
 	'/departments/:id/recommended-config',
-	requireDashboardRole,
+	canEditDepartments,
 	deptRecommendedConfig.updateRecommendedConfig,
 );
 router.delete(
 	'/departments/:id/recommended-config',
-	requireDashboardRole,
+	canEditDepartments,
 	deptRecommendedConfig.removeRecommendedConfig,
 );
 
@@ -186,7 +196,7 @@ router.delete(
 // (admin/giám đốc/điều dưỡng trưởng BV), khớp DASHBOARD_ROLES ở client.
 // Các route đọc/ghi dữ liệu của CHÍNH tài khoản đang đăng nhập (để load
 // dashboard riêng) → cho phép chính chủ hoặc 1 trong 3 vai trò trên.
-router.get('/users', requireDashboardRole, users.getAll);
+router.get('/users', canManageAccounts, users.getAll);
 router.get(
 	'/users/:id/departments',
 	requireSelfOrAdmin(),
@@ -199,7 +209,7 @@ router.get(
 );
 router.put(
 	'/users/:id/assigned-departments',
-	requireDashboardRole,
+	canManageAccounts,
 	userDepartmentAccess.setAssignedDepartments,
 );
 router.get(
@@ -209,17 +219,17 @@ router.get(
 );
 router.put(
 	'/users/:id/dept-permissions',
-	requireDashboardRole,
+	canManageAccounts,
 	userDepartmentAccess.setDeptPermissions,
 );
 router.put(
 	'/users/:id/reset-password',
-	requireDashboardRole,
+	canManageAccounts,
 	userPassword.resetPassword,
 );
 router.put(
 	'/users/:id/reset-2fa',
-	requireDashboardRole,
+	canManageAccounts,
 	userPassword.reset2FA,
 );
 router.put(
@@ -228,19 +238,19 @@ router.put(
 	requireSelf(),
 	userPassword.changePassword,
 );
-router.get('/users/:id', requireDashboardRole, users.getById);
-router.post('/users', requireDashboardRole, users.create);
-router.put('/users/:id', requireDashboardRole, users.update);
-router.delete('/users/:id', requireDashboardRole, users.remove);
+router.get('/users/:id', canManageAccounts, users.getById);
+router.post('/users', canManageAccounts, users.create);
+router.put('/users/:id', canManageAccounts, users.update);
+router.delete('/users/:id', canManageAccounts, users.remove);
 
 // ── Roles & Permissions ───────────────────────────────────────
 router.get('/roles', roles.getAll);
 router.get('/roles/:id', roles.getById);
-router.post('/roles', requireDashboardRole, roles.create);
-router.put('/roles/:id', requireDashboardRole, roles.update);
+router.post('/roles', canManageRoles, roles.create);
+router.put('/roles/:id', canManageRoles, roles.update);
 router.put(
 	'/roles/:id/permissions',
-	requireDashboardRole,
+	canManageRoles,
 	roles.updatePermissions,
 );
 router.get('/permissions', roles.getAllPermissions);

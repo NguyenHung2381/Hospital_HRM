@@ -4,6 +4,7 @@ const { getRecordsForReport: getClsRecordsForReport } = require('./clsRecords');
 const {
 	loadUserDeptAccess,
 	canAccessDept,
+	canAccessAllDepts,
 	loadReadScope,
 	canReadDept,
 	filterByReadScope,
@@ -50,6 +51,27 @@ const RECORD_SELECT = `
 	LEFT JOIN Dept_Recommended_Config rc ON rc.id_department = rdr.id_department
 	LEFT JOIN Dept_TT03_Config tt03cfg ON tt03cfg.id_department = rdr.id_department
 `;
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DAY_MS = 24 * 3600 * 1000;
+
+// Ngày báo cáo hợp lệ: đúng YYYY-MM-DD và không quá 1 ngày sau hôm nay (giờ
+// Việt Nam) — chặn tạo sẵn báo cáo cho các ngày xa trong tương lai.
+function isAllowedReportDate(value) {
+	if (typeof value !== 'string' || !DATE_RE.test(value)) return false;
+	const t = Date.parse(`${value}T00:00:00Z`);
+	if (Number.isNaN(t) || new Date(t).toISOString().slice(0, 10) !== value) return false;
+	const todayVn = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
+	return t <= Date.parse(`${todayVn}T00:00:00Z`) + DAY_MS;
+}
+
+function canEditAnyDept(access) {
+	if (!access) return false;
+	if (canAccessAllDepts(access, 'can_edit')) return true;
+	for (const id of access.permsByDept.keys())
+		if (canAccessDept(access, id, 'can_edit')) return true;
+	return false;
+}
 
 // GET /api/reports
 async function getAll(req, res, next) {
@@ -192,10 +214,16 @@ async function create(req, res, next) {
 				.status(400)
 				.json({ success: false, message: 'report_date không được để trống' });
 
+		if (!isAllowedReportDate(report_date))
+			return res.status(400).json({
+				success: false,
+				message: 'Ngày báo cáo không hợp lệ (YYYY-MM-DD, không quá 1 ngày sau hôm nay)',
+			});
+
 		const pool = await getPool();
+		const access = await loadUserDeptAccess(pool, req.user);
 
 		if (Array.isArray(records) && records.length) {
-			const access = await loadUserDeptAccess(pool, req.user);
 			const denied = records.find(
 				(r) => !canAccessDept(access, r.id_department, 'can_edit'),
 			);
@@ -204,6 +232,13 @@ async function create(req, res, next) {
 					success: false,
 					message: 'Bạn không có quyền nhập dữ liệu cho một hoặc nhiều khoa trong danh sách',
 				});
+		} else if (!canEditAnyDept(access)) {
+			// Báo cáo rỗng giữ chỗ cho 1 ngày (report_date là UNIQUE) → chỉ người
+			// có quyền nhập dữ liệu ít nhất 1 khoa mới được tạo.
+			return res.status(403).json({
+				success: false,
+				message: 'Bạn không có quyền nhập dữ liệu báo cáo',
+			});
 		}
 
 		const transaction = new sql.Transaction(pool);
@@ -326,7 +361,7 @@ async function remove(req, res, next) {
 			emptyReport &&
 			reportRes.recordset[0].created_by !== req.user.id_user &&
 			!isDashboardRole(req.user) &&
-			access?.accessType !== 'all';
+			!canAccessAllDepts(access, 'can_delete');
 		if (deniedDept || deniedEmpty || (coordRes.recordset[0].cnt > 0 && !isAdmin(req.user)))
 			return res.status(403).json({
 				success: false,

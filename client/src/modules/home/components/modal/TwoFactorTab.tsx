@@ -28,6 +28,7 @@ export default function TwoFactorTab() {
 	const [code, setCode] = useState('');
 	const [showDisable, setShowDisable] = useState(false);
 	const [password, setPassword] = useState('');
+	const [disableCode, setDisableCode] = useState('');
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
@@ -72,10 +73,11 @@ export default function TwoFactorTab() {
 
 	const disable = () =>
 		run(async () => {
-			const d = await postJson('/api/auth/2fa/disable', { password });
+			const d = await postJson('/api/auth/2fa/disable', { password, code: disableCode });
 			if (!d.success) return setError(d.message ?? 'Không tắt được 2FA');
 			setShowDisable(false);
 			setPassword('');
+			setDisableCode('');
 			setEnabled(false);
 			setSuccess('Đã tắt xác thực 2 lớp.');
 		});
@@ -191,12 +193,28 @@ export default function TwoFactorTab() {
 							}}
 						/>
 					</label>
+					<label className='fi'>
+						<span className='fi-label'>Mã xác thực hiện tại từ ứng dụng</span>
+						<input
+							className='fi-input'
+							inputMode='numeric'
+							autoComplete='one-time-code'
+							maxLength={6}
+							placeholder='000000'
+							value={disableCode}
+							onChange={(e) => {
+								setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+								setError('');
+							}}
+						/>
+					</label>
 					<div className='mfooter'>
 						<button
 							className='btn-ghost'
 							onClick={() => {
 								setShowDisable(false);
 								setPassword('');
+								setDisableCode('');
 							}}
 							disabled={busy}
 						>
@@ -205,7 +223,7 @@ export default function TwoFactorTab() {
 						<button
 							className='btn-danger'
 							onClick={disable}
-							disabled={busy || !password}
+							disabled={busy || !password || disableCode.length !== 6}
 						>
 							{busy ? 'Đang xử lý...' : 'Xác nhận tắt 2FA'}
 						</button>

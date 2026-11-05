@@ -27,7 +27,7 @@ const {
 	trustDevice,
 	recordDeviceFailure,
 } = require('../services/trustedDevice');
-const { verifyTotpCode } = require('../services/twoFactor');
+const { verifyTotpCode, isSealed, sealTotpSecret, openTotpSecret } = require('../services/twoFactor');
 const {
 	setSessionCookie,
 	clearSessionCookie,
@@ -37,8 +37,9 @@ const { audit } = require('../utils/auditLog');
 const { logSecurityEvent } = require('../utils/securityEvents');
 
 // Dùng chung 1 thông báo cho sai username / sai mật khẩu / tài khoản bị khoá
-// để không lộ tài khoản nào đang tồn tại.
-const INVALID_LOGIN_MESSAGE = 'Tên đăng nhập hoặc mật khẩu không đúng';
+// tạm để không lộ tài khoản nào đang tồn tại, cũng không lộ mật khẩu đúng.
+const INVALID_LOGIN_MESSAGE =
+	'Tên đăng nhập hoặc mật khẩu không đúng. Nếu đã nhập sai nhiều lần, tài khoản có thể đang tạm khoá — vui lòng thử lại sau ít phút.';
 
 const USER_SELECT = `
 	SELECT u.id_user, u.full_name, u.username, u.password,
@@ -123,20 +124,21 @@ async function login(req, res, next) {
 		// nhập sai từ máy khác không khoá được chủ tài khoản trên máy của họ.
 		const trustedDevice = found ? await findTrustedDevice(pool, req, found.id_user) : null;
 
-		// Tài khoản đang bị khoá tạm (với thiết bị lạ): chỉ báo "đang khoá" khi
-		// mật khẩu ĐÚNG (chủ tài khoản thật) — sai mật khẩu vẫn trả thông báo
-		// chung để không lộ tài khoản tồn tại, và không cộng thêm lần sai (khoá
-		// không bị kéo dài).
+		// Tài khoản đang bị khoá tạm (với thiết bị lạ): trả ĐÚNG phản hồi chung
+		// như sai mật khẩu, bất kể mật khẩu đúng hay sai. Trước đây mật khẩu
+		// đúng nhận 429 ACCOUNT_LOCKED còn mật khẩu sai nhận 401 (và không bị
+		// đếm) → kẻ tấn công chỉ cần cố tình làm khoá tài khoản rồi dò tiếp,
+		// lần nào ra 429 là trúng mật khẩu. Không cộng thêm lần sai (khoá không
+		// bị kéo dài); chủ tài khoản trên thiết bị quen không bị chặn ở đây.
 		const lockedMinutes = trustedDevice ? 0 : lockedMinutesLeft(found);
 		if (found && lockedMinutes > 0) {
-			recordLoginFailure(req);
+			await recordLoginFailure(req);
 			audit(req, 'auth.login_blocked_locked', { attempted_username: username.slice(0, 50) });
-			if (passwordOk && found.status === 'active') return lockedResponse(res, lockedMinutes);
 			return res.status(401).json({ success: false, message: INVALID_LOGIN_MESSAGE });
 		}
 
 		if (!found || !passwordOk || found.status !== 'active') {
-			recordLoginFailure(req);
+			await recordLoginFailure(req);
 			audit(req, 'auth.login_failed', { attempted_username: username.slice(0, 50) });
 			// Không báo "đã khoá" ở đây dù vừa chạm ngưỡng (mật khẩu đang sai) —
 			// chủ tài khoản nhập đúng ở lần sau sẽ thấy thông báo khoá.
@@ -158,7 +160,7 @@ async function login(req, res, next) {
 			});
 		}
 
-		recordLoginSuccess(req);
+		await recordLoginSuccess(req);
 		// Đăng nhập đúng trên thiết bị quen không xoá bộ đếm/khoá của thiết bị
 		// lạ — nếu không, kẻ tấn công được làm lại từ đầu mỗi khi chủ tài khoản
 		// đăng nhập. Bộ đếm của thiết bị quen được reset trong trustDevice().
@@ -249,11 +251,16 @@ async function verify2FALogin(req, res, next) {
 				.json({ success: false, message: 'Mã xác thực không đúng hoặc đã hết hạn' });
 		}
 
+		// Secret cũ còn lưu dạng rõ → mã hoá lại luôn
+		const resealed = isSealed(found.totp_secret)
+			? found.totp_secret
+			: sealTotpSecret(openTotpSecret(found.totp_secret));
 		await pool
 			.request()
 			.input('id', sql.Int, found.id_user)
 			.input('step', sql.BigInt, timeStep)
-			.query(`UPDATE Users SET totp_last_step = @step WHERE id_user = @id`);
+			.input('secret', sql.NVarChar(255), resealed)
+			.query(`UPDATE Users SET totp_last_step = @step, totp_secret = @secret WHERE id_user = @id`);
 		if (!trustedDevice) await resetFailedAttempts(pool, found);
 
 		await completeLogin(req, res, found, { two_factor: true });
