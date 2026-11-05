@@ -118,7 +118,7 @@ export default function WardTabPanel({
 									textAlign: 'center',
 									padding: '60px',
 									color: 'var(--mut)',
-									fontSize: '.85rem',
+									fontSize: 'var(--fs-md)',
 								}}
 							>
 								Đang tải dữ liệu...
@@ -129,7 +129,7 @@ export default function WardTabPanel({
 								<p
 									style={{
 										color: 'var(--mut)',
-										fontSize: '.85rem',
+										fontSize: 'var(--fs-md)',
 										marginBottom: 16,
 									}}
 								>

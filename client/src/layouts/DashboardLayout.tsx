@@ -6,7 +6,7 @@ import { useAuth } from '@/context/useAuth';
 import SessionsModal from '@/components/common/SessionsModal';
 import ChangePasswordModal from '@/modules/home/components/modal/ChangePasswordModal';
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 // ASSETS
 import LOGO from '@/assets/images/logo.png';
@@ -86,17 +86,27 @@ export default function DashboardLayout() {
 	const userFooterRef = useRef<HTMLDivElement>(null);
 
 	const [collapsed, setCollapsed] = useState(() => {
-		const saved = localStorage.getItem('dashboard-sidebar-collapsed');
-		if (saved !== null) {
-			return saved === 'true';
+		// Màn hẹp: menu là ngăn kéo phủ nội dung — luôn bắt đầu ở trạng thái đóng,
+		// không dùng trạng thái đã lưu từ desktop
+		if (window.innerWidth < 768) {
+			return true;
 		}
-		return window.innerWidth < 768;
+		const saved = localStorage.getItem('dashboard-sidebar-collapsed');
+		return saved === 'true';
 	});
 	const navigate = useNavigate();
+	const { pathname } = useLocation();
 	const { logout, user } = useAuth();
 
+	// Vị trí hiện tại cho topbar: "Nhóm / Trang" (tiêu đề lớn nằm ở đầu trang)
+	const crumbGroup = NAV_GROUPS.find((g) => g.items.some((n) => n.path === pathname));
+	const crumbItem = crumbGroup?.items.find((n) => n.path === pathname);
+
 	useEffect(() => {
-		localStorage.setItem('dashboard-sidebar-collapsed', String(collapsed));
+		// Chỉ nhớ trạng thái thu gọn của desktop; đóng/mở ngăn kéo trên điện thoại không ghi đè
+		if (window.innerWidth >= 768) {
+			localStorage.setItem('dashboard-sidebar-collapsed', String(collapsed));
+		}
 	}, [collapsed]);
 
 	// Auto close dropdown when clicking outside
@@ -294,10 +304,20 @@ export default function DashboardLayout() {
 						>
 							<MenuIcon size={20} />
 						</button>
-						<h1 className='topbar-title'>
-							<span className='topbar-title-desktop'>Hệ thống quản lý nhân lực Điều dưỡng – Hộ sinh – KTV</span>
-							<span className='topbar-title-mobile'>QL nhân lực ĐD – HS – KTV</span>
-						</h1>
+						<p className='topbar-crumb'>
+							{crumbGroup?.label && (
+								<>
+									<span className='topbar-crumb-group'>{crumbGroup.label}</span>
+									<span
+										className='topbar-crumb-sep'
+										aria-hidden='true'
+									>
+										/
+									</span>
+								</>
+							)}
+							<span className='topbar-crumb-page'>{crumbItem?.label ?? 'Quản lý nhân lực'}</span>
+						</p>
 					</div>
 					<div className='topbar-r'>
 						<div className='topbar-date'>

@@ -12,7 +12,7 @@ export default function DeptSelector({
 	if (khoaList.length === 0) {
 		return (
 			<div className='ds-empty'>
-				<span style={{ fontSize: '0.75rem', color: 'var(--text-muted, #888)' }}>
+				<span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted, #888)' }}>
 					Chưa có khoa được phân quyền
 				</span>
 			</div>

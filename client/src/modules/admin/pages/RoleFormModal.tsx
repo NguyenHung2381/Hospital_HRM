@@ -74,7 +74,7 @@ export default function RoleFormModal({
 								<span
 									style={{
 										color: COLOR_MAP[c]?.text,
-										fontSize: '.72rem',
+										fontSize: 'var(--fs-xs)',
 										fontWeight: 700,
 									}}
 								>

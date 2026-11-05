@@ -168,7 +168,7 @@ export default function ClsTable({
 								textAlign: 'center',
 								padding: '40px',
 								color: 'var(--mut)',
-								fontSize: '.85rem',
+								fontSize: 'var(--fs-md)',
 							}}
 						>
 							Chưa có khoa CLS nào nhập dữ liệu ngày này

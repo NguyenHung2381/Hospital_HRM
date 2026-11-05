@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import EyeIcon from '@/assets/svg/EyeClosedIcon';
 import EyeClosedIcon from '@/assets/svg/EyeIcon';
 import GuardIcon from '@/assets/svg/GuardIcon';
@@ -88,8 +88,10 @@ export default function LoginForm() {
 		setLoading(false);
 	};
 
+	// key = nội dung lỗi: cùng lỗi lặp lại vẫn giữ nguyên, lỗi mới thì rung lại một lần
 	const alert = error && (
 		<div
+			key={error}
 			className='auth-alert'
 			role='alert'
 		>
@@ -188,9 +190,11 @@ export default function LoginForm() {
 	return (
 		<>
 			<div className='login-header'>
-				<h2 className='login-title'>
-					Đăng nhập <span>nhân sự</span>
-				</h2>
+				<p className='login-tag'>Chào mừng trở lại</p>
+				<h2 className='login-title'>Đăng nhập nhân sự</h2>
+				<p className='login-desc'>
+					Dùng tài khoản đã được cấp để truy cập hệ thống quản lý nhân lực.
+				</p>
 			</div>
 
 			<div className='login-card'>
@@ -293,7 +297,14 @@ export default function LoginForm() {
 								Đang xác thực...
 							</>
 						) : (
-							'Đăng nhập hệ thống'
+							<>
+								Đăng nhập hệ thống
+								<ArrowRight
+									size={18}
+									className='submit-arrow'
+									aria-hidden='true'
+								/>
+							</>
 						)}
 					</button>
 				</form>

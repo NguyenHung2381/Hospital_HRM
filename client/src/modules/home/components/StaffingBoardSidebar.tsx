@@ -53,6 +53,9 @@ export default function StaffingBoardSidebar({
 				<div className='legend-item'>
 					<span className='legend-circle' /> Ngày đang chọn
 				</div>
+				<div className='legend-item'>
+					<span className='legend-circle legend-today' /> Hôm nay
+				</div>
 			</div>
 			{showAddButton && (
 				<button

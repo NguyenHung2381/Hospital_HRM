@@ -45,7 +45,7 @@
 	min-width: 0;
 }
 .page .topbar-hospital {
-	font-size: 0.75rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 	line-height: 1.3;
 	white-space: nowrap;
@@ -60,7 +60,7 @@
 	flex-shrink: 0;
 }
 .topbar-dept {
-	font-size: 0.95rem;
+	font-size: var(--fs-base);
 	font-weight: 600;
 	line-height: 1.3;
 	color: var(--txt);
@@ -75,7 +75,7 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	color: var(--mut);
 	white-space: nowrap;
 }
@@ -120,12 +120,12 @@
 	align-items: flex-start;
 }
 .user-name {
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	font-weight: 600;
 	line-height: 1.25;
 }
 .user-role {
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 	line-height: 1.25;
 }
@@ -170,12 +170,12 @@
 	color: var(--color-gray-600);
 }
 .user-dd-name {
-	font-size: 0.85rem;
+	font-size: var(--fs-md);
 	font-weight: 600;
 	color: var(--txt);
 }
 .user-dd-role {
-	font-size: 0.75rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 	margin-top: 1px;
 }
@@ -194,7 +194,7 @@
 	border: none;
 	border-radius: var(--rs);
 	font-family: inherit;
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	font-weight: 500;
 	color: var(--txt);
 	cursor: pointer;
@@ -230,12 +230,41 @@
 	min-height: 0;
 	overflow: hidden;
 }
+/* Chuyển nhóm khoa: tab gạch chân trải hết chiều ngang, nằm trên cả sidebar
+   lẫn nội dung (thay cho khối tab xám lệch khỏi lưới sidebar 268px) */
 .home-tabs-bar-wrap {
-	padding: 12px 24px 0;
+	padding: 0 24px;
 	flex-shrink: 0;
+	background: var(--sur);
+	border-bottom: 1px solid var(--bdr);
 }
 .home-tabs-bar-wrap .tab-bar {
-	max-width: 420px;
+	gap: 24px;
+	background: none;
+	border-radius: 0;
+	padding: 0;
+}
+.home-tabs-bar-wrap .tab-btn {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 12px 0 10px;
+	border-radius: 0;
+	border-bottom: 2px solid transparent;
+	font-size: var(--fs-md);
+	font-weight: 500;
+	color: var(--mut);
+}
+.home-tabs-bar-wrap .tab-btn:hover:not(.tab-btn--active) {
+	background: none;
+	color: var(--txt);
+}
+.home-tabs-bar-wrap .tab-btn--active {
+	background: none;
+	box-shadow: none;
+	color: var(--pd);
+	border-bottom-color: var(--p);
 }
 .home-tabs-row {
 	flex: 1;
@@ -283,7 +312,7 @@
 }
 .ds-single-lbl {
 	display: block;
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 	font-weight: 700;
 	color: var(--mut);
 	text-transform: none;
@@ -291,7 +320,7 @@
 }
 .ds-single-name {
 	display: block;
-	font-size: 0.84rem;
+	font-size: var(--fs-md);
 	font-weight: 700;
 	color: var(--txt);
 	margin-top: 1px;
@@ -305,7 +334,7 @@
 	display: flex;
 	align-items: center;
 	gap: 5px;
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 	font-weight: 700;
 	color: var(--mut);
 	text-transform: none;
@@ -321,7 +350,7 @@
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
 	padding: 0.48rem 2.2rem 0.48rem 0.8rem;
-	font-size: 0.84rem;
+	font-size: var(--fs-md);
 	font-family: inherit;
 	font-weight: 600;
 	color: var(--txt);
@@ -361,7 +390,7 @@
 	width: 26px;
 	height: 26px;
 	cursor: pointer;
-	font-size: 0.95rem;
+	font-size: var(--fs-base);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -380,8 +409,8 @@
 	}
 }
 .cal-month-label {
-	font-size: 0.82rem;
-	font-weight: 700;
+	font-size: var(--fs-md);
+	font-weight: 600;
 	color: var(--txt);
 }
 .cal-grid {
@@ -391,8 +420,8 @@
 }
 .cal-dow {
 	text-align: center;
-	font-size: 0.7rem;
-	font-weight: 700;
+	font-size: var(--fs-xs);
+	font-weight: 500;
 	color: var(--mut);
 	padding: 6px 0;
 }
@@ -416,13 +445,20 @@
 	background: transparent !important;
 }
 .cal-day-num {
-	font-size: 0.8rem;
+	font-size: var(--fs-sm);
 	font-weight: 500;
 	line-height: 1;
 }
+/* Hôm nay: màu hồng tím của chữ thập trong logo — chỗ duy nhất dùng màu bổ trợ */
+.cal-today {
+	box-shadow: inset 0 0 0 1.5px var(--acc);
+}
 .cal-today .cal-day-num {
-	color: var(--p);
+	color: var(--acc);
 	font-weight: 700;
+}
+.cal-today.cal-active {
+	box-shadow: 0 0 0 2px var(--sur), 0 0 0 3.5px var(--acc);
 }
 .cal-active {
 	background: var(--p) !important;
@@ -457,8 +493,8 @@
 .legend-item {
 	display: flex;
 	align-items: center;
-	gap: 5px;
-	font-size: 0.72rem;
+	gap: 6px;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 }
 .legend-item .cal-dot {
@@ -476,8 +512,12 @@
 	width: 12px;
 	height: 12px;
 	border-radius: 50%;
-	border: 1px solid var(--p);
+	background: var(--p);
 	flex-shrink: 0;
+}
+.legend-today {
+	background: none;
+	box-shadow: inset 0 0 0 1.5px var(--acc);
 }
 
 /* ── Add button ── */
@@ -489,7 +529,7 @@
 	color: white;
 	border: none;
 	font-family: inherit;
-	font-size: 0.85rem;
+	font-size: var(--fs-md);
 	font-weight: 500;
 	cursor: pointer;
 	transition: background-color 0.15s;
@@ -531,12 +571,12 @@
 	color: var(--color-gray-400);
 }
 .empty-title {
-	font-size: 0.95rem;
+	font-size: var(--fs-base);
 	font-weight: 600;
 	color: var(--txt);
 }
 .empty-sub {
-	font-size: 0.8rem;
+	font-size: var(--fs-sm);
 	color: var(--mut);
 }
 
@@ -549,13 +589,13 @@
 	background: var(--color-warning-bg);
 	border: 1px solid var(--color-warning-border);
 	border-radius: var(--rs);
-	font-size: 0.8rem;
+	font-size: var(--fs-sm);
 	font-weight: 600;
 	color: var(--color-warning);
 	animation: fi 0.2s ease;
 }
 .lock-banner-icon {
-	font-size: 1rem;
+	font-size: var(--fs-lg);
 	flex-shrink: 0;
 }
 
@@ -568,7 +608,7 @@
 	background: var(--color-error-bg);
 	border: 1px solid var(--color-error-border);
 	border-radius: var(--rs);
-	font-size: 0.8rem;
+	font-size: var(--fs-sm);
 	font-weight: 500;
 	color: var(--color-error);
 	animation: fi 0.2s ease;
@@ -587,14 +627,11 @@
 	padding: 12px 18px;
 }
 .date-hdr-label {
-	font-size: 0.78rem;
-	font-weight: 400;
+	font-size: var(--fs-sm);
 	color: var(--mut);
-	text-transform: none;
-	letter-spacing: 0;
 }
 .date-hdr-val {
-	font-size: 1rem;
+	font-size: var(--fs-lg);
 	font-weight: 600;
 	color: var(--txt);
 	margin-top: 2px;
@@ -607,7 +644,7 @@
 }
 .btn-lock-ico {
 	margin-left: 4px;
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	opacity: 0.75;
 }
 
@@ -639,13 +676,13 @@
 	justify-content: center;
 }
 .stat-val {
-	font-size: 1.35rem;
+	font-size: var(--fs-h2);
 	font-weight: 600;
 	line-height: 1.1;
 	letter-spacing: -0.01em;
 }
 .stat-lbl {
-	font-size: 0.8rem;
+	font-size: var(--fs-sm);
 	color: var(--mut);
 	margin-top: 3px;
 	font-weight: 500;
@@ -667,99 +704,107 @@
 	gap: 14px;
 }
 .dcard-title {
-	font-size: 0.9rem;
+	font-size: var(--fs-base);
 	font-weight: 600;
 	color: var(--txt);
 	display: flex;
 	align-items: center;
-	gap: 7px;
+	gap: 8px;
 	letter-spacing: -0.01em;
 }
+.dcard-title svg {
+	color: var(--mut);
+	flex-shrink: 0;
+}
 .dcard-formula {
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 }
 .info-row {
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
-	padding: 8px 12px;
-	background: var(--color-gray-50);
-	border-radius: var(--rs);
-	border: 1px solid var(--bdr);
+	align-items: baseline;
+	gap: 12px;
+	padding: 12px 2px 0;
+	border-top: 1px solid var(--color-gray-100);
 }
 .info-lbl {
-	font-size: 0.7rem;
-	font-weight: 600;
+	font-size: var(--fs-sm);
+	font-weight: 500;
 	color: var(--mut);
 }
 .info-val {
-	font-size: 0.88rem;
-	font-weight: 700;
+	font-size: var(--fs-lg);
+	font-weight: 600;
 	color: var(--txt);
 }
 
 /* ── Người bệnh ── */
+/* Mức độ chăm sóc: danh sách phẳng — màu chỉ nằm ở chấm mức độ,
+   không tô cả khối nền, để con số (căn phải) là thứ nổi nhất */
 .cap-row {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
 }
 .cap-box {
-	border-radius: var(--rs);
-	padding: 10px 14px;
 	display: flex;
-	align-items: center;
-	gap: 12px;
-	transition: transform 0.12s;
+	align-items: baseline;
+	gap: 10px;
+	padding: 10px 2px;
+	border-bottom: 1px solid var(--color-gray-100);
 }
-.cap-box:hover {
-	transform: translateX(2px);
+.cap-box::before {
+	content: '';
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	align-self: center;
+	background: var(--color-gray-400);
 }
-.cap-green {
-	background: var(--color-primary-pale);
-	border: 1px solid var(--color-primary-border);
+.cap-green::before {
+	background: var(--color-primary);
 }
-.cap-yellow {
-	background: var(--color-warning-bg);
-	border: 1px solid var(--color-warning-border);
+.cap-yellow::before {
+	background: var(--color-warning);
 }
-.cap-red {
-	background: var(--color-error-bg);
-	border: 1px solid var(--color-error-border);
+.cap-red::before {
+	background: var(--color-error);
 }
 .cap-num {
-	font-size: 1.45rem;
-	font-weight: 700;
+	order: 3;
+	margin-left: auto;
+	font-size: var(--fs-h2);
+	font-weight: 600;
 	color: var(--txt);
-	min-width: 36px;
 	text-align: right;
-	letter-spacing: -0.03em;
+	letter-spacing: -0.02em;
+	line-height: 1.2;
 }
 .cap-label {
-	font-size: 0.72rem;
-	font-weight: 700;
+	font-size: var(--fs-md);
+	font-weight: 500;
 	color: var(--txt);
 }
 .cap-desc {
-	font-size: 0.7rem;
+	font-size: var(--fs-sm);
 	color: var(--mut);
-	margin-top: 1px;
 }
 .nb-total-row {
 	display: flex;
-	align-items: center;
+	align-items: baseline;
 	justify-content: space-between;
-	padding: 10px 14px;
-	background: var(--color-primary-pale);
-	border: 1px solid var(--color-primary-border);
-	border-radius: var(--rs);
+	gap: 12px;
+	padding: 4px 2px 0;
+	font-size: var(--fs-sm);
+	color: var(--mut);
 }
 .nb-total-val {
-	font-size: 1.25rem;
-	font-weight: 700;
-	color: var(--p);
+	font-size: var(--fs-h2);
+	font-weight: 600;
+	color: var(--txt);
 	letter-spacing: -0.02em;
+	white-space: nowrap;
 }
 
 /* ── Nhân lực ── */
@@ -768,49 +813,37 @@
 	grid-template-columns: repeat(4, 1fr);
 	gap: 8px;
 }
+/* Nhân lực: ô trung tính, màu trạng thái chỉ ở con số */
 .nl-box {
 	background: var(--color-gray-50);
-	border: 1px solid var(--bdr);
+	border: 1px solid var(--color-gray-100);
 	border-radius: var(--rs);
-	padding: 12px 8px;
+	padding: 14px 10px;
 	text-align: center;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	transition:
-		border-color 0.15s,
-		box-shadow 0.15s;
-}
-.nl-box:hover {
-	border-color: var(--color-gray-300);
-}
-.nl-total {
-	border-top: 2px solid var(--txt);
-}
-.nl-diLam {
-	border-top: 2px solid var(--p);
 }
 .nl-num {
-	font-size: 1.45rem;
-	font-weight: 700;
+	font-size: var(--fs-xl);
+	font-weight: 600;
 	color: var(--txt);
-	line-height: 1;
-	letter-spacing: -0.03em;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
 }
 .nl-lbl {
 	display: block;
-	font-size: 0.7rem;
+	font-size: var(--fs-sm);
 	color: var(--mut);
-	margin-top: 4px;
+	margin-top: 6px;
 	font-weight: 500;
 }
 .nl-formula {
 	display: block;
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 	margin-top: 4px;
-	font-style: italic;
-	line-height: 1.3;
+	line-height: 1.4;
 }
 .c-green {
 	color: var(--green);
@@ -830,30 +863,32 @@
 	padding: 12px 14px;
 }
 .formula-label {
-	font-size: 0.7rem;
-	font-weight: 700;
+	font-size: var(--fs-sm);
+	font-weight: 500;
 	color: var(--mut);
-	text-transform: none;
-	letter-spacing: 0;
-	margin-bottom: 7px;
+	margin-bottom: 8px;
 }
+/* Công thức TT03: chữ mono màu mực trên nền trắng — đọc như một phép tính,
+   không phải một cảnh báo màu xanh dương */
 .formula-code {
 	display: block;
-	font-size: 0.73rem;
-	font-family: 'Courier New', monospace;
-	color: var(--color-info);
-	background: var(--color-info-bg);
-	padding: 7px 10px;
-	border-radius: 6px;
+	font-size: var(--fs-sm);
+	font-family: var(--font-mono);
+	color: var(--txt);
+	background: var(--sur);
+	padding: 8px 10px;
+	border-radius: var(--rs);
 	margin-bottom: 6px;
 	white-space: pre-wrap;
-	line-height: 1.5;
-	border: 1px solid var(--color-info-border);
+	line-height: 1.55;
+	border: 1px solid var(--bdr);
 }
 .formula-calc {
-	font-size: 0.7rem;
-	color: var(--blue);
-	font-style: italic;
+	font-size: var(--fs-sm);
+	font-family: var(--font-mono);
+	color: var(--mut);
+	line-height: 1.55;
+	overflow-wrap: anywhere;
 }
 .kc-display {
 	display: grid;
@@ -867,13 +902,9 @@
 	padding: 12px 10px;
 	text-align: center;
 }
-.kc-result:last-child {
-	background: var(--color-primary-pale);
-	border-color: var(--color-primary-border);
-}
 .kc-result-label {
 	display: block;
-	font-size: 0.7rem;
+	font-size: var(--fs-sm);
 	color: var(--mut);
 	margin-bottom: 6px;
 	font-weight: 500;
@@ -881,10 +912,10 @@
 }
 .kc-result-val {
 	display: block;
-	font-size: 1.55rem;
-	font-weight: 700;
-	color: var(--p);
-	letter-spacing: -0.03em;
+	font-size: var(--fs-xl);
+	font-weight: 600;
+	color: var(--txt);
+	letter-spacing: -0.02em;
 }
 
 /* ── Điều phối ── */
@@ -896,10 +927,8 @@
 	align-items: center;
 	gap: 8px;
 }
-.dp-surplus {
-	background: var(--color-primary-border);
-	border: 1px solid var(--color-primary-border);
-}
+/* Điều phối: chỉ khi thiếu người mới tô nền đỏ nhạt; đủ/dư dùng tag màu */
+.dp-surplus,
 .dp-deficit {
 	background: var(--color-error-bg);
 	border: 1px solid var(--color-error-border);
@@ -909,26 +938,27 @@
 	border: 1px solid var(--color-primary-border);
 }
 .dp-lbl {
-	font-size: 0.78rem;
-	font-weight: 700;
+	font-size: var(--fs-md);
+	font-weight: 600;
 	color: var(--txt);
 }
 .dp-sub {
-	font-size: 0.72rem;
+	font-size: var(--fs-sm);
 	color: var(--mut);
 	margin-top: 2px;
 }
 
 /* ── Ghi chú ── */
 .note-text {
-	font-size: 0.83rem;
+	font-size: var(--fs-md);
 	color: var(--txt);
 	line-height: 1.7;
-	background: var(--color-warning-bg);
-	border: 1px solid var(--color-warning-border);
+	background: var(--color-gray-50);
+	border: 1px solid var(--color-gray-100);
 	border-radius: var(--rs);
-	padding: 14px;
+	padding: 14px 16px;
 	min-height: 60px;
+	white-space: pre-wrap;
 }
 
 /* ============================= */
@@ -947,12 +977,12 @@
 	padding: 8px 12px;
 	background: var(--color-primary-pale);
 	border-bottom: 1px solid var(--bdr);
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	font-weight: 700;
 	color: var(--txt);
 }
 .tt03-preview-loading {
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 	font-weight: 400;
 	font-style: italic;
@@ -965,7 +995,7 @@
 }
 .tt03-preview-empty {
 	padding: 12px;
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 	text-align: center;
 	font-style: italic;
@@ -978,12 +1008,12 @@
 	gap: 8px;
 }
 .tt03-preview-lbl {
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 	font-weight: 500;
 }
 .tt03-preview-val {
-	font-size: 0.78rem;
+	font-size: var(--fs-sm);
 	font-weight: 600;
 	color: var(--txt);
 }
@@ -993,8 +1023,8 @@
 	border: 1px solid var(--color-info-border);
 	border-radius: 5px;
 	padding: 2px 7px;
-	font-size: 0.72rem;
-	font-family: 'Courier New', monospace;
+	font-size: var(--fs-xs);
+	font-family: var(--font-mono);
 }
 .tt03-formula-note {
 	font-style: italic;
@@ -1007,8 +1037,8 @@
 }
 .tt03-formula-expr {
 	display: block;
-	font-family: 'Courier New', monospace;
-	font-size: 0.72rem;
+	font-family: var(--font-mono);
+	font-size: var(--fs-xs);
 	color: var(--color-info);
 	background: var(--color-info-bg);
 	border: 1px solid var(--color-info-border);
@@ -1021,7 +1051,7 @@
 	margin-top: 2px;
 }
 .tt03-preview-kc {
-	font-size: 1.15rem;
+	font-size: var(--fs-h3);
 	font-weight: 700;
 	color: var(--p);
 	letter-spacing: -0.02em;
@@ -1030,7 +1060,7 @@
 	margin-top: 4px;
 	padding: 7px 12px;
 	border-radius: var(--rs);
-	font-size: 0.76rem;
+	font-size: var(--fs-xs);
 	font-weight: 700;
 	text-align: center;
 }
@@ -1060,18 +1090,18 @@
 	padding: 12px 14px;
 }
 .dept-modal-name-icon {
-	font-size: 1.5rem;
+	font-size: var(--fs-xl);
 	line-height: 1;
 }
 .dept-modal-name-label {
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 	font-weight: 700;
 	color: var(--mut);
 	text-transform: none;
 	letter-spacing: 0;
 }
 .dept-modal-name-val {
-	font-size: 0.9rem;
+	font-size: var(--fs-md);
 	font-weight: 700;
 	color: var(--txt);
 	margin-top: 2px;
@@ -1092,7 +1122,7 @@
 	border-radius: 6px;
 	background: transparent;
 	font-family: inherit;
-	font-size: 0.78rem;
+	font-size: var(--fs-sm);
 	font-weight: 600;
 	color: var(--mut);
 	cursor: pointer;
@@ -1129,13 +1159,13 @@
 	line-height: 1;
 }
 .dev-notice-title {
-	font-size: 1rem;
+	font-size: var(--fs-lg);
 	font-weight: 700;
 	margin-bottom: 8px;
 	color: var(--txt);
 }
 .dev-notice-msg {
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	color: var(--mut);
 	line-height: 1.65;
 	margin-bottom: 20px;
@@ -1172,7 +1202,7 @@
 	margin-top: 4px;
 }
 .dept-heso-preview-label {
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 	font-weight: 700;
 	color: var(--mut);
 	text-transform: none;
@@ -1180,10 +1210,10 @@
 	flex-shrink: 0;
 }
 .dept-heso-preview-val {
-	font-size: 0.78rem;
+	font-size: var(--fs-sm);
 	font-weight: 700;
 	color: var(--color-info);
-	font-family: 'Courier New', monospace;
+	font-family: var(--font-mono);
 	text-align: right;
 	word-break: break-all;
 	line-height: 1.4;
@@ -1202,21 +1232,21 @@
 	border-radius: var(--rs);
 }
 .pwd-user-icon {
-	font-size: 1.8rem;
+	font-size: var(--fs-num);
 	flex-shrink: 0;
 	line-height: 1;
 }
 .pwd-user-name {
-	font-size: 0.88rem;
+	font-size: var(--fs-md);
 	font-weight: 700;
 	color: var(--txt);
 	margin: 0;
 	line-height: 1.3;
 }
 .pwd-user-account {
-	font-size: 0.75rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
-	font-family: 'Courier New', monospace;
+	font-family: var(--font-mono);
 	margin: 2px 0 0;
 }
 .pwd-success {
@@ -1227,7 +1257,7 @@
 	border: 1px solid var(--color-primary-border);
 	border-radius: var(--rs);
 	padding: 10px 14px;
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	font-weight: 600;
 	color: var(--pd);
 	margin: 0;
@@ -1309,5 +1339,70 @@
 @media (max-width: 400px) {
 	.stats-row {
 		grid-template-columns: 1fr 1fr;
+	}
+}
+
+/* ── Trang nhập liệu trên điện thoại ──
+   Hàng sidebar + nội dung giờ nằm trong .home-tabs-row (không còn là con
+   trực tiếp của .main-layout) nên phải xếp dọc ở cả hai lớp bọc, nếu không
+   cột nội dung bị ép còn ~24px và nằm ngoài màn hình. */
+@media (max-width: 640px) {
+	.home-tabs-wrap,
+	.home-tabs-row {
+		flex-direction: column;
+		overflow: visible;
+	}
+	.home-tabs-bar-wrap {
+		padding: 0 12px;
+		overflow-x: auto;
+	}
+	.home-tabs-bar-wrap .tab-bar {
+		gap: 20px;
+	}
+	.content {
+		overflow: visible;
+	}
+	.date-hdr {
+		padding: 12px 14px;
+	}
+	.kc-display {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Lịch trên điện thoại: ô tròn 40px cố định thay vì vuông theo chiều rộng
+   cột (52px+), để lịch không chiếm trọn màn hình đầu tiên */
+@media (max-width: 640px) {
+	.cal-cell {
+		aspect-ratio: auto;
+		width: 40px;
+		height: 40px;
+		justify-self: center;
+	}
+	.cal-day-num {
+		font-size: var(--fs-md);
+	}
+	.cal-nav-btn {
+		width: 36px;
+		height: 36px;
+	}
+}
+
+@media (max-width: 640px) {
+	/* Topbar 2 hàng (~108px) không bám dính trên điện thoại — trả lại chỗ cho nội dung */
+	.page .topbar {
+		position: static;
+	}
+	/* Thẻ số liệu gọn hơn; thẻ lẻ cuối cùng trải hết hàng thay vì để trống nửa hàng */
+	.stats-row > :last-child:nth-child(odd) {
+		grid-column: 1 / -1;
+	}
+	.stat {
+		padding: 12px;
+		column-gap: 10px;
+	}
+	.stat-icon {
+		width: 32px;
+		height: 32px;
 	}
 }

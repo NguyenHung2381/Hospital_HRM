@@ -141,7 +141,7 @@ export default function WardTable({
 								textAlign: 'center',
 								padding: '40px',
 								color: 'var(--mut)',
-								fontSize: '.85rem',
+								fontSize: 'var(--fs-md)',
 							}}
 						>
 							Không có khoa nào phù hợp

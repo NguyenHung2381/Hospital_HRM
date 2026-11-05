@@ -96,7 +96,7 @@ export default function PermissionGrid({
 				<div>
 					<p
 						style={{
-							fontSize: '.78rem',
+							fontSize: 'var(--fs-sm)',
 							fontWeight: 700,
 							color: info.color,
 						}}
@@ -105,7 +105,7 @@ export default function PermissionGrid({
 					</p>
 					<p
 						style={{
-							fontSize: '.72rem',
+							fontSize: 'var(--fs-xs)',
 							color: '#6b8090',
 							marginTop: 1,
 						}}
@@ -124,7 +124,7 @@ export default function PermissionGrid({
 						<span
 							style={{
 								marginLeft: 6,
-								fontSize: '.7rem',
+								fontSize: 'var(--fs-xs)',
 								color: '#9aaab6',
 							}}
 						>
@@ -164,7 +164,7 @@ export default function PermissionGrid({
 											<span
 												style={{
 													marginLeft: 'auto',
-													fontSize: '.72rem',
+													fontSize: 'var(--fs-xs)',
 													color: isAutoTicked ? '#0f766e' : '#9aaab6',
 													background: isAutoTicked ? '#ccfbf1' : '#f0f4f6',
 													borderRadius: 4,

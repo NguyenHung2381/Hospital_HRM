@@ -157,7 +157,7 @@ export default function CreateReportModal({
 							textAlign: 'center',
 							padding: 48,
 							color: 'var(--color-gray-400)',
-							fontSize: '.85rem',
+							fontSize: 'var(--fs-md)',
 						}}
 					>
 						Đang tải danh sách khoa...
@@ -174,7 +174,7 @@ export default function CreateReportModal({
 								/>
 								<p
 									style={{
-										fontSize: '.72rem',
+										fontSize: 'var(--fs-xs)',
 										color: 'var(--color-gray-400)',
 										marginTop: 8,
 										marginBottom: 0,

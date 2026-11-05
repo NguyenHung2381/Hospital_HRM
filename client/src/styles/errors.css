@@ -38,14 +38,14 @@
 }
 
 .error-title {
-	font-size: 1.25rem;
+	font-size: var(--fs-h2);
 	font-weight: 600;
 	color: var(--txt);
 	margin-bottom: 10px;
 }
 
 .error-message {
-	font-size: 0.9rem;
+	font-size: var(--fs-md);
 	color: var(--mut);
 	line-height: 1.6;
 	max-width: 400px;

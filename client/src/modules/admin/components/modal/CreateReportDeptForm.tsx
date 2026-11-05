@@ -28,7 +28,7 @@ export default function CreateReportDeptForm({
 			<p
 				style={{
 					fontWeight: 700,
-					fontSize: '.88rem',
+					fontSize: 'var(--fs-md)',
 					color: 'var(--p)',
 					margin: 0,
 					paddingBottom: 12,

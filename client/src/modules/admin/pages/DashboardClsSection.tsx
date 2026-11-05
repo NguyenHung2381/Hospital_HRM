@@ -1,4 +1,4 @@
-import { ChartColumn, FlaskConical, TriangleAlert, UserCheck } from 'lucide-react';
+import { FlaskConical } from 'lucide-react';
 import MiniBar from '@/components/ui/MiniBar';
 import type { aggregateClsDashboardStats } from '@/utils/clsCalc';
 import DashboardKpiRow, { type KpiCardData } from './DashboardKpiRow';
@@ -15,30 +15,15 @@ export default function DashboardClsSection({
 	if (clsRowsCount === 0) {
 		return (
 			<section className='hcard'>
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						gap: 8,
-						padding: '24px 20px',
-						color: 'var(--color-gray-500)',
-						fontSize: '.85rem',
-						background: 'var(--color-gray-50)',
-						borderRadius: 10,
-						border: '1px dashed var(--color-gray-300)',
-					}}
-				>
-					<FlaskConical size={18} />
-					<span>Chưa có khoa CLS nào nhập dữ liệu ngày này</span>
-				</div>
+				<p className='ov-empty'>
+					<FlaskConical size={18} /> Chưa có khoa Cận lâm sàng nào nhập dữ liệu ngày này.
+				</p>
 			</section>
 		);
 	}
 
 	const kpiCards: KpiCardData[] = [
 		{
-			icon: <FlaskConical size={20} />,
 			val: clsRowsCount,
 			lbl: 'Khoa CLS đã nhập',
 			sub: 'trên 10 khoa',
@@ -46,7 +31,6 @@ export default function DashboardClsSection({
 			bg: 'var(--color-info-bg)',
 		},
 		{
-			icon: <ChartColumn size={20} />,
 			val: clsStats.totalKhoiLuong,
 			lbl: 'Tổng khối lượng CV',
 			sub: `${clsStats.totalNL} tổng nhân lực`,
@@ -54,7 +38,6 @@ export default function DashboardClsSection({
 			bg: 'var(--color-primary-pale)',
 		},
 		{
-			icon: <UserCheck size={20} />,
 			val: clsStats.totalDiLam,
 			lbl: 'Nhân lực đi làm',
 			sub: `${clsStats.rateDiLam}% / khối lượng CV`,
@@ -62,7 +45,6 @@ export default function DashboardClsSection({
 			bg: 'var(--purple-l)',
 		},
 		{
-			icon: <TriangleAlert size={20} />,
 			val: clsStats.khoaThieu.length,
 			lbl: 'Khoa CLS thiếu NL',
 			sub: `thiếu ${clsStats.tongThieu} người so khuyến cáo`,
@@ -77,9 +59,7 @@ export default function DashboardClsSection({
 
 			{clsStats.khoaThieu.length > 0 && (
 				<section className='hcard ov-card'>
-					<h3 className='hcard-title'>
-						<TriangleAlert size={16} /> Khoa CLS thiếu nhân lực
-					</h3>
+					<h3 className='hcard-title'>Khoa CLS thiếu nhân lực</h3>
 					<div className='hcard-list'>
 						{clsStats.khoaThieu.map((r) => (
 							<div
@@ -89,7 +69,7 @@ export default function DashboardClsSection({
 								<div className='hcard-info'>
 									<p
 										className='hcard-name'
-										style={{ fontSize: '.8rem' }}
+										style={{ fontSize: 'var(--fs-sm)' }}
 									>
 										{r.ten}
 									</p>
@@ -108,7 +88,7 @@ export default function DashboardClsSection({
 										/>
 										<span
 											style={{
-												fontSize: '.72rem',
+												fontSize: 'var(--fs-xs)',
 												color: 'var(--color-gray-500)',
 												whiteSpace: 'nowrap',
 											}}
@@ -120,14 +100,14 @@ export default function DashboardClsSection({
 								<div style={{ textAlign: 'right', flexShrink: 0 }}>
 									<span
 										style={{
-											fontSize: '.85rem',
+											fontSize: 'var(--fs-md)',
 											fontWeight: 600,
 											color: 'var(--color-error)',
 										}}
 									>
 										+{Math.abs(r.chenhLech ?? 0)}
 									</span>
-									<p style={{ fontSize: '.7rem', color: 'var(--color-gray-400)' }}>
+									<p style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-400)' }}>
 										cần bổ sung
 									</p>
 								</div>

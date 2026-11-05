@@ -24,7 +24,7 @@
 	border: 1px solid var(--color-gray-300);
 	border-radius: var(--rs);
 	padding: 0 10px;
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	color: var(--txt);
 	user-select: none;
 	transition: background-color 0.15s, border-color 0.15s;
@@ -38,7 +38,7 @@
 }
 .acc-rank-count {
 	color: var(--mut);
-	font-size: 0.78rem;
+	font-size: var(--fs-sm);
 	font-weight: 500;
 }
 
@@ -47,7 +47,7 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	font-size: 0.8rem;
+	font-size: var(--fs-sm);
 	color: var(--color-gray-600);
 	background: var(--color-gray-50);
 	border: 1px solid var(--bdr);

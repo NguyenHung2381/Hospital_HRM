@@ -4,7 +4,7 @@ export default function FormErrorBanner({ error }: { error: string }) {
 		<p
 			style={{
 				color: 'var(--color-error)',
-				fontSize: '.82rem',
+				fontSize: 'var(--fs-sm)',
 				marginBottom: 8,
 				background: 'var(--color-error-bg)',
 				borderRadius: 6,

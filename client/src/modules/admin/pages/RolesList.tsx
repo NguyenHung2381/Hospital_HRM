@@ -3,6 +3,13 @@ import { COLOR_MAP } from '@/constants/appConstants';
 import type { ApiRole } from '@/types/apiType';
 import { ACCESS_INFO } from './permissionPageConstants';
 
+// Nhãn ngắn cho phạm vi xem dữ liệu (thay cho mã thô all/assigned/own)
+const ACCESS_SHORT: Record<string, string> = {
+	all: 'Toàn viện',
+	assigned: 'Khoa được phân',
+	own: 'Khoa của mình',
+};
+
 export interface RolesListProps {
 	roles: ApiRole[];
 	loadingRoles: boolean;
@@ -20,7 +27,7 @@ export default function RolesList({
 		<aside className='perm-sidebar'>
 			<p className='perm-sidebar-label'>Vai trò</p>
 			{loadingRoles ? (
-				<div style={{ padding: 12, fontSize: '0.85rem', color: 'var(--color-gray-500)' }}>
+				<div style={{ padding: 12, fontSize: 'var(--fs-md)', color: 'var(--color-gray-500)' }}>
 					Đang tải...
 				</div>
 			) : (
@@ -50,7 +57,7 @@ export default function RolesList({
 								<div className='perm-role-info'>
 									<p className='perm-role-name'>{v.name_role}</p>
 									<p className='perm-role-desc'>
-										{v.department_access_type}
+										{ACCESS_SHORT[v.department_access_type] ?? v.department_access_type}
 									</p>
 								</div>
 								{v.is_system && (

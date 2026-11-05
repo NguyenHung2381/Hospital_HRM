@@ -1,36 +1,117 @@
 /* =========================================================
-   Auth Layout — 2 cột phẳng: trái thương hiệu (nền xanh đậm), phải form
+   Auth Layout — trái: thương hiệu (xanh rừng, nền chuyển động chậm),
+   phải: thẻ form. Dùng chung cho Đăng nhập và Đổi mật khẩu bắt buộc.
    ========================================================= */
 .auth-wrapper {
 	min-height: 100vh;
 	display: grid;
-	grid-template-columns: minmax(360px, 5fr) 7fr;
-	background: var(--sur);
+	grid-template-columns: minmax(380px, 5fr) 7fr;
+	background: var(--bg);
 }
 
-/* === PANEL TRÁI - Branding === */
+/* ── PANEL TRÁI - Branding ── */
 .auth-panel-left {
-	background: var(--pd);
+	position: relative;
+	container-type: inline-size;
+	isolation: isolate;
+	overflow: hidden;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
-	padding: 48px;
+	padding: 48px 56px;
+	background: #0a3f24;
 	color: var(--color-white);
 }
 
+/* Nền trang trí */
+.auth-bg {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+}
+
+.auth-glow {
+	position: absolute;
+	border-radius: 50%;
+	will-change: transform;
+}
+
+.auth-glow--a {
+	width: 620px;
+	height: 620px;
+	top: -220px;
+	left: -180px;
+	background: radial-gradient(circle, rgba(19, 160, 87, 0.55) 0%, rgba(19, 160, 87, 0) 65%);
+	animation: authDrift 18s ease-in-out infinite alternate;
+}
+
+.auth-glow--b {
+	width: 520px;
+	height: 520px;
+	bottom: -200px;
+	right: -200px;
+	background: radial-gradient(circle, rgba(16, 140, 120, 0.45) 0%, rgba(16, 140, 120, 0) 65%);
+	animation: authDrift 24s ease-in-out infinite alternate-reverse;
+}
+
+.auth-dots {
+	position: absolute;
+	inset: 0;
+	background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1.2px);
+	background-size: 22px 22px;
+	-webkit-mask-image: radial-gradient(ellipse 70% 60% at 30% 35%, #000 10%, transparent 75%);
+	mask-image: radial-gradient(ellipse 70% 60% at 30% 35%, #000 10%, transparent 75%);
+}
+
+/* Đường nhịp tim: một đường mờ cố định + một đoạn sáng chạy dọc theo nó */
+.auth-ecg {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: 84px;
+	bottom: 24%;
+	overflow: visible;
+}
+
+.auth-ecg path {
+	fill: none;
+	stroke-width: 1.5;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
+
+.auth-ecg-base {
+	stroke: rgba(255, 255, 255, 0.1);
+}
+
+.auth-ecg-pulse {
+	stroke: #7ee2a8;
+	stroke-dasharray: 140 860;
+	stroke-dashoffset: 1000;
+	filter: drop-shadow(0 0 4px rgba(126, 226, 168, 0.7));
+	animation: authPulse 3.6s linear infinite;
+}
+
+/* Nội dung */
 .auth-panel-content {
+	flex: 1;
 	display: flex;
 	flex-direction: column;
-	gap: 28px;
-	max-width: 400px;
+	justify-content: space-between;
+	gap: 40px;
+	max-width: 540px;
 }
 
 .auth-panel-logo {
-	width: 72px;
-	height: 72px;
+	width: 104px;
+	height: 104px;
 	border-radius: 50%;
 	background: var(--color-white);
-	padding: 4px;
+	padding: 6px;
+	box-shadow:
+		0 0 0 8px rgba(255, 255, 255, 0.08),
+		0 12px 32px rgba(0, 0, 0, 0.28);
 }
 
 .auth-panel-logo img {
@@ -40,36 +121,92 @@
 	border-radius: 50%;
 }
 
+.auth-panel-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 12px 6px 10px;
+	margin-bottom: 20px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	font-size: var(--fs-sm);
+	font-weight: 500;
+	color: rgba(255, 255, 255, 0.88);
+	-webkit-backdrop-filter: blur(6px);
+	backdrop-filter: blur(6px);
+}
+
+.auth-live-dot {
+	position: relative;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #7ee2a8;
+	flex-shrink: 0;
+}
+
+.auth-live-dot::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: 50%;
+	background: #7ee2a8;
+	animation: authPing 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* 2 dòng cố định: "Bệnh viện" / "Hữu Nghị Đa khoa Nghệ An" — mỗi dòng không
+   tự xuống dòng, cỡ chữ co theo bề rộng màn hình để dòng dài vẫn vừa panel */
 .auth-panel-title {
-	font-size: 1.6rem;
+	/* cqi = % bề rộng nội dung panel trái: dòng dài (~13em) luôn vừa khít */
+	font-size: clamp(1.5rem, 7.4cqi, 2.75rem);
 	font-weight: 600;
 	color: var(--color-white);
-	line-height: 1.3;
-	letter-spacing: -0.01em;
+	line-height: 1.15;
+	letter-spacing: -0.03em;
+}
+
+.auth-panel-title > span {
+	white-space: nowrap;
 }
 
 .auth-panel-subtitle {
-	margin-top: 10px;
-	font-size: 0.95rem;
-	color: rgba(255, 255, 255, 0.8);
+	margin-top: 20px;
+	font-size: var(--fs-lg);
+	color: rgba(255, 255, 255, 0.78);
 	line-height: 1.6;
 }
 
 .auth-panel-features {
 	list-style: none;
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
 	gap: 10px;
-	padding-top: 24px;
-	border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .auth-feature-item {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 10px;
-	font-size: 0.88rem;
-	color: rgba(255, 255, 255, 0.85);
+	padding: 12px;
+	border-radius: 12px;
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	font-size: var(--fs-sm);
+	line-height: 1.45;
+	color: rgba(255, 255, 255, 0.86);
+	transition:
+		background-color var(--t-med) var(--ease),
+		border-color var(--t-med) var(--ease),
+		transform var(--t-med) var(--ease);
+}
+
+@media (hover: hover) {
+	.auth-feature-item:hover {
+		background: rgba(255, 255, 255, 0.09);
+		border-color: rgba(255, 255, 255, 0.2);
+		transform: translateY(-2px);
+	}
 }
 
 .auth-feature-check {
@@ -77,23 +214,30 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	color: rgba(255, 255, 255, 0.7);
+	width: 28px;
+	height: 28px;
+	border-radius: 8px;
+	background: rgba(126, 226, 168, 0.14);
+	color: #9ff0c2;
 }
 
-/* === PANEL PHẢI - Form === */
+/* ── PANEL PHẢI - Form ── */
 .auth-panel-right {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	padding: 48px 24px 72px;
-	background: var(--bg);
-	position: relative;
+	background:
+		radial-gradient(720px 420px at 100% 0%, rgba(8, 133, 63, 0.07), transparent 65%),
+		radial-gradient(560px 360px at 0% 100%, rgba(16, 140, 120, 0.05), transparent 65%),
+		var(--bg);
 }
 
 .auth-form-wrapper {
 	width: 100%;
-	max-width: 400px;
+	max-width: 420px;
 }
 
 .auth-footer {
@@ -102,34 +246,35 @@
 	left: 0;
 	right: 0;
 	text-align: center;
-	font-size: 0.75rem;
-	color: var(--color-gray-400);
+	font-size: var(--fs-xs);
+	color: var(--mut);
 }
 
 /* ============================= */
 /* Login Form */
 /* ============================= */
 .login-header {
-	margin-bottom: 20px;
+	margin-bottom: 24px;
+	animation: authUp 0.6s var(--ease) 0.05s both;
 }
 
 .login-tag {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	color: var(--pd);
-	font-size: 0.8rem;
-	font-weight: 500;
+	color: var(--p);
+	font-size: var(--fs-sm);
+	font-weight: 600;
 	margin-bottom: 8px;
 }
 
 .login-title {
-	font-size: 1.5rem;
+	font-size: 1.75rem;
 	font-weight: 600;
-	color: var(--txt);
-	line-height: 1.3;
-	letter-spacing: -0.01em;
-	margin-bottom: 6px;
+	color: var(--color-gray-900);
+	line-height: 1.2;
+	letter-spacing: -0.025em;
+	margin-bottom: 8px;
 }
 
 .login-title span {
@@ -137,17 +282,21 @@
 }
 
 .login-desc {
-	font-size: 0.88rem;
+	font-size: var(--fs-md);
 	color: var(--mut);
 	line-height: 1.6;
 }
 
 .login-card {
 	background: var(--color-white);
-	border-radius: var(--r);
+	border-radius: 16px;
 	padding: 28px;
 	border: 1px solid var(--bdr);
-	margin-bottom: 16px;
+	box-shadow:
+		0 1px 2px rgba(13, 24, 32, 0.04),
+		0 16px 40px -16px rgba(13, 24, 32, 0.16);
+	margin-bottom: 20px;
+	animation: authUp 0.6s var(--ease) 0.15s both;
 }
 
 .login-form {
@@ -164,7 +313,7 @@
 }
 
 .field-label {
-	font-size: 0.85rem;
+	font-size: var(--fs-sm);
 	font-weight: 500;
 	color: var(--color-gray-700);
 	display: flex;
@@ -173,7 +322,7 @@
 }
 
 .field-required {
-	color: var(--color-accent);
+	color: var(--color-error);
 	line-height: 1;
 }
 
@@ -183,7 +332,7 @@
 
 .field-icon {
 	position: absolute;
-	left: 12px;
+	left: 14px;
 	top: 50%;
 	transform: translateY(-50%);
 	width: 18px;
@@ -191,25 +340,28 @@
 	display: flex;
 	align-items: center;
 	color: var(--color-gray-400);
-	transition: color 0.15s;
+	transition: color var(--t-fast) var(--ease);
 	pointer-events: none;
 }
 
 .field-input-wrap:focus-within .field-icon {
-	color: var(--color-primary);
+	color: var(--p);
 }
 
 .field-input {
 	width: 100%;
-	height: 42px;
-	padding: 0 40px;
-	background: var(--color-white);
-	border: 1px solid var(--color-gray-300);
-	border-radius: var(--rs);
+	height: 46px;
+	padding: 0 42px;
+	background: var(--color-gray-50);
+	border: 1px solid var(--color-gray-200);
+	border-radius: 10px;
 	font-family: inherit;
-	font-size: 0.95rem;
+	font-size: var(--fs-base);
 	color: var(--txt);
-	transition: border-color 0.15s, box-shadow 0.15s;
+	transition:
+		border-color var(--t-fast) var(--ease),
+		background-color var(--t-fast) var(--ease),
+		box-shadow var(--t-med) var(--ease);
 	outline: none;
 }
 
@@ -218,13 +370,19 @@
 	font-weight: 400;
 }
 
-.field-input:hover:not(:disabled) {
-	border-color: var(--color-gray-400);
+.field-input:hover:not(:disabled):not(:focus) {
+	border-color: var(--color-gray-300);
+	background: var(--color-white);
 }
 
 .field-input:focus {
-	border-color: var(--color-primary);
-	box-shadow: var(--focus-ring);
+	background: var(--color-white);
+	border-color: var(--p);
+	box-shadow: 0 0 0 4px rgba(8, 133, 63, 0.12);
+}
+
+.field-input:disabled {
+	opacity: 0.7;
 }
 
 /* Ẩn icon mắt mặc định của trình duyệt (Edge/Chrome) */
@@ -244,20 +402,24 @@
 	right: 8px;
 	top: 50%;
 	transform: translateY(-50%);
+	width: 32px;
+	height: 32px;
 	background: none;
 	border: none;
 	cursor: pointer;
-	padding: 4px;
 	color: var(--color-gray-400);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 4px;
-	transition: color 0.15s;
+	border-radius: 8px;
+	transition:
+		color var(--t-fast) var(--ease),
+		background-color var(--t-fast) var(--ease);
 }
 
 .toggle-pass:hover {
 	color: var(--txt);
+	background: var(--color-gray-100);
 }
 
 /* Options */
@@ -279,51 +441,78 @@
 .remember-check {
 	appearance: none;
 	-webkit-appearance: none;
-	width: 16px;
-	height: 16px;
-	border: 1px solid var(--color-gray-400);
-	border-radius: 4px;
+	width: 18px;
+	height: 18px;
+	border: 1px solid var(--color-gray-300);
+	border-radius: 5px;
 	background: var(--color-white);
 	cursor: pointer;
-	transition: background-color 0.15s, border-color 0.15s;
+	transition:
+		background-color var(--t-fast) var(--ease),
+		border-color var(--t-fast) var(--ease),
+		box-shadow var(--t-fast) var(--ease);
 	flex-shrink: 0;
 	position: relative;
 }
 
+.remember-check:hover:not(:checked) {
+	border-color: var(--color-gray-400);
+}
+
 .remember-check:checked {
-	background: var(--color-primary);
-	border-color: var(--color-primary);
+	background: var(--p);
+	border-color: var(--p);
 }
 
 .remember-check:checked::after {
 	content: '';
 	position: absolute;
-	left: 4.5px;
-	top: 1.5px;
+	left: 5.5px;
+	top: 2px;
 	width: 5px;
 	height: 9px;
 	border: 2px solid white;
 	border-top: none;
 	border-left: none;
 	transform: rotate(45deg);
+	animation: authTick 0.18s var(--ease);
 }
 
 .remember-text {
-	font-size: 0.85rem;
+	font-size: var(--fs-md);
 	color: var(--color-gray-600);
 }
 
 .forgot-link {
-	font-size: 0.85rem;
+	position: relative;
+	font-size: var(--fs-md);
 	font-weight: 500;
-	color: var(--color-primary);
+	color: var(--p);
 	text-decoration: none;
 	white-space: nowrap;
 }
 
+/* Gạch chân vẽ từ trái sang phải khi hover */
+.forgot-link::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -2px;
+	height: 1px;
+	background: currentColor;
+	transform: scaleX(0);
+	transform-origin: right;
+	transition: transform var(--t-med) var(--ease);
+}
+
 .forgot-link:hover {
-	color: var(--color-primary-dark);
-	text-decoration: underline;
+	color: var(--pd);
+}
+
+.forgot-link:hover::after {
+	transform: scaleX(1);
+	transform-origin: left;
 }
 
 .back-link {
@@ -335,30 +524,30 @@
 	border: none;
 	cursor: pointer;
 	font-family: inherit;
-	font-size: 0.85rem;
+	font-size: var(--fs-md);
 	font-weight: 500;
-	color: var(--color-gray-500);
-	transition: color 0.15s;
+	color: var(--mut);
+	transition: color var(--t-fast) var(--ease);
 }
 
 .back-link:hover:not(:disabled) {
 	color: var(--txt);
 }
 
-/* Alert */
+/* Alert — rung nhẹ một lần khi xuất hiện */
 .auth-alert {
 	display: flex;
 	align-items: flex-start;
 	gap: 10px;
 	padding: 10px 12px;
 	margin-bottom: 18px;
-	border-radius: var(--rs);
-	font-size: 0.85rem;
+	border-radius: 10px;
+	font-size: var(--fs-md);
 	line-height: 1.5;
 	border: 1px solid var(--color-error-border);
 	background: var(--color-error-bg);
 	color: var(--color-error-dark);
-	animation: fi 0.2s ease;
+	animation: authShake 0.4s var(--ease);
 }
 
 .auth-alert svg {
@@ -369,30 +558,60 @@
 /* Submit button */
 .submit-btn {
 	width: 100%;
-	height: 42px;
+	height: 46px;
 	margin-top: 4px;
 	background: var(--p);
 	color: var(--color-white);
 	border: none;
-	border-radius: var(--rs);
+	border-radius: 10px;
 	font-family: inherit;
-	font-size: 0.95rem;
-	font-weight: 500;
+	font-size: var(--fs-base);
+	font-weight: 600;
 	cursor: pointer;
-	transition: background-color 0.15s;
+	box-shadow:
+		0 1px 2px rgba(8, 133, 63, 0.3),
+		0 8px 20px -8px rgba(8, 133, 63, 0.55);
+	transition:
+		background-color var(--t-fast) var(--ease),
+		box-shadow var(--t-med) var(--ease),
+		transform var(--t-fast) var(--ease);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
 }
 
-.submit-btn:hover:not(:disabled) {
-	background: var(--pd);
+.submit-arrow {
+	transition: transform var(--t-med) var(--ease);
+}
+
+@media (hover: hover) {
+	.submit-btn:hover:not(:disabled) {
+		background: var(--pd);
+		transform: translateY(-1px);
+		box-shadow:
+			0 1px 2px rgba(8, 133, 63, 0.3),
+			0 12px 24px -8px rgba(8, 133, 63, 0.6);
+	}
+	.submit-btn:hover:not(:disabled) .submit-arrow {
+		transform: translateX(3px);
+	}
+}
+
+.submit-btn:active:not(:disabled) {
+	transform: translateY(1px) scale(0.985);
+	transition-duration: 90ms;
+}
+
+.submit-btn:focus-visible {
+	outline: 2px solid var(--p);
+	outline-offset: 3px;
 }
 
 .submit-btn:disabled {
-	opacity: 0.6;
+	opacity: 0.55;
 	cursor: not-allowed;
+	box-shadow: none;
 }
 
 .btn-spinner {
@@ -411,6 +630,7 @@
 	align-items: flex-start;
 	gap: 10px;
 	padding: 0 4px;
+	animation: authUp 0.6s var(--ease) 0.25s both;
 }
 
 .support-icon {
@@ -421,34 +641,123 @@
 }
 
 .support-title {
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	font-weight: 500;
 	color: var(--color-gray-700);
 	margin-bottom: 2px;
 }
 
 .support-text {
-	font-size: 0.8rem;
-	color: var(--color-gray-500);
+	font-size: var(--fs-sm);
+	color: var(--mut);
 	line-height: 1.6;
 }
 
 .support-text a {
-	color: var(--color-primary);
+	color: var(--p);
 	font-weight: 500;
+	text-underline-offset: 2px;
+}
+
+/* ============================= */
+/* Entrance — panel trái xuất hiện so le */
+/* ============================= */
+.auth-enter {
+	animation: authUp 0.7s var(--ease) both;
+}
+.auth-panel-logo.auth-enter {
+	animation-delay: 0.05s;
+}
+.auth-panel-chip.auth-enter {
+	animation-delay: 0.12s;
+}
+.auth-panel-title.auth-enter {
+	animation-delay: 0.18s;
+}
+.auth-panel-subtitle.auth-enter {
+	animation-delay: 0.24s;
+}
+.auth-feature-item.auth-enter:nth-child(1) {
+	animation-delay: 0.32s;
+}
+.auth-feature-item.auth-enter:nth-child(2) {
+	animation-delay: 0.38s;
+}
+.auth-feature-item.auth-enter:nth-child(3) {
+	animation-delay: 0.44s;
+}
+.auth-feature-item.auth-enter:nth-child(4) {
+	animation-delay: 0.5s;
 }
 
 /* ============================= */
 /* Animations */
 /* ============================= */
-@keyframes fadeUp {
+@keyframes authUp {
 	from {
 		opacity: 0;
-		transform: translateY(6px);
+		transform: translateY(12px);
 	}
 	to {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+
+@keyframes authDrift {
+	from {
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+	to {
+		transform: translate3d(60px, 40px, 0) scale(1.12);
+	}
+}
+
+@keyframes authPulse {
+	to {
+		stroke-dashoffset: 0;
+	}
+}
+
+@keyframes authPing {
+	0% {
+		transform: scale(1);
+		opacity: 0.7;
+	}
+	80%,
+	100% {
+		transform: scale(2.6);
+		opacity: 0;
+	}
+}
+
+@keyframes authShake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	20% {
+		transform: translateX(-5px);
+	}
+	40% {
+		transform: translateX(4px);
+	}
+	60% {
+		transform: translateX(-3px);
+	}
+	80% {
+		transform: translateX(2px);
+	}
+}
+
+@keyframes authTick {
+	from {
+		opacity: 0;
+		transform: rotate(45deg) scale(0.6);
+	}
+	to {
+		opacity: 1;
+		transform: rotate(45deg) scale(1);
 	}
 }
 
@@ -458,9 +767,35 @@
 	}
 }
 
+/* Giảm chuyển động: tắt hẳn nền chạy và hiệu ứng xuất hiện (không chỉ rút ngắn) */
+@media (prefers-reduced-motion: reduce) {
+	.auth-glow,
+	.auth-ecg-pulse,
+	.auth-live-dot::after,
+	.auth-enter,
+	.login-header,
+	.login-card,
+	.support-box,
+	.auth-alert {
+		animation: none !important;
+	}
+	.auth-ecg-pulse {
+		stroke-dashoffset: 600;
+	}
+}
+
 /* ============================= */
 /* Responsive */
 /* ============================= */
+@media (max-width: 1180px) {
+	.auth-panel-left {
+		padding: 40px 40px;
+	}
+	.auth-panel-features {
+		grid-template-columns: 1fr;
+	}
+}
+
 @media (max-width: 900px) {
 	.auth-wrapper {
 		grid-template-columns: 1fr;
@@ -468,33 +803,57 @@
 	}
 
 	.auth-panel-left {
-		padding: 20px 24px;
+		padding: 24px;
 	}
 
 	.auth-panel-content {
 		flex-direction: row;
 		align-items: center;
-		gap: 14px;
+		justify-content: flex-start;
+		gap: 16px;
 		max-width: none;
 	}
 
 	.auth-panel-logo {
-		width: 48px;
-		height: 48px;
-		padding: 2px;
+		width: 68px;
+		height: 68px;
+		padding: 4px;
 		flex-shrink: 0;
+		box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+	}
+
+	.auth-panel-chip {
+		display: none;
 	}
 
 	.auth-panel-title {
-		font-size: 1.05rem;
+		font-size: var(--fs-h3);
+		letter-spacing: -0.01em;
+		line-height: 1.25;
 	}
 
 	.auth-panel-subtitle {
 		margin-top: 2px;
-		font-size: 0.82rem;
+		font-size: var(--fs-sm);
 	}
 
 	.auth-panel-features {
+		display: none;
+	}
+
+	/* Dải tiêu đề thấp: đường nhịp tim sẽ đè lên chữ nên ẩn đi */
+	.auth-ecg {
+		display: none;
+	}
+
+	.auth-glow--a {
+		width: 420px;
+		height: 420px;
+		top: -260px;
+		left: -120px;
+	}
+
+	.auth-glow--b {
 		display: none;
 	}
 
@@ -506,6 +865,12 @@
 
 @media (max-width: 480px) {
 	.login-card {
-		padding: 20px 16px;
+		padding: 22px 18px;
+	}
+	.login-title {
+		font-size: var(--fs-xl);
+	}
+	.auth-panel-subtitle br {
+		display: none;
 	}
 }

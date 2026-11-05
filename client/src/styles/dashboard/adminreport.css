@@ -47,7 +47,7 @@
 	background: var(--p);
 	color: #fff;
 	border-radius: 50%;
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	font-weight: 700;
 	display: flex;
 	align-items: center;
@@ -55,7 +55,7 @@
 	flex-shrink: 0;
 }
 .rp-step-title {
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	font-weight: 700;
 	color: var(--txt);
 }
@@ -80,7 +80,7 @@
 		background 0.15s,
 		border-color 0.15s,
 		color 0.15s;
-	font-size: 0.78rem;
+	font-size: var(--fs-sm);
 	font-family: inherit;
 	color: var(--mut);
 }
@@ -101,7 +101,7 @@
 	font-weight: 600;
 }
 .rp-tab-hint {
-	font-size: 0.71rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 	margin: 0 0 12px;
 	padding-left: 2px;
@@ -127,7 +127,7 @@
 	flex-shrink: 0;
 }
 .rp-label {
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 	font-weight: 600;
 	color: var(--mut);
 	text-transform: none;
@@ -137,7 +137,7 @@
 	padding: 0.44rem 0.65rem;
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	font-family: inherit;
 	color: var(--txt);
 	background: var(--color-gray-50);
@@ -164,7 +164,7 @@
 }
 .rp-date-badge {
 	margin-top: 10px;
-	font-size: 0.74rem;
+	font-size: var(--fs-xs);
 	color: var(--color-gray-700);
 	background: var(--color-gray-50);
 	border: 1px solid var(--bdr);
@@ -184,7 +184,7 @@
 	border: 1px solid var(--bdr);
 	border-radius: var(--rs);
 	background: var(--color-gray-50);
-	font-size: 0.8rem;
+	font-size: var(--fs-sm);
 	font-weight: 600;
 	font-family: inherit;
 	color: var(--mut);
@@ -212,7 +212,7 @@
 	border: 1px solid var(--color-error-border);
 	border-radius: var(--rs);
 	padding: 8px 12px;
-	font-size: 0.8rem;
+	font-size: var(--fs-sm);
 	color: var(--red);
 	margin-bottom: 4px;
 }
@@ -231,7 +231,7 @@
 	width: 100%;
 	padding: 0.6rem 1rem;
 	border-radius: var(--rs);
-	font-size: 0.84rem;
+	font-size: var(--fs-md);
 	font-weight: 700;
 	font-family: inherit;
 	cursor: pointer;
@@ -290,7 +290,7 @@
 
 /* Tiêu đề preview */
 .rp-preview-title {
-	font-size: 0.84rem;
+	font-size: var(--fs-md);
 	font-weight: 700;
 	color: var(--txt);
 	margin: 0;
@@ -330,13 +330,13 @@
 	flex-shrink: 0;
 }
 .rp-meta-label {
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	color: var(--mut);
 	margin: 0 0 2px;
 	line-height: 1;
 }
 .rp-meta-val {
-	font-size: 0.78rem;
+	font-size: var(--fs-sm);
 	font-weight: 700;
 	color: var(--txt);
 	margin: 0;
@@ -368,7 +368,7 @@
 	margin-bottom: 10px;
 }
 .rp-sheet-badge {
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	font-weight: 500;
 	background: var(--color-gray-100);
 	color: var(--color-gray-700);
@@ -379,7 +379,7 @@
 	white-space: nowrap;
 }
 .rp-sheet-name {
-	font-size: 0.82rem;
+	font-size: var(--fs-sm);
 	font-weight: 700;
 	color: var(--txt);
 	white-space: nowrap;
@@ -395,19 +395,19 @@
 	list-style: disc;
 }
 .rp-sheet-cols li {
-	font-size: 0.76rem;
+	font-size: var(--fs-xs);
 	color: var(--txt);
 	line-height: 1.55;
 }
 .rp-sheet-cols em {
 	color: var(--mut);
 	font-style: normal;
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 }
 .rp-sheet-note {
 	color: var(--mut) !important;
 	font-style: italic;
-	font-size: 0.71rem !important;
+	font-size: var(--fs-xs) !important;
 	list-style: none !important;
 	padding-left: 0 !important;
 	margin-top: 2px;
@@ -421,7 +421,7 @@
 	padding: 12px 14px;
 }
 .rp-legend-title {
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	font-weight: 700;
 	color: var(--mut);
 	text-transform: none;
@@ -433,7 +433,7 @@
 	align-items: center;
 	gap: 9px;
 	margin-bottom: 6px;
-	font-size: 0.76rem;
+	font-size: var(--fs-xs);
 	color: var(--txt);
 }
 .rp-legend-row:last-child {
@@ -457,7 +457,7 @@
 	min-width: 0;
 }
 .rp-range-block-lbl {
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 	font-weight: 700;
 	color: var(--pd, var(--pd));
 	text-transform: none;
@@ -484,7 +484,7 @@
 /* Lỗi range (inline, nhỏ hơn rp-error) */
 .rp-range-err {
 	margin-top: 8px;
-	font-size: 0.74rem;
+	font-size: var(--fs-xs);
 	color: var(--red);
 	background: var(--color-error-bg);
 	border: 1px solid var(--color-error-border);
@@ -504,7 +504,7 @@
 	
 	.rp-tab {
 		padding: 6px 8px;
-		font-size: 0.74rem;
+		font-size: var(--fs-xs);
 	}
 
 	.rp-date-row {
@@ -524,7 +524,7 @@
 	
 	.rp-scope-btn {
 		padding: 8px 10px;
-		font-size: 0.76rem;
+		font-size: var(--fs-xs);
 	}
 
 	.rp-meta-grid {

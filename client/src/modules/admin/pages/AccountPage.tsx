@@ -179,25 +179,15 @@ export default function AccountPage() {
 												<div className={`td-avatar${vt ? ` acc-av-${vt}` : ''}`}>
 													{u.full_name.split(' ').pop()?.charAt(0)}
 												</div>
-												<div>
+												<div className='td-stack'>
 													<span className='td-name'>{u.full_name}</span>
-													{u.user_code && (
-														<span
-															style={{
-																fontSize: '.72rem',
-																color: 'var(--color-gray-400)',
-																marginLeft: 6,
-															}}
-														>
-															{u.user_code}
-														</span>
-													)}
+													{u.user_code && <span className='td-sub'>{u.user_code}</span>}
 												</div>
 											</div>
 										</td>
 										<td className='td-mono'>{u.username}</td>
-										<td>{u.name_department ?? '—'}</td>
-										<td>{u.position ?? '—'}</td>
+										<td className='td-text'>{u.name_department ?? '—'}</td>
+										<td className='td-text'>{u.position ?? '—'}</td>
 										<td>
 											<span className={`role-badge ${vt ? ROLE_CSS[vt] : ''}`}>
 												{u.name_role}
@@ -355,7 +345,7 @@ export default function AccountPage() {
 									{tempPassword}
 								</strong>
 								<br />
-								<span style={{ fontSize: '.78rem', color: 'var(--color-gray-500)' }}>
+								<span style={{ fontSize: 'var(--fs-sm)', color: 'var(--color-gray-500)' }}>
 									Mật khẩu này chỉ hiển thị 1 lần. Hãy chuyển trực tiếp cho người
 									dùng — hệ thống sẽ bắt họ đặt mật khẩu mới ngay ở lần đăng nhập
 									đầu. Mật khẩu tạm sẽ hết hạn nếu không được đổi (mặc định sau 72 giờ).
@@ -384,12 +374,12 @@ export default function AccountPage() {
 								Hệ thống sẽ tạo một mật khẩu tạm ngẫu nhiên, mở khoá tài khoản (nếu
 								đang bị khoá tạm) và đăng xuất tài khoản khỏi mọi thiết bị.
 								<br />
-								<span style={{ fontSize: '.78rem', color: 'var(--color-gray-500)' }}>
+								<span style={{ fontSize: 'var(--fs-sm)', color: 'var(--color-gray-500)' }}>
 									Người dùng cần đổi mật khẩu sau khi đăng nhập lại.
 								</span>
 							</p>
 							{target?.totp_enabled && (
-								<p className='confirm-txt' style={{ fontSize: '.8rem' }}>
+								<p className='confirm-txt' style={{ fontSize: 'var(--fs-sm)' }}>
 									Tài khoản đang bật <strong>xác thực 2 lớp</strong>. Nếu người dùng
 									mất điện thoại/app xác thực, hãy tắt 2FA để họ đăng nhập bằng mật
 									khẩu rồi tự thiết lập lại.

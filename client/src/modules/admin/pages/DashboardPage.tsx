@@ -1,9 +1,5 @@
-import { BedDouble, Building2, CalendarDays, FlaskConical, TriangleAlert, Users } from 'lucide-react';
-import {
-	formatDateToVN,
-	getTodayDateString,
-	getTodayDateStringVNLong,
-} from '@/utils/dateUtils';
+import { CalendarDays } from 'lucide-react';
+import { formatDateToVN, getTodayDateString } from '@/utils/dateUtils';
 import {
 	aggregateDashboardStats,
 	getTrendStats,
@@ -12,8 +8,8 @@ import {
 import { aggregateClsDashboardStats, toKhoaClsRecord } from '@/utils/clsCalc';
 import { useDashboardReports } from '@/hooks/useDashboardReports';
 import PageHeader from '../components/PageHeader';
+import DashboardBriefing from './DashboardBriefing';
 import DashboardClsSection from './DashboardClsSection';
-import DashboardKpiRow, { type KpiCardData } from './DashboardKpiRow';
 import DashboardPatientStats from './DashboardPatientStats';
 import DashboardStaffStatus from './DashboardStaffStatus';
 import DashboardSystemInfo from './DashboardSystemInfo';
@@ -21,7 +17,6 @@ import DashboardTopShortage from './DashboardTopShortage';
 import DashboardTrendChart from './DashboardTrendChart';
 
 export default function DashboardPage() {
-	const today = getTodayDateStringVNLong();
 	const { allReports, loading, selIdx, setSelIdx } = useDashboardReports();
 
 	if (loading) {
@@ -35,7 +30,7 @@ export default function DashboardPage() {
 					minHeight: 300,
 				}}
 			>
-				<p style={{ color: 'var(--color-gray-500)', fontSize: '0.9rem' }}>
+				<p style={{ color: 'var(--color-gray-500)', fontSize: 'var(--fs-md)' }}>
 					Đang tải dữ liệu...
 				</p>
 			</div>
@@ -53,7 +48,7 @@ export default function DashboardPage() {
 					minHeight: 300,
 				}}
 			>
-				<p style={{ color: 'var(--color-gray-500)', fontSize: '0.9rem' }}>
+				<p style={{ color: 'var(--color-gray-500)', fontSize: 'var(--fs-md)' }}>
 					Chưa có dữ liệu báo cáo.
 				</p>
 			</div>
@@ -83,61 +78,23 @@ export default function DashboardPage() {
 		totalKC,
 		rateDiLam,
 		khoaThieu,
-		khoaDu,
 		tongThieu,
 		top5Thieu,
 	} = aggregateDashboardStats(rows);
 
 	const clsStats = aggregateClsDashboardStats(clsRows);
 
-	// Trend luôn dùng 7 ngày mới nhất
-	const multiDayData = allReports.map((rep) => ({
+	// Trend luôn dùng 7 ngày mới nhất: allReports xếp mới → cũ, getTrendStats lấy
+	// slice(-7) nên phải đảo về cũ → mới (vừa đúng 7 ngày, vừa vẽ trái → phải).
+	const multiDayData = [...allReports].reverse().map((rep) => ({
 		date: rep.report_date.slice(0, 10),
 		data: rep.records.map((r, i) => toKhoaRecord(r, i + 1)),
 	}));
 	const { trend7, maxTrendNB, maxTrendNL } = getTrendStats(multiDayData, 7);
 
-	const kpiCards: KpiCardData[] = [
-		{
-			icon: <Building2 size={20} />,
-			val: rows.length,
-			lbl: 'Tổng số khoa',
-			sub: 'đang theo dõi',
-			col: 'var(--blue)',
-			bg: 'var(--color-info-bg)',
-		},
-		{
-			icon: <BedDouble size={20} />,
-			val: totalNB,
-			lbl: 'Tổng người bệnh',
-			sub: `${totalNBKham} NB khám/PT KH`,
-			col: 'var(--p)',
-			bg: 'var(--color-primary-pale)',
-		},
-		{
-			icon: <Users size={20} />,
-			val: totalNL,
-			lbl: 'Tổng nhân lực',
-			sub: `${totalDiLam} đi làm hôm nay`,
-			col: 'var(--purple)',
-			bg: 'var(--purple-l)',
-		},
-		{
-			icon: <TriangleAlert size={20} />,
-			val: khoaThieu.length,
-			lbl: 'Khoa thiếu NL',
-			sub: `thiếu ${tongThieu} người theo TT03`,
-			col: 'var(--color-error)',
-			bg: 'var(--color-error-bg)',
-		},
-	];
-
 	return (
 		<div className='pg'>
-			<PageHeader
-				title='Tổng quan hệ thống'
-				subtitle={today}
-			>
+			<PageHeader title='Tổng quan'>
 				{/* ── Chọn ngày xem ── */}
 				<div className='ov-date-select-wrap'>
 					<label
@@ -163,27 +120,23 @@ export default function DashboardPage() {
 						))}
 					</select>
 				</div>
-
-				{isToday && (
-					<span className='ov-latest-badge'>
-						<span className='ov-latest-dot' />
-						Cập nhật hôm nay
-					</span>
-				)}
 			</PageHeader>
 
-			<DashboardKpiRow cards={kpiCards} />
+			<DashboardBriefing
+				selDateStr={selDateStr}
+				isToday={isToday}
+				khoaCount={rows.length}
+				totalNB={totalNB}
+				totalNBKham={totalNBKham}
+				totalNL={totalNL}
+				totalDiLam={totalDiLam}
+				khoaThieuCount={khoaThieu.length}
+				tongThieu={tongThieu}
+			/>
 
-			{/* ── Row 2: Người bệnh + Nhân lực ── */}
+			{/* ── Nhân lực so với TT03 + Người bệnh ── */}
+			<h3 className='ov-section-title'>Khối nội trú</h3>
 			<div className='ov-row2'>
-				<DashboardPatientStats
-					totalCSC1={totalCSC1}
-					totalCSC2={totalCSC2}
-					totalCSC3={totalCSC3}
-					totalNBKham={totalNBKham}
-					totalNB={totalNB}
-				/>
-
 				<DashboardStaffStatus
 					rateDiLam={rateDiLam}
 					totalNL={totalNL}
@@ -194,9 +147,19 @@ export default function DashboardPage() {
 					totalKC={totalKC}
 				/>
 
-				<DashboardTopShortage top5Thieu={top5Thieu} />
+				<DashboardPatientStats
+					totalCSC1={totalCSC1}
+					totalCSC2={totalCSC2}
+					totalCSC3={totalCSC3}
+					totalNBKham={totalNBKham}
+					totalNB={totalNB}
+				/>
+
+				{/* Không có khoa thiếu thì khối tóm tắt đã nói rõ — bỏ khối trống */}
+				{top5Thieu.length > 0 && <DashboardTopShortage top5Thieu={top5Thieu} />}
 
 				<DashboardTrendChart
+					wide={top5Thieu.length === 0}
 					trend7={trend7}
 					maxTrendNB={maxTrendNB}
 					maxTrendNL={maxTrendNL}
@@ -208,23 +171,14 @@ export default function DashboardPage() {
 			</div>
 
 			{/* ── Row 3: Hệ Cận lâm sàng ── */}
-			<h3
-				className='hcard-title'
-				style={{ margin: '4px 0 -4px' }}
-			>
-				<FlaskConical size={16} /> Hệ Cận lâm sàng
-			</h3>
+			<h3 className='ov-section-title'>Hệ Cận lâm sàng</h3>
 			<DashboardClsSection
 				clsRowsCount={clsRows.length}
 				clsStats={clsStats}
 			/>
 
-			{/* ── Row 4: Thông tin hệ thống ── */}
-			<DashboardSystemInfo
-				rowsCount={rows.length}
-				khoaDuCount={khoaDu.length}
-				khoaThieuCount={khoaThieu.length}
-			/>
+			{/* ── Thông tin tham chiếu ── */}
+			<DashboardSystemInfo />
 		</div>
 	);
 }

@@ -250,7 +250,7 @@ export default function DataPage() {
 							borderRadius: 8,
 							padding: '8px 14px',
 							marginBottom: 12,
-							fontSize: '.82rem',
+							fontSize: 'var(--fs-sm)',
 							color: 'var(--color-error)',
 						}}
 					>

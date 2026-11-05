@@ -126,7 +126,7 @@ export default function DepartmentPage() {
 								<th>#</th>
 								<th>Tên khoa / phòng</th>
 								<th className='td-center'>Mã</th>
-								<th className='td-center'>Giường/máy</th>
+								<th className='td-center'>Giường / máy</th>
 								<th className='td-center'>Công thức TT03</th>
 								<th className='td-center'>Hệ số / Tỉ lệ</th>
 								<th className='td-center'>Cộng thêm</th>
@@ -167,7 +167,7 @@ export default function DepartmentPage() {
 										</td>
 										<td
 											className='td-center td-mono'
-											style={{ color: 'var(--color-gray-500)', fontSize: '.8rem' }}
+											style={{ color: 'var(--color-gray-500)', fontSize: 'var(--fs-sm)' }}
 										>
 											{k.code_department ?? '—'}
 										</td>
@@ -176,9 +176,9 @@ export default function DepartmentPage() {
 											{ft && badge ? (
 												<span
 													style={{
-														fontSize: '.72rem',
-														fontWeight: 700,
-														padding: '3px 8px',
+														fontSize: 'var(--fs-xs)',
+														fontWeight: 500,
+														padding: '2px 8px',
 														borderRadius: 9999,
 														background: badge.bg,
 														color: badge.color,
@@ -188,21 +188,21 @@ export default function DepartmentPage() {
 													{FORMULA_LABELS[ft]}
 												</span>
 											) : (
-												<span style={{ color: 'var(--color-gray-400)', fontSize: '0.75rem' }}>
+												<span style={{ color: 'var(--color-gray-400)', fontSize: 'var(--fs-xs)' }}>
 													Chưa cấu hình
 												</span>
 											)}
 										</td>
 										<td
 											className='td-center td-mono'
-											style={{ fontSize: '0.75rem', color: 'var(--color-gray-600)' }}
+											style={{ fontSize: 'var(--fs-xs)', color: 'var(--color-gray-600)', minWidth: 104 }}
 										>
 											{ratioDisplay}
 										</td>
 										<td
 											className='td-center'
 											style={{
-												fontSize: '0.8rem',
+												fontSize: 'var(--fs-sm)',
 												color: 'var(--purple)',
 												fontWeight: 600,
 											}}
@@ -215,9 +215,9 @@ export default function DepartmentPage() {
 											{k.rec_formula_type ? (
 												<span
 													style={{
-														fontSize: '.72rem',
-														fontWeight: 700,
-														padding: '3px 8px',
+														fontSize: 'var(--fs-xs)',
+														fontWeight: 500,
+														padding: '2px 8px',
 														borderRadius: 9999,
 														background: 'var(--purple-l)',
 														color: 'var(--purple)',
@@ -229,7 +229,7 @@ export default function DepartmentPage() {
 													)?.label ?? k.rec_formula_type}
 												</span>
 											) : (
-												<span style={{ color: 'var(--color-gray-400)', fontSize: '0.75rem' }}>
+												<span style={{ color: 'var(--color-gray-400)', fontSize: 'var(--fs-xs)' }}>
 													Chưa cấu hình
 												</span>
 											)}

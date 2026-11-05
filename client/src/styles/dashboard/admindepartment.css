@@ -1,29 +1,35 @@
 /* ── Thống kê tổng quan đầu trang ── */
+/* Dải số liệu liền một khối, ngăn cột bằng vạch (không chia thành nhiều thẻ) */
 .dept-stat-row {
 	display: grid;
-	grid-template-columns: repeat(5, 1fr);
-	gap: 10px;
-}
-.dept-stat-card {
+	/* Màn hẹp: cuộn ngang thay vì gãy hàng (giữ vạch ngăn thẳng hàng) */
+	grid-template-columns: repeat(5, minmax(128px, 1fr));
+	overflow-x: auto;
 	background: var(--sur);
 	border: 1px solid var(--bdr);
 	border-radius: var(--r);
-	padding: 14px 18px;
+}
+.dept-stat-card {
+	padding: 16px 20px;
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
+	gap: 2px;
+	border-left: 1px solid var(--bdr);
+	min-width: 0;
+}
+.dept-stat-card:first-child {
+	border-left: none;
 }
 .dept-stat-val {
-	font-size: 1.4rem;
+	font-size: var(--fs-num);
 	font-weight: 600;
 	color: var(--dc, var(--color-gray-800));
-	line-height: 1;
-	letter-spacing: -0.01em;
+	line-height: 1.1;
+	letter-spacing: -0.02em;
 }
 .dept-stat-lbl {
-	font-size: 0.8rem;
+	font-size: var(--fs-sm);
 	color: var(--mut);
-	font-weight: 500;
 }
 
 /* ── Icon khoa trong bảng ── */
@@ -37,7 +43,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 0.85rem;
+	font-size: var(--fs-md);
 	flex-shrink: 0;
 }
 .dept-icon-off {
@@ -48,7 +54,7 @@
 
 /* ── Hiển thị hệ số trong bảng ── */
 .dept-hs {
-	font-size: 0.78rem !important;
+	font-size: var(--fs-sm) !important;
 	font-weight: 600;
 }
 .dept-hs-c1 {
@@ -91,7 +97,7 @@
 	font-weight: 400;
 	font-style: italic;
 	color: var(--color-gray-400);
-	font-size: 0.7rem;
+	font-size: var(--fs-xs);
 }
 
 /* ── Preview kết quả hệ số TT03 ── */
@@ -106,41 +112,29 @@
 	margin-top: 4px;
 }
 .dept-heso-preview-label {
-	font-size: 0.72rem;
+	font-size: var(--fs-xs);
 	color: var(--color-gray-500);
 }
 .dept-heso-preview-val {
-	font-size: 0.85rem;
+	font-size: var(--fs-md);
 	font-weight: 700;
 	color: var(--pd);
 }
 
 /* ── Responsive ── */
-@media (max-width: 1100px) {
-	.dept-stat-row {
-		grid-template-columns: repeat(3, 1fr);
-	}
-}
-@media (max-width: 680px) {
-	.dept-stat-row {
-		grid-template-columns: repeat(2, 1fr);
-	}
-}
 @media (max-width: 480px) {
-	.dept-stat-row {
-		grid-template-columns: repeat(2, 1fr);
-		gap: 8px;
-	}
 	.dept-stat-card {
-		padding: 10px 14px;
-	}
-	.dept-stat-card:last-child {
-		grid-column: span 2;
+		padding: 12px 14px;
 	}
 	.dept-stat-val {
-		font-size: 1.35rem;
+		font-size: var(--fs-h2);
 	}
 	.dept-stat-lbl {
-		font-size: 0.72rem;
+		font-size: var(--fs-xs);
 	}
+}
+
+/* Tên khoa là cột định danh chính — không xuống dòng */
+.dept-icon + .td-name {
+	white-space: nowrap;
 }

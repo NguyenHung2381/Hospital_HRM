@@ -48,7 +48,7 @@ export default function ShortageBoard({
 			{isAdmin && (
 				<p
 					style={{
-						fontSize: '.72rem',
+						fontSize: 'var(--fs-xs)',
 						color: 'var(--color-gray-400)',
 						margin: '-4px 0 8px',
 					}}
@@ -194,7 +194,7 @@ export default function ShortageBoard({
 											{adjusted ? (
 												<div
 													style={{
-														fontSize: '.7rem',
+														fontSize: 'var(--fs-xs)',
 														fontWeight: 500,
 														color: 'var(--color-gray-400)',
 													}}
@@ -222,7 +222,7 @@ export default function ShortageBoard({
 												<button
 													className='btn-ghost'
 													style={{
-														fontSize: '.72rem',
+														fontSize: 'var(--fs-xs)',
 														padding: '4px 10px',
 													}}
 													onClick={() => onCoordinate(r)}

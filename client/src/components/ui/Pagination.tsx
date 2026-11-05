@@ -35,7 +35,7 @@ export default function Pagination({
 					display: 'flex',
 					alignItems: 'center',
 					gap: 8,
-					fontSize: '.8rem',
+					fontSize: 'var(--fs-sm)',
 					color: 'var(--color-gray-500)',
 				}}
 			>
@@ -47,7 +47,7 @@ export default function Pagination({
 						border: '1px solid var(--bdr)',
 						borderRadius: 6,
 						padding: '2px 6px',
-						fontSize: '.8rem',
+						fontSize: 'var(--fs-sm)',
 						cursor: 'pointer',
 					}}
 				>
@@ -106,7 +106,7 @@ export default function Pagination({
 								key={`e${idx}`}
 								style={{
 									padding: '3px 6px',
-									fontSize: '.78rem',
+									fontSize: 'var(--fs-sm)',
 									color: 'var(--color-gray-400)',
 								}}
 							>
@@ -124,7 +124,7 @@ export default function Pagination({
 									background: page === n ? 'var(--teal)' : 'white',
 									color: page === n ? 'white' : 'var(--color-gray-600)',
 									cursor: 'pointer',
-									fontSize: '.78rem',
+									fontSize: 'var(--fs-sm)',
 									fontWeight: page === n ? 600 : 400,
 								}}
 							>

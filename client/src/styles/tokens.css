@@ -47,22 +47,28 @@
 	--color-info-bg: #eff6ff;
 	--color-info-border: #bfdbfe;
 
-	/* Alias ngắn dùng trong HRM */
-	--p: var(--color-primary);
-	--pd: var(--color-primary-dark);
+	/* Alias ngắn dùng trong HRM.
+	   --p là xanh "hành động" (nút, link, ô đang chọn): đậm hơn màu thương hiệu
+	   một bậc để chữ trắng trên nền xanh đạt WCAG AA (4.7:1 thay vì 3.6:1).
+	   Màu thương hiệu gốc --color-primary vẫn dùng cho mảng dữ liệu/trang trí. */
+	--p: #08853f;
+	--pd: #066b32;
 	--pl: #d3f1df;
 	--acc: var(--color-accent);
 	--bg: var(--color-gray-50);
 	--sur: var(--color-white);
 	--bdr: var(--color-gray-200);
 	--txt: var(--color-gray-800);
-	--mut: var(--color-gray-500);
+	/* Chữ phụ: 5.4:1 trên nền --bg (gray-500 cũ chỉ 4.1:1, dưới chuẩn AA) */
+	--mut: #586977;
 
 	/* Colors */
-	--blue: #3b82f6;
+	--blue: #2b78d4;
 	--blue-l: #dbeafe;
-	--purple: #7c3aed;
-	--purple-l: #ede9fe;
+	/* "purple" giữ tên cho tương thích, nhưng là xanh thép — bảng màu
+	   không dùng tím/violet để không lệch khỏi tông xanh của bệnh viện */
+	--purple: #3d5a80;
+	--purple-l: #e8eef6;
 	--teal: #0d9488;
 	--teal-l: #ccfbf1;
 	--red: var(--color-error);
@@ -74,10 +80,25 @@
 
 	/* Layout */
 	--nav-w: 232px;
-	--nav-bg: #0a783b;
-	/* Gradient sidebar: xanh chủ đạo ở trên, đậm dần xuống dưới */
-	--nav-gradient: linear-gradient(180deg, #0a9b4a 0%, #0a783b 55%, #075a2c 100%);
+	/* Sidebar: xanh rừng đậm, phẳng — chữ trắng đạt ~10:1, nền đủ trầm để
+	   vùng nội dung (trắng/xám) là nơi mắt dừng lại trước */
+	--nav-bg: #0c4a2b;
+	--nav-bg-hover: rgba(255, 255, 255, 0.08);
+	--nav-bg-active: rgba(255, 255, 255, 0.14);
+	--nav-gradient: none;
 	--topbar-h: 56px;
+
+	/* Chữ — rem tính theo html (16px), không theo body (14px) */
+	--font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+	--fs-xs: 0.75rem;   /* 12px — chú thích, đơn vị */
+	--fs-sm: 0.8125rem; /* 13px — nhãn phụ */
+	--fs-md: 0.875rem;  /* 14px — chữ thân bảng/form */
+	--fs-base: 0.9375rem; /* 15px — tiêu đề thẻ */
+	--fs-lg: 1rem;      /* 16px — tiêu đề khối */
+	--fs-h3: 1.125rem;  /* 18px */
+	--fs-h2: 1.25rem;   /* 20px — số liệu thẻ nhỏ */
+	--fs-xl: 1.5rem;    /* 24px — tiêu đề trang */
+	--fs-num: 1.75rem;  /* 28px — số liệu nổi bật */
 
 	/* Bo góc */
 	--r: 8px;
@@ -85,5 +106,10 @@
 
 	/* Đổ bóng — chỉ dùng cho lớp nổi (dropdown, modal) */
 	--shadow-pop: 0 4px 16px rgba(13, 24, 32, 0.08), 0 1px 3px rgba(13, 24, 32, 0.06);
-	--focus-ring: 0 0 0 3px rgba(10, 155, 74, 0.15);
+	--focus-ring: 0 0 0 3px rgba(8, 133, 63, 0.18);
+
+	/* Chuyển động: một đường cong, ba thời lượng cho cả app */
+	--ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+	--t-fast: 140ms;
+	--t-med: 200ms;
 }

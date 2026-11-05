@@ -53,7 +53,7 @@ export default function AccountAssignModal({
 			<div className='mform'>
 				{error && <p className='login-error'>{error}</p>}
 
-				<p style={{ fontSize: '.8rem', color: 'var(--color-gray-500)', marginBottom: 12 }}>
+				<p style={{ fontSize: 'var(--fs-sm)', color: 'var(--color-gray-500)', marginBottom: 12 }}>
 					Chọn khoa mà <strong>{fullName}</strong> được phép xem, sau đó tick
 					quyền thao tác cho từng khoa.
 					<br />
@@ -149,7 +149,7 @@ export default function AccountAssignModal({
 									</span>
 									<span
 										style={{
-											fontSize: '.83rem',
+											fontSize: 'var(--fs-sm)',
 											fontWeight: checked ? 600 : 400,
 										}}
 									>
@@ -178,7 +178,7 @@ export default function AccountAssignModal({
 													display: 'flex',
 													alignItems: 'center',
 													gap: 4,
-													fontSize: '.75rem',
+													fontSize: 'var(--fs-xs)',
 													cursor: 'pointer',
 													userSelect: 'none',
 												}}
