@@ -357,7 +357,8 @@ export default function AccountPage() {
 								<br />
 								<span style={{ fontSize: '.78rem', color: 'var(--color-gray-500)' }}>
 									Mật khẩu này chỉ hiển thị 1 lần. Hãy chuyển trực tiếp cho người
-									dùng và yêu cầu họ đổi mật khẩu ngay sau khi đăng nhập.
+									dùng — hệ thống sẽ bắt họ đặt mật khẩu mới ngay ở lần đăng nhập
+									đầu. Mật khẩu tạm sẽ hết hạn nếu không được đổi (mặc định sau 72 giờ).
 								</span>
 							</p>
 							<div className='mfooter'>

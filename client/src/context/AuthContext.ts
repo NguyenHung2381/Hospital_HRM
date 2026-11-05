@@ -10,6 +10,7 @@ export type LoginResult =
 	| { status: 'pre_auth_expired' }
 	| { status: 'locked'; message: string }
 	| { status: 'rate_limited'; message?: string }
+	| { status: 'temp_expired'; message: string }
 	| { status: 'not_found' };
 
 // Quyền thao tác theo từng khoa
@@ -33,6 +34,8 @@ export interface AuthContextType {
 	/** Bước 2 của đăng nhập cho tài khoản đã bật 2FA */
 	verify2FA: (preAuthToken: string, code: string) => Promise<LoginResult>;
 	logout: () => void;
+	/** Gọi sau khi đổi mật khẩu bắt buộc thành công → mở khoá hệ thống */
+	markPasswordChanged: () => void;
 	refresh: () => void;
 	loading: boolean;
 	/** Lỗi tải danh sách khoa/quyền (rỗng = OK) */

@@ -137,6 +137,10 @@ CREATE TABLE users (
 	totp_enabled       boolean      NOT NULL DEFAULT false,
 	totp_verified_at   timestamptz  NULL,
 	totp_last_step     bigint       NULL,
+	-- Mật khẩu do quản trị đặt (tạo TK / đặt lại) → phải đổi ở lần đăng nhập
+	-- tới; password_changed_at dùng để tính hạn của mật khẩu tạm.
+	must_change_password boolean    NOT NULL DEFAULT false,
+	password_changed_at  timestamptz NULL,
 	CONSTRAINT pk_users PRIMARY KEY (id_user),
 	CONSTRAINT ck_users_status CHECK (status IN ('active', 'inactive')),
 	CONSTRAINT fk_users_departments FOREIGN KEY (id_department)

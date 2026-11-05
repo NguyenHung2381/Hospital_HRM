@@ -298,7 +298,9 @@ async function ensureAdmin(db) {
 	}
 	const password = generateTempPassword();
 	await db.query(
-		`INSERT INTO users (username, password, full_name, id_role, status) VALUES ($1, $2, $3, $4, 'active')`,
+		// Mật khẩu tạm in ra màn hình → bắt đổi ở lần đăng nhập đầu
+		`INSERT INTO users (username, password, full_name, id_role, status, must_change_password, password_changed_at)
+		 VALUES ($1, $2, $3, $4, 'active', true, now())`,
 		[ADMIN_USER, await hashPassword(password), ADMIN_ROLE_NAME, role[0].id_role],
 	);
 	ok(`Đã tạo tài khoản "${ADMIN_USER}"`);
@@ -516,6 +518,8 @@ async function setupDatabase(env) {
 	} else info('Bảng đã có — bỏ qua 001_init.sql');
 	await runSqlFile(db, '002_views_functions.sql');
 	ok('Đã tạo/cập nhật view + hàm (002_views_functions.sql)');
+	await runSqlFile(db, '003_password_change.sql');
+	ok('Đã cập nhật cột đổi mật khẩu bắt buộc (003_password_change.sql)');
 	// Bảng tạo trước khi có ALTER DEFAULT PRIVILEGES (vd DB cũ) → cấp lại cho chắc.
 	await db.query(`
 		GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${app};

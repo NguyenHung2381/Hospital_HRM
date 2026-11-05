@@ -58,6 +58,7 @@ export default function LoginForm() {
 				setError('Phiên xác thực đã hết hạn, vui lòng đăng nhập lại.');
 				return;
 			case 'locked':
+			case 'temp_expired':
 				backToPasswordStep();
 				setError(result.message);
 				return;

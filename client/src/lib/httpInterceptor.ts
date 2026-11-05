@@ -2,9 +2,12 @@
 // đọc được token) — trình duyệt tự gửi cookie kèm mọi request cùng origin.
 // Interceptor này chỉ:
 //  - gắn header chống CSRF "X-Requested-With" cho mọi request tới /api/*;
-//  - tự đăng xuất khi phiên hết hạn/không hợp lệ (401).
+//  - tự đăng xuất khi phiên hết hạn/không hợp lệ (401);
+//  - báo AuthProvider khi server yêu cầu đổi mật khẩu (403 PASSWORD_CHANGE_REQUIRED).
 // Import 1 lần (side-effect) ở main.tsx, trước khi app render — vì hầu hết
 // component trong app gọi fetch() trực tiếp, không đi qua 1 client dùng chung.
+import { PASSWORD_CHANGE_REQUIRED_EVENT } from '@/constants/appConstants';
+
 const STORAGE_KEY = 'auth_user';
 
 const nativeFetch = window.fetch.bind(window);
@@ -41,6 +44,16 @@ window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
 		) {
 			localStorage.removeItem(STORAGE_KEY);
 			if (location.pathname !== '/') location.href = '/';
+		}
+		if (res.status === 403) {
+			res
+				.clone()
+				.json()
+				.then((body: { code?: string }) => {
+					if (body?.code === 'PASSWORD_CHANGE_REQUIRED')
+						window.dispatchEvent(new Event(PASSWORD_CHANGE_REQUIRED_EVENT));
+				})
+				.catch(() => {});
 		}
 		return res;
 	});

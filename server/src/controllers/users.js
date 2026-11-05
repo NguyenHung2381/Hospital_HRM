@@ -114,8 +114,11 @@ async function create(req, res, next) {
 			.input('position', sql.NVarChar(100), position ?? null)
 			.input('id_role', sql.Int, id_role)
 			.input('status', sql.NVarChar(10), status ?? 'active').query(`
-				INSERT INTO Users (full_name, username, password, user_code, id_department, position, id_role, status)
-				VALUES (@full_name, @username, @password, @user_code, @id_department, @position, @id_role, @status)
+				-- Mật khẩu do quản trị đặt → người dùng phải đổi ở lần đăng nhập đầu
+				INSERT INTO Users (full_name, username, password, user_code, id_department, position, id_role, status,
+					must_change_password, password_changed_at)
+				VALUES (@full_name, @username, @password, @user_code, @id_department, @position, @id_role, @status,
+					true, now())
 				RETURNING id_user, full_name, username, user_code, id_department, position,
 					id_role, status, created_at
 			`);

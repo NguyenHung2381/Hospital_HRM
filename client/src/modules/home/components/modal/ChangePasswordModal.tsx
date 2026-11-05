@@ -1,8 +1,8 @@
 import { UserRound } from 'lucide-react';
 import ModalForm from '@/components/common/ModalForm';
-import { useAuth } from '@/context/useAuth';
+import { usePasswordChange } from '@/hooks/usePasswordChange';
 import '@/styles/accountSecurity.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SessionsTab from './SessionsTab';
 import TwoFactorTab from './TwoFactorTab';
 
@@ -17,78 +17,25 @@ export default function ChangePasswordModal({
 	isOpen,
 	onClose,
 }: ChangePasswordModalProps) {
-	const { user } = useAuth();
-	const [pwdOld, setPwdOld] = useState('');
-	const [pwdNew, setPwdNew] = useState('');
-	const [pwdConfirm, setPwdConfirm] = useState('');
-	const [pwdError, setPwdError] = useState('');
-	const [pwdSuccess, setPwdSuccess] = useState('');
-	const [savingPwd, setSavingPwd] = useState(false);
+	const pwd = usePasswordChange();
 	const [tab, setTab] = useState<SecurityTab>('password');
-
-	if (!isOpen) return null;
 
 	const handleClose = () => {
 		setTab('password');
-		setPwdOld('');
-		setPwdNew('');
-		setPwdConfirm('');
-		setPwdError('');
-		setPwdSuccess('');
+		pwd.reset();
 		onClose();
 	};
 
-	const handleChangePassword = async () => {
-		if (!pwdOld.trim()) {
-			setPwdError('Vui lòng nhập mật khẩu hiện tại');
-			return;
-		}
-		if (!pwdNew.trim() || pwdNew.length < 8) {
-			setPwdError('Mật khẩu mới phải có ít nhất 8 ký tự');
-			return;
-		}
-		if (!/[A-Za-z]/.test(pwdNew) || !/\d/.test(pwdNew)) {
-			setPwdError('Mật khẩu mới phải gồm cả chữ và số');
-			return;
-		}
-		if (pwdNew !== pwdConfirm) {
-			setPwdError('Mật khẩu xác nhận không khớp');
-			return;
-		}
-		if (!user?.id) {
-			setPwdError('Không xác định được tài khoản');
-			return;
-		}
+	// Đổi thành công → hiện thông báo 1,5 giây rồi đóng
+	const { success } = pwd;
+	useEffect(() => {
+		if (!success) return;
+		const t = setTimeout(handleClose, 1500);
+		return () => clearTimeout(t);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [success]);
 
-		setSavingPwd(true);
-		setPwdError('');
-		setPwdSuccess('');
-
-		try {
-			const res = await fetch(`/api/users/${user.id}/change-password`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ old_password: pwdOld, new_password: pwdNew }),
-			});
-			// Server tự cấp cookie phiên mới cho thiết bị này (phiên ở thiết bị khác bị huỷ)
-			const data = (await res.json()) as { success: boolean; message?: string };
-			if (!data.success) {
-				setPwdError(data.message ?? 'Đổi mật khẩu thất bại');
-			} else {
-				setPwdSuccess('Đổi mật khẩu thành công!');
-				setPwdOld('');
-				setPwdNew('');
-				setPwdConfirm('');
-				setTimeout(() => {
-					handleClose();
-				}, 1500);
-			}
-		} catch {
-			setPwdError('Lỗi kết nối server.');
-		} finally {
-			setSavingPwd(false);
-		}
-	};
+	if (!isOpen) return null;
 
 	return (
 		<ModalForm
@@ -122,25 +69,22 @@ export default function ChangePasswordModal({
 				<div className='pwd-user-info'>
 					<UserRound className='pwd-user-icon' size={20} />
 					<div>
-						<p className='pwd-user-name'>{user?.hoTen}</p>
-						<p className='pwd-user-account'>{user?.taiKhoan}</p>
+						<p className='pwd-user-name'>{pwd.user?.hoTen}</p>
+						<p className='pwd-user-account'>{pwd.user?.taiKhoan}</p>
 					</div>
 				</div>
 
-				{pwdError && <p className='login-error'>{pwdError}</p>}
-				{pwdSuccess && <p className='pwd-success'>{pwdSuccess}</p>}
+				{pwd.error && <p className='login-error'>{pwd.error}</p>}
+				{pwd.success && <p className='pwd-success'>{pwd.success}</p>}
 
 				<label className='fi'>
 					<span className='fi-label'>Mật khẩu hiện tại</span>
 					<input
 						type='password'
 						className='fi-input'
-						value={pwdOld}
+						value={pwd.oldPassword}
 						autoComplete='current-password'
-						onChange={(e) => {
-							setPwdOld(e.target.value);
-							setPwdError('');
-						}}
+						onChange={pwd.onOldChange}
 					/>
 				</label>
 
@@ -149,13 +93,10 @@ export default function ChangePasswordModal({
 					<input
 						type='password'
 						className='fi-input'
-						value={pwdNew}
+						value={pwd.newPassword}
 						autoComplete='new-password'
 						placeholder='Ít nhất 8 ký tự, gồm chữ và số'
-						onChange={(e) => {
-							setPwdNew(e.target.value);
-							setPwdError('');
-						}}
+						onChange={pwd.onNewChange}
 					/>
 				</label>
 
@@ -164,13 +105,10 @@ export default function ChangePasswordModal({
 					<input
 						type='password'
 						className='fi-input'
-						value={pwdConfirm}
+						value={pwd.confirmPassword}
 						autoComplete='new-password'
 						placeholder='Nhập lại mật khẩu mới'
-						onChange={(e) => {
-							setPwdConfirm(e.target.value);
-							setPwdError('');
-						}}
+						onChange={pwd.onConfirmChange}
 					/>
 				</label>
 
@@ -178,16 +116,16 @@ export default function ChangePasswordModal({
 					<button
 						className='btn-ghost'
 						onClick={handleClose}
-						disabled={savingPwd}
+						disabled={pwd.saving}
 					>
 						Huỷ
 					</button>
 					<button
 						className='btn-primary'
-						onClick={handleChangePassword}
-						disabled={savingPwd}
+						onClick={() => void pwd.submit()}
+						disabled={pwd.saving}
 					>
-						{savingPwd ? 'Đang lưu...' : 'Đổi mật khẩu'}
+						{pwd.saving ? 'Đang lưu...' : 'Đổi mật khẩu'}
 					</button>
 				</div>
 			</div>

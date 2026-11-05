@@ -9,13 +9,15 @@ const { Client } = require('pg');
 
 // Thứ tự nạp theo khoá ngoại (bảng cha trước).
 // columns: đổi tên cột SQL Server → PostgreSQL (mặc định: viết thường).
+// pgOnly: cột chỉ có ở PostgreSQL (SQL Server cũ không có) + giá trị gán khi
+// chuyển — jsonb_populate_recordset để NULL cho cột thiếu chứ không lấy DEFAULT.
 const TABLES = [
 	{ src: 'Roles', dst: 'roles' },
 	{ src: 'Permissions', dst: 'permissions' },
 	{ src: 'Departments', dst: 'departments' },
 	{ src: 'Role_Permissions', dst: 'role_permissions' },
 	{ src: 'Role_Department_Access', dst: 'role_department_access', columns: { id_deparment: 'id_department' } },
-	{ src: 'Users', dst: 'users' },
+	{ src: 'Users', dst: 'users', pgOnly: { must_change_password: false, password_changed_at: null } },
 	{ src: 'User_Department_Access', dst: 'user_department_access' },
 	{ src: 'User_Dept_Permissions', dst: 'user_dept_permissions' },
 	{ src: 'Dept_TT03_Config', dst: 'dept_tt03_config' },
@@ -164,6 +166,7 @@ function readTable(t) {
 	return rows.map((r) => {
 		const o = {};
 		for (const [k, v] of Object.entries(r)) o[rename[k] || k.toLowerCase()] = v;
+		for (const [k, v] of Object.entries(t.pgOnly || {})) if (!(k in o)) o[k] = v;
 		return o;
 	});
 }

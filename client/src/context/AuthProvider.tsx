@@ -7,6 +7,7 @@ import type { ApiDept, ApiDeptPerm, ApiUser } from '@/types/apiType';
 import type { RoleType } from '@/types/commonType';
 import type { KhoaItem } from '@/types/staffingType';
 import type { UserAccount } from '@/types/userType';
+import { PASSWORD_CHANGE_REQUIRED_EVENT } from '@/constants/appConstants';
 import { useEffect, useState } from 'react';
 
 // Chỉ lưu thông tin hiển thị của user (để không nháy màn hình đăng nhập khi
@@ -33,6 +34,7 @@ function mapApiUser(raw: ApiUser): UserAccount {
 		vaiTro: ROLE_MAP[raw.name_role] ?? 'nhan_vien',
 		trangThai: raw.status === 'active' ? 'active' : 'inactive',
 		department_access_type: raw.department_access_type,
+		mustChangePassword: !!raw.must_change_password,
 	};
 }
 
@@ -140,12 +142,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			.catch(() => {});
 	}, []);
 
-	// AUTO SYNC khi reload hoặc user change
+	// AUTO SYNC khi reload hoặc user change. Đang bắt buộc đổi mật khẩu thì
+	// server chặn mọi API khác → chưa tải gì.
 	useEffect(() => {
-		if (user?.id) {
+		if (user?.id && !user.mustChangePassword) {
 			fetchAllData(user.id);
 		}
 	}, [user]);
+
+	const saveUser = (next: UserAccount) => {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+		setUser(next);
+	};
+
+	// Server báo phải đổi mật khẩu (vd thông tin trong localStorage đã cũ)
+	useEffect(() => {
+		const onRequired = () =>
+			setUser((prev) => {
+				if (!prev || prev.mustChangePassword) return prev;
+				const next = { ...prev, mustChangePassword: true };
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+				return next;
+			});
+		window.addEventListener(PASSWORD_CHANGE_REQUIRED_EVENT, onRequired);
+		return () => window.removeEventListener(PASSWORD_CHANGE_REQUIRED_EVENT, onRequired);
+	}, []);
+
+	const markPasswordChanged = () => {
+		if (user) saveUser({ ...user, mustChangePassword: false });
+	};
 
 	// Đăng nhập xong (thường hoặc sau bước 2FA): lưu thông tin hiển thị.
 	// Token đã được server đặt vào cookie HttpOnly — không lưu ở đây.
@@ -180,6 +205,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 			if (res.status === 404) return { status: 'not_found' };
 			if (res.status === 401) return { status: 'wrong_pass' };
+			if (res.status === 403) {
+				const body = await readMessage(res);
+				if (body.code === 'TEMP_PASSWORD_EXPIRED')
+					return { status: 'temp_expired', message: body.message ?? '' };
+				return { status: 'not_found' };
+			}
 			if (res.status === 429) {
 				const body = await readMessage(res);
 				if (body.code === 'ACCOUNT_LOCKED')
@@ -257,6 +288,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				login,
 				verify2FA,
 				logout,
+				markPasswordChanged,
 				refresh, // thêm cái này
 				loading, // optional
 				loadError,

@@ -10,6 +10,14 @@ const { getPool, sql } = require('../config/db');
 const SESSION_CACHE_TTL_MS = 15 * 1000;
 const sessionCache = new Map(); // jti -> { active, id_user, expiresAt }
 
+// Phiên bỏ không quá SESSION_IDLE_MINUTES (không gọi API nào) thì hết hiệu
+// lực, dù JWT chưa hết hạn — máy tính dùng chung ở khoa phòng hay bị bỏ quên
+// đang đăng nhập. 0 = tắt (chỉ còn hạn tuyệt đối JWT_EXPIRES).
+const SESSION_IDLE_MINUTES = (() => {
+	const n = Number(process.env.SESSION_IDLE_MINUTES ?? 60);
+	return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 60;
+})();
+
 async function createSession({ jti, id_user, expiresAt, ip, userAgent }) {
 	const pool = await getPool();
 	await pool
@@ -25,20 +33,28 @@ async function createSession({ jti, id_user, expiresAt, ip, userAgent }) {
 		`);
 }
 
-// true nếu phiên còn hiệu lực (tồn tại, chưa thu hồi, chưa hết hạn) và thuộc
-// đúng id_user. Mỗi lần thực sự chạm DB thì cập nhật last_seen_at luôn.
-async function isSessionActive(jti, id_user) {
+// true nếu phiên còn hiệu lực (tồn tại, chưa thu hồi, chưa hết hạn, chưa bỏ
+// không quá SESSION_IDLE_MINUTES) và thuộc đúng id_user. Mỗi lần thực sự chạm
+// DB thì cập nhật last_seen_at — trừ khi touch=false (kiểm tra nền của luồng
+// SSE: tab chỉ mở sẵn không được tính là người dùng đang thao tác).
+async function isSessionActive(jti, id_user, { touch = true } = {}) {
 	if (typeof jti !== 'string' || jti.length !== 32) return false;
 	const now = Date.now();
 	const cached = sessionCache.get(jti);
 	if (cached && cached.expiresAt > now) return cached.active && cached.id_user === id_user;
 
 	const pool = await getPool();
-	const result = await pool.request().input('jti', sql.Char(32), jti).query(`
-		UPDATE UserSessions SET last_seen_at = now()
-		WHERE jti = @jti AND revoked_at IS NULL AND expires_at > now()
-		RETURNING id_user
-	`);
+	const alive = `jti = @jti AND revoked_at IS NULL AND expires_at > now()
+		AND (@idle = 0 OR COALESCE(last_seen_at, created_at) > now() - make_interval(mins => @idle))`;
+	const request = pool
+		.request()
+		.input('jti', sql.Char(32), jti)
+		.input('idle', sql.Int, SESSION_IDLE_MINUTES);
+	const result = await request.query(
+		touch
+			? `UPDATE UserSessions SET last_seen_at = now() WHERE ${alive} RETURNING id_user`
+			: `SELECT id_user FROM UserSessions WHERE ${alive}`,
+	);
 	const row = result.recordset[0];
 	const active = !!row;
 	if (sessionCache.size > 10000) sessionCache.clear();
@@ -87,12 +103,18 @@ async function revokeAllSessions(id_user, exceptJti = null) {
 	return result.rowsAffected[0] || 0;
 }
 
+// Điều kiện "phiên chưa bỏ không quá hạn" cho các danh sách phiên (alias s)
+const NOT_IDLE = `(@idle = 0 OR COALESCE(s.last_seen_at, s.created_at) > now() - make_interval(mins => @idle))`;
+
 async function listSessions(id_user) {
 	const pool = await getPool();
-	const result = await pool.request().input('id_user', sql.Int, id_user).query(`
+	const result = await pool
+		.request()
+		.input('id_user', sql.Int, id_user)
+		.input('idle', sql.Int, SESSION_IDLE_MINUTES).query(`
 		SELECT jti, ip_address, user_agent, created_at, last_seen_at, expires_at
-		FROM UserSessions
-		WHERE id_user = @id_user AND revoked_at IS NULL AND expires_at > now()
+		FROM UserSessions s
+		WHERE id_user = @id_user AND revoked_at IS NULL AND expires_at > now() AND ${NOT_IDLE}
 		ORDER BY COALESCE(last_seen_at, created_at) DESC
 	`);
 	return result.recordset;
@@ -102,13 +124,16 @@ async function listSessions(id_user) {
 // người dùng — cho trang quản trị "Phiên đăng nhập".
 async function listActiveSessions({ id_user = null } = {}) {
 	const pool = await getPool();
-	const result = await pool.request().input('id_user', sql.Int, id_user).query(`
+	const result = await pool
+		.request()
+		.input('id_user', sql.Int, id_user)
+		.input('idle', sql.Int, SESSION_IDLE_MINUTES).query(`
 		SELECT s.jti, s.id_user, u.username, u.full_name, r.name_role,
 			s.ip_address, s.user_agent, s.created_at, s.last_seen_at, s.expires_at
 		FROM UserSessions s
 		JOIN Users u ON u.id_user = s.id_user
 		LEFT JOIN Roles r ON r.id_role = u.id_role
-		WHERE s.revoked_at IS NULL AND s.expires_at > now()
+		WHERE s.revoked_at IS NULL AND s.expires_at > now() AND ${NOT_IDLE}
 		  AND (@id_user IS NULL OR s.id_user = @id_user)
 		ORDER BY COALESCE(s.last_seen_at, s.created_at) DESC
 	`);
@@ -116,6 +141,7 @@ async function listActiveSessions({ id_user = null } = {}) {
 }
 
 module.exports = {
+	SESSION_IDLE_MINUTES,
 	createSession,
 	isSessionActive,
 	revokeSession,

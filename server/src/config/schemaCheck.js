@@ -26,6 +26,9 @@ const REQUIRED_RELATIONS = [
 	'vw_tt03_recommended',
 ];
 
+// Cột thêm sau bản schema đầu tiên (003_password_change.sql)
+const REQUIRED_USER_COLUMNS = ['must_change_password', 'password_changed_at'];
+
 const CLEANUP_STATEMENTS = [
 	// Dọn phiên đã hết hạn quá 30 ngày để bảng không phình
 	`DELETE FROM usersessions WHERE expires_at < now() - interval '30 days'`,
@@ -44,6 +47,20 @@ async function checkSchemaAndCleanup() {
 		const err = new Error(
 			`Database thiếu bảng/view: ${missing}. Chạy server/db/postgres/001_init.sql và ` +
 				`002_views_functions.sql bằng role hrm_owner (xem server/db/README.md).`,
+		);
+		err.code = 'SCHEMA_MISSING';
+		throw err;
+	}
+	const { rows: cols } = await pool.query(
+		`SELECT c FROM unnest($1::text[]) AS c
+		 WHERE NOT EXISTS (SELECT 1 FROM information_schema.columns
+			WHERE table_schema = current_schema() AND table_name = 'users' AND column_name = c)`,
+		[REQUIRED_USER_COLUMNS],
+	);
+	if (cols.length) {
+		const err = new Error(
+			`Bảng users thiếu cột: ${cols.map((r) => r.c).join(', ')}. Chạy ` +
+				`server/db/postgres/003_password_change.sql bằng role hrm_owner (hoặc npm run setup).`,
 		);
 		err.code = 'SCHEMA_MISSING';
 		throw err;

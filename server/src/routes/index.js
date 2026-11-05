@@ -4,6 +4,7 @@ const appEmitter = require('../events/appEmitter');
 const rateLimit = require('express-rate-limit');
 const {
 	authenticate,
+	requirePasswordChanged,
 	loadAuthUser,
 	requireCsrfHeader,
 	requireAdmin,
@@ -66,6 +67,8 @@ router.post('/auth/logout', auth.logout);
 
 // ── Từ đây trở xuống: bắt buộc phải đăng nhập (access token hợp lệ) ─────
 router.use(authenticate);
+// Đang dùng mật khẩu tạm → chỉ được /auth/me và đổi mật khẩu của chính mình
+router.use(requirePasswordChanged);
 
 router.get('/auth/me', auth.me);
 
@@ -119,9 +122,10 @@ router.get('/subscribe', (req, res) => {
 	// Giữ kết nối mỗi 30s để không bị proxy/browser timeout; đồng thời kiểm
 	// tra lại phiên — tài khoản bị khoá/xoá, đổi mật khẩu hoặc phiên bị thu
 	// hồi/đăng xuất thì ngắt luồng realtime. (Access token hết hạn giữa chừng
-	// không ngắt — phiên vẫn được kiểm tra trực tiếp ở đây.)
+	// không ngắt — phiên vẫn được kiểm tra trực tiếp ở đây.) touch=false: tab
+	// chỉ mở sẵn không gia hạn phiên → vẫn hết hạn khi bỏ không (SESSION_IDLE_MINUTES).
 	const keepAlive = setInterval(() => {
-		Promise.all([loadAuthUser(userId), isSessionActive(jti, userId)])
+		Promise.all([loadAuthUser(userId), isSessionActive(jti, userId, { touch: false })])
 			.then(([user, sessionActive]) =>
 				user && user.pwf === pwf && sessionActive
 					? res.write(': ping\n\n')

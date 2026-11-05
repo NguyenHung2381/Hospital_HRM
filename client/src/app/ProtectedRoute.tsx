@@ -1,5 +1,6 @@
 import { DASHBOARD_ROLES } from '@/context/AuthRoles';
 import { useAuth } from '@/context/useAuth';
+import ForcePasswordChangePage from '@/modules/auth/pages/ForcePasswordChangePage';
 import { Navigate, Outlet } from 'react-router-dom';
 
 interface Props {
@@ -21,6 +22,10 @@ export default function ProtectedRoute({ requireDashboard = false, requireAdmin 
 				replace
 			/>
 		);
+
+	// Đang dùng mật khẩu tạm → phải đổi trước, chưa render trang nào khác
+	// (server cũng chặn API cho tới khi đổi xong)
+	if (user.mustChangePassword) return <ForcePasswordChangePage />;
 
 	// Vào dashboard nhưng không đủ quyền → về Trang-chu
 	if (requireDashboard && !DASHBOARD_ROLES.includes(user.vaiTro)) {

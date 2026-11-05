@@ -133,7 +133,8 @@ async function loadAuthUser(id_user) {
 
 	const pool = await getPool();
 	const result = await pool.request().input('id_user', sql.Int, id_user).query(`
-		SELECT u.id_user, u.username, u.password, u.status, r.id_role, r.name_role
+		SELECT u.id_user, u.username, u.password, u.status, u.must_change_password,
+			r.id_role, r.name_role
 		FROM Users u
 		LEFT JOIN Roles r ON r.id_role = u.id_role
 		WHERE u.id_user = @id_user
@@ -146,6 +147,7 @@ async function loadAuthUser(id_user) {
 					username: row.username,
 					id_role: row.id_role,
 					name_role: row.name_role,
+					mustChangePassword: !!row.must_change_password,
 					pwf: passwordFingerprint(row.password),
 				}
 			: null;
@@ -196,12 +198,31 @@ function authenticate(req, res, next) {
 				username: user.username,
 				id_role: user.id_role,
 				name_role: user.name_role,
+				mustChangePassword: user.mustChangePassword,
 			};
 			req.sessionToken = token;
 			req.sessionJti = payload.jti;
 			next();
 		})
 		.catch(next);
+}
+
+// ── Bắt buộc đổi mật khẩu ──────────────────────────────────────
+// Tài khoản đang dùng mật khẩu do quản trị đặt (mới tạo / vừa đặt lại) chỉ
+// được gọi đúng 2 API: xem thông tin của mình và đổi mật khẩu của mình. Mọi
+// API khác trả 403 PASSWORD_CHANGE_REQUIRED — chặn ở server, không chỉ ẩn giao
+// diện, để người cầm mật khẩu tạm (vd quản trị) không dùng được tài khoản.
+// Đặt SAU authenticate.
+function requirePasswordChanged(req, res, next) {
+	if (!req.user?.mustChangePassword) return next();
+	const path = req.path.replace(/\/+$/, '');
+	if (req.method === 'GET' && path === '/auth/me') return next();
+	if (req.method === 'PUT' && path === `/users/${req.user.id_user}/change-password`) return next();
+	return res.status(403).json({
+		success: false,
+		code: 'PASSWORD_CHANGE_REQUIRED',
+		message: 'Bạn cần đổi mật khẩu trước khi tiếp tục sử dụng hệ thống',
+	});
 }
 
 // ── Chống CSRF ─────────────────────────────────────────────────
@@ -286,6 +307,7 @@ module.exports = {
 	invalidateUserCache,
 	loadAuthUser,
 	authenticate,
+	requirePasswordChanged,
 	requireCsrfHeader,
 	isAdmin,
 	isDashboardRole,

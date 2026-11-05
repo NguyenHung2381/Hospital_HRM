@@ -75,6 +75,8 @@ export default function AccountFormModal({
 							<input
 								className='fi-input'
 								type='password'
+								autoComplete='new-password'
+								placeholder='Người dùng phải đổi ở lần đăng nhập đầu'
 								value={draft.password}
 								onChange={(e) =>
 									setDraft((p) => ({ ...p, password: e.target.value }))

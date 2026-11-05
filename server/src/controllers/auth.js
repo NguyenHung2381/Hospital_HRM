@@ -1,6 +1,12 @@
 const jwt = require('jsonwebtoken');
 const { getPool, sql } = require('../config/db');
-const { comparePassword, needsRehash, hashPassword } = require('../utils/password');
+const {
+	comparePassword,
+	needsRehash,
+	hashPassword,
+	isTempPasswordExpired,
+	TEMP_PASSWORD_TTL_HOURS,
+} = require('../utils/password');
 const {
 	createAuthSession,
 	signPreAuthToken,
@@ -39,6 +45,7 @@ const USER_SELECT = `
 		u.position, u.status, u.user_code,
 		u.failed_login_count, u.locked_until,
 		u.totp_enabled, u.totp_secret, u.totp_last_step,
+		u.must_change_password, u.password_changed_at,
 		d.id_department, d.name_department,
 		r.id_role, r.name_role, r.department_access_type
 	FROM Users u
@@ -54,9 +61,14 @@ function toSafeUser(found) {
 		totp_last_step: _tls,
 		failed_login_count: _flc,
 		locked_until: _lu,
+		password_changed_at: _pca,
 		...rest
 	} = found;
-	return { ...rest, totp_enabled: !!found.totp_enabled };
+	return {
+		...rest,
+		totp_enabled: !!found.totp_enabled,
+		must_change_password: !!found.must_change_password,
+	};
 }
 
 function lockedResponse(res, minutes) {
@@ -133,6 +145,17 @@ async function login(req, res, next) {
 				else await recordFailedAttempt(pool, req, found, 'sai mật khẩu');
 			}
 			return res.status(401).json({ success: false, message: INVALID_LOGIN_MESSAGE });
+		}
+
+		// Mật khẩu tạm do quản trị cấp đã quá hạn mà chưa đổi → không cho vào
+		// (kể cả bước 2FA), phải nhờ quản trị đặt lại. Không tính là lần sai.
+		if (isTempPasswordExpired(found)) {
+			audit(req, 'auth.login_temp_password_expired', { attempted_username: username.slice(0, 50) });
+			return res.status(403).json({
+				success: false,
+				code: 'TEMP_PASSWORD_EXPIRED',
+				message: `Mật khẩu tạm đã hết hạn (quá ${TEMP_PASSWORD_TTL_HOURS} giờ chưa đổi). Vui lòng liên hệ quản trị để được cấp lại.`,
+			});
 		}
 
 		recordLoginSuccess(req);

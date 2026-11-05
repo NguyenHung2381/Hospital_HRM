@@ -45,7 +45,8 @@ async function resetPassword(req, res, next) {
 			.input('password', sql.NVarChar(255), hashedPassword)
 			.query(
 				`UPDATE Users SET password = @password, failed_login_count = 0, locked_until = NULL,
-					lockout_level = 0, updated_at = now()
+					lockout_level = 0, must_change_password = true, password_changed_at = now(),
+					updated_at = now()
 				 WHERE id_user = @id`,
 			);
 		invalidateUserCache(target.id_user);
@@ -74,11 +75,18 @@ async function resetPassword(req, res, next) {
 	}
 }
 
-// PUT /api/users/:id/change-password — chỉ chính chủ (cần mật khẩu hiện tại)
+// PUT /api/users/:id/change-password — chỉ chính chủ (cần mật khẩu hiện tại,
+// kể cả khi đang dùng mật khẩu tạm). Đổi xong thì hết bắt buộc đổi mật khẩu.
 async function changePassword(req, res, next) {
 	try {
 		const { old_password, new_password } = req.body || {};
-		if (typeof old_password !== 'string' || typeof new_password !== 'string' || !old_password || !new_password)
+		if (
+			typeof old_password !== 'string' ||
+			typeof new_password !== 'string' ||
+			!old_password ||
+			!new_password ||
+			old_password.length > 200
+		)
 			return res
 				.status(400)
 				.json({ success: false, message: 'Thiếu mật khẩu cũ hoặc mới' });
@@ -120,7 +128,9 @@ async function changePassword(req, res, next) {
 			.input('id', sql.Int, req.params.id)
 			.input('new_password', sql.NVarChar(255), hashedNewPassword)
 			.query(
-				`UPDATE Users SET password = @new_password, updated_at = now() WHERE id_user = @id`,
+				`UPDATE Users SET password = @new_password, must_change_password = false,
+					password_changed_at = now(), updated_at = now()
+				 WHERE id_user = @id`,
 			);
 		invalidateUserCache(found.id_user);
 

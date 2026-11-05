@@ -39,7 +39,7 @@ const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 const { getPool } = require('./config/db');
 const { checkSchemaAndCleanup } = require('./config/schemaCheck');
-const { authenticate, requireDashboardRole } = require('./middleware/auth');
+const { authenticate, requirePasswordChanged, requireDashboardRole } = require('./middleware/auth');
 const { requestLogger, logError } = require('./utils/auditLog');
 const { pruneOldLogs, RETENTION_DAYS } = require('./services/logReader');
 
@@ -98,7 +98,7 @@ app.use('/api', (req, res) =>
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // Health check – database (lộ thông tin server/version DB → chỉ cho vai trò dashboard)
-app.get('/health/db', authenticate, requireDashboardRole, async (req, res) => {
+app.get('/health/db', authenticate, requirePasswordChanged, requireDashboardRole, async (req, res) => {
 	try {
 		const pool = await getPool();
 		const result = await pool.request().query(`

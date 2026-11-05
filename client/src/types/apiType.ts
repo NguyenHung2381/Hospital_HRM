@@ -27,6 +27,8 @@ export interface ApiUser {
 	totp_enabled?: boolean;
 	/** Đang bị khoá tạm do đăng nhập sai nhiều lần */
 	is_locked?: boolean;
+	/** Đang dùng mật khẩu do quản trị đặt → phải đổi trước khi dùng hệ thống */
+	must_change_password?: boolean;
 }
 
 export interface ApiRole {

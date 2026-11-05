@@ -40,6 +40,18 @@ function comparePassword(plain, stored) {
 	return Promise.resolve(a.length === b.length && crypto.timingSafeEqual(a, b));
 }
 
+// Mật khẩu "đạt luật" (≥ 8 ký tự, có chữ + số) nhưng nằm đầu mọi danh sách
+// dò mật khẩu, hoặc gắn với tên bệnh viện/hệ thống → chặn. So sánh viết thường.
+const COMMON_PASSWORDS = new Set([
+	'password1', 'password12', 'password123', 'passw0rd', 'p@ssw0rd1',
+	'12345678a', '123456789a', 'a12345678', 'a123456789', 'abc12345', 'abc123456',
+	'abcd1234', '1234abcd', 'qwerty123', 'qwerty12', 'qwe12345', '1qaz2wsx',
+	'aa123456', '123456aa', 'iloveyou1', 'admin123', 'admin1234', 'admin12345',
+	'test1234', 'user1234', 'welcome1', 'changeme1', 'matkhau1', 'matkhau123',
+	'matkhau12', 'benhvien1', 'benhvien123', 'hospital1', 'hospital123', 'hrm12345',
+	'bvhndk123', 'nghean123', 'dieuduong1', 'dieuduong123',
+]);
+
 // Trả về thông báo lỗi nếu mật khẩu không đạt chính sách, ngược lại null.
 function validatePasswordPolicy(password, { username } = {}) {
 	if (typeof password !== 'string' || password.length < PASSWORD_MIN_LENGTH)
@@ -48,9 +60,31 @@ function validatePasswordPolicy(password, { username } = {}) {
 		return `Mật khẩu quá dài (tối đa ${PASSWORD_MAX_BYTES} byte)`;
 	if (!/[A-Za-z]/.test(password) || !/\d/.test(password))
 		return 'Mật khẩu phải gồm cả chữ và số';
-	if (username && password.toLowerCase() === String(username).toLowerCase())
-		return 'Mật khẩu không được trùng tên đăng nhập';
+	const lower = password.toLowerCase();
+	const name = String(username || '').toLowerCase();
+	// Tên đăng nhập ≥ 3 ký tự nằm trong mật khẩu (vd "nguyenvana123") → dễ đoán
+	if (name && (lower === name || (name.length >= 3 && lower.includes(name))))
+		return 'Mật khẩu không được chứa tên đăng nhập';
+	if (COMMON_PASSWORDS.has(lower))
+		return 'Mật khẩu quá phổ biến, dễ bị dò ra. Hãy chọn mật khẩu khác';
+	// 1 ký tự lặp ≥ 4 lần liên tiếp (vd "aaaa1111")
+	if (/(.)\1{3,}/.test(password))
+		return 'Mật khẩu không được có 1 ký tự lặp lại 4 lần liên tiếp';
 	return null;
+}
+
+// Mật khẩu do quản trị đặt (tạo tài khoản / đặt lại) chỉ dùng được trong
+// TEMP_PASSWORD_TTL_HOURS kể từ lúc đặt; quá hạn mà chưa đổi thì không đăng
+// nhập được nữa, phải nhờ quản trị cấp lại. 0 = không giới hạn.
+const TEMP_PASSWORD_TTL_HOURS = (() => {
+	const n = Number(process.env.TEMP_PASSWORD_TTL_HOURS ?? 72);
+	return Number.isFinite(n) && n >= 0 ? n : 72;
+})();
+
+function isTempPasswordExpired(user, now = Date.now()) {
+	if (!user?.must_change_password || !TEMP_PASSWORD_TTL_HOURS || !user.password_changed_at)
+		return false;
+	return now - new Date(user.password_changed_at).getTime() > TEMP_PASSWORD_TTL_HOURS * 3600 * 1000;
 }
 
 // Mật khẩu tạm ngẫu nhiên (dùng khi quản trị đặt lại mật khẩu), luôn thoả
@@ -68,7 +102,9 @@ function generateTempPassword(length = 12) {
 		const j = crypto.randomInt(i + 1);
 		[chars[i], chars[j]] = [chars[j], chars[i]];
 	}
-	return chars.join('');
+	const result = chars.join('');
+	// Rất hiếm khi trúng luật "ký tự lặp" → sinh lại
+	return validatePasswordPolicy(result) ? generateTempPassword(length) : result;
 }
 
 module.exports = {
@@ -80,4 +116,6 @@ module.exports = {
 	comparePassword,
 	validatePasswordPolicy,
 	generateTempPassword,
+	TEMP_PASSWORD_TTL_HOURS,
+	isTempPasswordExpired,
 };

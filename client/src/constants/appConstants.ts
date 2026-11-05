@@ -56,3 +56,6 @@ export const defaultReportConfig = (): ReportConfig => ({
 	rFrom: toLocalYMD(new Date(Date.now() - 7 * 86_400_000)),
 	rTo: toLocalYMD(new Date()),
 });
+
+/** Interceptor phát sự kiện này khi server trả 403 PASSWORD_CHANGE_REQUIRED */
+export const PASSWORD_CHANGE_REQUIRED_EVENT = 'hrm:password-change-required';

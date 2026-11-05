@@ -15,6 +15,8 @@ export interface UserAccount {
 	vaiTro: RoleType;
 	trangThai: StatusType;
 	department_access_type: DepartmentAccessType;
+	/** Phải đổi mật khẩu (mật khẩu tạm do quản trị cấp) trước khi dùng hệ thống */
+	mustChangePassword?: boolean;
 }
 
 export interface DeptPerm {
