@@ -34,7 +34,7 @@ services:
       - "host.docker.internal:host-gateway"
     # Chỉ loopback — để gọi API trực tiếp (Postman...) khi debug
     ports:
-      - "127.0.0.1:${DEV_API_PORT:-3002}:3000"
+      - "127.0.0.1:${DEV_API_PORT:-3000}:3000"
     volumes:
       - ./server:/app/server
       # Giữ node_modules cài trong image (Linux), không để thư mục của máy
