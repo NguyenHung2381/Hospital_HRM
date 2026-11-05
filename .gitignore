@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 .claude/
+# Skill AI cài cục bộ (taste-skill ~38MB) và file khoá của nó — công cụ, không phải mã app
+.agents/
+skills-lock.json
 .pnp
 .pnp.js
 
