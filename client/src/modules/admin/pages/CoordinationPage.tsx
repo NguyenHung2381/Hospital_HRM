@@ -1,4 +1,5 @@
-import { CalendarDays, Plus } from 'lucide-react';
+import { ArrowLeftRight, CalendarDays, ClipboardList, Plus } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 import { useAuth } from '@/context/useAuth';
 import { useAppSSE } from '@/hooks/useAppSSE';
 import { useReportData } from '@/hooks/useReportData';
@@ -7,6 +8,7 @@ import type { KhoaRecord } from '@/types/reportType';
 import { formatDateToVN, getTodayDateString } from '@/utils/dateUtils';
 import { toKhoaRecord } from '@/utils/staffingCalc';
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import CreateCoordinationModal from '../components/modal/CreateCoordinationModal';
 import PageHeader from '../components/PageHeader';
 import CoordinationHistoryTable from './CoordinationHistoryTable';
@@ -163,14 +165,26 @@ export default function CoordinationPage() {
 			</PageHeader>
 
 			{loadingReport ? (
-				<div style={{ textAlign: 'center', padding: 48, color: 'var(--color-gray-400)' }}>
-					Đang tải dữ liệu...
-				</div>
+				<EmptyState
+					card
+					loading
+					title='Đang tải dữ liệu...'
+				/>
 			) : !report ? (
-				<div style={{ textAlign: 'center', padding: 48, color: 'var(--color-gray-400)' }}>
-					Chưa có báo cáo ngày {formatDateToVN(selDate)}. Vui lòng nhập số liệu
-					ngày này trước khi điều phối.
-				</div>
+				<EmptyState
+					card
+					icon={ArrowLeftRight}
+					title={`Chưa có báo cáo ngày ${formatDateToVN(selDate)}`}
+					sub='Cần nhập số liệu nhân lực của ngày này trước khi điều phối giữa các khoa.'
+					action={
+						<Link
+							className='btn-primary'
+							to='/dashboard/data'
+						>
+							<ClipboardList size={15} /> Đến trang nhập số liệu
+						</Link>
+					}
+				/>
 			) : (
 				<>
 					<ShortageBoard

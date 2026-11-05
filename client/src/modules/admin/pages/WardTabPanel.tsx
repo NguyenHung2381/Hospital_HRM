@@ -1,4 +1,5 @@
-import { ClipboardList, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 import type { ApiRecord, ApiReport } from '@/types/apiType';
 import type { KhoaRecord } from '@/types/reportType';
 import { formatDateToVN } from '@/utils/dateUtils';
@@ -113,35 +114,23 @@ export default function WardTabPanel({
 						onWheel={onTableWheel}
 					>
 						{loadingReport ? (
-							<div
-								style={{
-									textAlign: 'center',
-									padding: '60px',
-									color: 'var(--mut)',
-									fontSize: 'var(--fs-md)',
-								}}
-							>
-								Đang tải dữ liệu...
-							</div>
+							<EmptyState
+								loading
+								title='Đang tải dữ liệu...'
+							/>
 						) : !report ? (
-							<div style={{ textAlign: 'center', padding: '60px' }}>
-								<ClipboardList size={36} strokeWidth={1.5} style={{ color: 'var(--color-gray-400)', marginBottom: 8 }} />
-								<p
-									style={{
-										color: 'var(--mut)',
-										fontSize: 'var(--fs-md)',
-										marginBottom: 16,
-									}}
-								>
-									Chưa có báo cáo cho ngày {formatDateToVN(selDate)}
-								</p>
-								<button
-									className='btn-primary'
-									onClick={onOpenCreateReport}
-								>
-									<Plus size={15} /> Tạo báo cáo ngày này
-								</button>
-							</div>
+							<EmptyState
+								title={`Chưa có báo cáo cho ngày ${formatDateToVN(selDate)}`}
+								sub='Tạo báo cáo để nhập số liệu nhân lực của các khoa nội trú.'
+								action={
+									<button
+										className='btn-primary'
+										onClick={onOpenCreateReport}
+									>
+										<Plus size={15} /> Tạo báo cáo ngày này
+									</button>
+								}
+							/>
 						) : (
 							<WardTable
 								filtered={filtered}

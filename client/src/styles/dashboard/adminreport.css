@@ -16,14 +16,14 @@
 /* ── Layout 2 cột ── */
 .rp-body {
 	display: grid;
-	grid-template-columns: 360px 1fr;
+	grid-template-columns: 360px minmax(0, 1fr);
 	gap: 16px;
 	align-items: start;
 	margin-top: 16px;
 }
 @media (max-width: 860px) {
 	.rp-body {
-		grid-template-columns: 1fr;
+		grid-template-columns: minmax(0, 1fr);
 	}
 }
 

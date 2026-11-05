@@ -1,6 +1,7 @@
 import CheckIcon from '@/assets/svg/CheckIcon';
 import PlusIcon from '@/assets/svg/PlusIcon';
 import ModalForm from '@/components/common/ModalForm';
+import { Lock } from 'lucide-react';
 import useRoles from '@/hooks/useRoles';
 import { useRolePermissions } from '@/hooks/useRolePermissions';
 import type { ApiRole } from '@/types/apiType';
@@ -183,8 +184,14 @@ export default function PermissionPage() {
 				className='perm-note'
 				style={{ marginTop: 4 }}
 			>
-				* Vai trò hệ thống () không thể sửa hoặc xoá. Phân khoa theo từng
-				người dùng được quản lý trong trang Tài khoản.
+				* Vai trò hệ thống (
+				<Lock
+					size={11}
+					aria-label='khoá'
+					style={{ verticalAlign: '-1px' }}
+				/>
+				) không thể sửa hoặc xoá. Phân khoa theo từng người dùng được quản lý
+				trong trang Tài khoản.
 			</p>
 		</div>
 	);

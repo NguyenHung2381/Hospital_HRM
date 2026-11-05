@@ -13,31 +13,26 @@ export const buildStripItems = (
 	totalKhuyenNghi: number,
 	totalKC: number,
 ): StripItem[] => {
-	const diLamColor =
-		totalDL < totalKC
-			? 'var(--color-error)' // đỏ — thiếu
-			: totalDL === totalKC
-				? 'var(--blue)' // xanh — đúng chuẩn
-				: 'var(--p)'; // xanh lá — dư
-
-	const diLamBg =
-		totalDL < totalKC ? 'var(--color-error-bg)' : totalDL === totalKC ? 'var(--color-info-bg)' : 'var(--color-primary-pale)';
+	// Đi làm: đỏ khi thiếu so với định mức, còn lại màu nhóm nhân lực
+	const short = totalDL < totalKC;
+	const diLamColor = short ? 'var(--color-error)' : 'var(--grp-nl-fg)';
+	const diLamBg = short ? 'var(--color-error-bg)' : 'var(--grp-nl-bg)';
 
 	return [
-		{ label: 'Người bệnh', val: totalNB, color: 'var(--blue)', bg: 'var(--color-info-bg)' },
-		{ label: 'Nhân lực', val: totalNL, color: 'var(--teal)', bg: 'var(--teal-l)' },
+		{ label: 'Người bệnh', val: totalNB, color: 'var(--grp-nb-fg)', bg: 'var(--grp-nb-bg)' },
+		{ label: 'Nhân lực', val: totalNL, color: 'var(--grp-nl-fg)', bg: 'var(--grp-nl-bg)' },
 		{ label: 'Đi làm', val: totalDL, color: diLamColor, bg: diLamBg },
 		{
 			label: 'KC theo TT03',
 			val: totalTT03.toFixed(1),
-			color: 'var(--purple)',
-			bg: 'var(--purple-l)',
+			color: 'var(--grp-kc-fg)',
+			bg: 'var(--grp-kc-bg)',
 		},
 		{
 			label: 'Khuyến nghị',
 			val: totalKhuyenNghi > 0 ? totalKhuyenNghi.toFixed(1) : '—',
-			color: '#0369a1',
-			bg: '#f0f9ff',
+			color: 'var(--grp-kc-fg)',
+			bg: 'var(--grp-kc-bg)',
 		},
 	];
 };

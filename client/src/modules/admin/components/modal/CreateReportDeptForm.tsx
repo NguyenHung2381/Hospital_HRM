@@ -38,7 +38,7 @@ export default function CreateReportDeptForm({
 				{dept.name_department}
 			</p>
 
-			<div className='msec'>
+			<div className='msec msec--nb'>
 				<p className='msec-title'>Số người bệnh</p>
 				<div className='mrow3'>
 					<NumberInput
@@ -66,7 +66,7 @@ export default function CreateReportDeptForm({
 				</div>
 			</div>
 
-			<div className='msec'>
+			<div className='msec msec--nl'>
 				<p className='msec-title'>Nhân lực</p>
 				<div className='mrow3'>
 					<NumberInput

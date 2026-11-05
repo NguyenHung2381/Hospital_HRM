@@ -68,7 +68,7 @@ export default function DepartmentPage() {
 					{
 						label: 'Tổng khoa',
 						val: depts.length,
-						color: 'var(--color-gray-800)',
+						color: 'var(--grp-dp-fg)',
 						bg: 'var(--color-gray-50)',
 					},
 					{
@@ -80,19 +80,19 @@ export default function DepartmentPage() {
 					{
 						label: 'Tạm dừng',
 						val: inactiveCount,
-						color: 'var(--color-warning)',
+						color: inactiveCount > 0 ? 'var(--color-warning)' : 'var(--mut)',
 						bg: 'var(--color-warning-bg)',
 					},
 					{
 						label: 'Có cấu hình TT03',
 						val: depts.filter((k) => k.formula_type !== null).length,
-						color: 'var(--color-info)',
+						color: 'var(--grp-kc-fg)',
 						bg: 'var(--color-info-bg)',
 					},
 					{
 						label: 'Có cấu hình KN',
 						val: depts.filter((k) => k.rec_formula_type !== null).length,
-						color: 'var(--purple)',
+						color: 'var(--teal)',
 						bg: 'var(--purple-l)',
 					},
 				].map((s) => (

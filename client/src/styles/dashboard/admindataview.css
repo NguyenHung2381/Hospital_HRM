@@ -492,6 +492,27 @@
 .dv-strip-card:first-child {
 	border-left: none;
 }
+/* Vạch màu nhóm trên đỉnh mỗi ô số liệu */
+.dv-strip-card {
+	box-shadow: inset 0 3px 0 var(--sc, transparent);
+}
+@media (max-width: 560px) {
+	.dv-strip {
+		grid-auto-flow: row;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1px;
+		overflow: hidden;
+		background: var(--bdr);
+	}
+	.dv-strip-card {
+		border-left: none;
+		background: var(--sur);
+		padding: 12px 14px;
+	}
+	.dv-strip-card:last-child:nth-child(odd) {
+		grid-column: span 2;
+	}
+}
 
 .dv-sc-val {
 	font-size: var(--fs-num);
@@ -744,17 +765,37 @@
 	line-height: 1.35;
 }
 
-/* Nhóm cột: nền xám trung tính, phân tách bằng viền mảnh (bỏ màu theo nhóm) */
+/* Nhóm cột: mỗi nhóm một màu (tokens --grp-*), vạch màu 3px trên đỉnh
+   để nhận ra nhóm ngay cả khi cuộn ngang mất tiêu đề gộp */
 .dv-grp-nb,
 .dv-grp-nb2,
 .dv-grp-nl,
 .dv-grp-kc,
 .dv-grp-dp {
-	background: var(--color-gray-100) !important;
-	color: var(--color-gray-700) !important;
+	--g-fg: var(--grp-nb-fg);
+	--g-bar: var(--grp-nb-bar);
+	--g-bg: var(--grp-nb-bg);
+	background: var(--g-bg) !important;
+	color: var(--g-fg) !important;
+	box-shadow: inset 0 3px 0 var(--g-bar);
 	border-bottom: 1px solid var(--color-gray-300) !important;
 	border-right: 1px solid var(--color-gray-300) !important;
 	font-weight: 600 !important;
+}
+.dv-grp-nl {
+	--g-fg: var(--grp-nl-fg);
+	--g-bar: var(--grp-nl-bar);
+	--g-bg: var(--grp-nl-bg);
+}
+.dv-grp-kc {
+	--g-fg: var(--grp-kc-fg);
+	--g-bar: var(--grp-kc-bar);
+	--g-bg: var(--grp-kc-bg);
+}
+.dv-grp-dp {
+	--g-fg: var(--grp-dp-fg);
+	--g-bar: var(--grp-dp-bar);
+	--g-bg: var(--grp-dp-bg);
 }
 
 .dv-sub-nb,
@@ -768,9 +809,14 @@
 	vertical-align: middle;
 	font-size: var(--fs-xs);
 	background: var(--color-gray-50) !important;
-	color: var(--color-gray-600) !important;
+	background-image: linear-gradient(var(--grp-nb-tint), var(--grp-nb-tint)) !important;
+	color: var(--grp-nb-fg) !important;
 	font-weight: 500;
 	border-right: 1px solid var(--color-gray-200) !important;
+}
+.dv-sub-nl {
+	background-image: linear-gradient(var(--grp-nl-tint), var(--grp-nl-tint)) !important;
+	color: var(--grp-nl-fg) !important;
 }
 .dv-sub-nb:last-of-type,
 .dv-sub-nl:last-of-type {
@@ -831,10 +877,32 @@
 	border-right: 1px solid var(--color-gray-300) !important;
 	box-shadow: 4px 0 8px -4px rgba(13, 24, 32, 0.08);
 }
+/* Ô dữ liệu theo nhóm: phủ màu nhóm rất nhạt bằng background-image để
+   vẫn chồng lên được nền sọc / hover (các rule đó chỉ đổi background-color) */
 .dv-td-nb,
 .dv-td-nl,
 .dv-td-kc {
 	color: var(--txt);
+}
+.dv-tbl .dv-td-nb {
+	background-image: linear-gradient(var(--grp-nb-tint), var(--grp-nb-tint));
+}
+.dv-tbl .dv-td-nl {
+	background-image: linear-gradient(var(--grp-nl-tint), var(--grp-nl-tint));
+}
+.dv-tbl .dv-td-kc {
+	background-image: linear-gradient(var(--grp-kc-tint), var(--grp-kc-tint));
+}
+/* Số tổng của nhóm mang màu nhóm */
+.dv-td-nb.dv-td-bold {
+	color: var(--grp-nb-fg);
+}
+.dv-td-nl.dv-td-bold {
+	color: var(--grp-nl-fg);
+}
+.dv-td-kc {
+	color: var(--grp-kc-fg);
+	font-weight: 500;
 }
 .dv-td-nb.dv-td-bold,
 .dv-td-nl.dv-td-bold {
@@ -898,20 +966,21 @@
 	transition: background 0.15s ease;
 }
 .dv-tbl tbody tr td {
-	background: #ffffff;
+	background-color: #ffffff;
 }
+/* background-color (không phải shorthand background) để giữ lớp màu nhóm */
 .dv-tbl tbody tr:hover td {
-	background: var(--color-gray-50) !important;
+	background-color: var(--color-gray-100) !important;
 }
 .dv-tbl tbody tr:hover .dv-td-sticky {
-	background: var(--color-gray-50) !important;
+	background-color: var(--color-gray-100) !important;
 }
 
 .dv-tr-alt td {
-	background: var(--color-gray-50) !important;
+	background-color: var(--color-gray-50) !important;
 }
 .dv-tr-alt .dv-td-sticky {
-	background: var(--color-gray-50) !important;
+	background-color: var(--color-gray-50) !important;
 }
 
 /* Thiếu nhân lực → viền trái đỏ nhạt, hover nhạt */
@@ -919,10 +988,10 @@
 	border-left: 3px solid var(--color-error) !important;
 }
 .dv-tr-deficit:hover td {
-	background: var(--color-error-bg) !important;
+	background-color: var(--color-error-bg) !important;
 }
 .dv-tr-deficit:hover .dv-td-sticky {
-	background: var(--color-error-bg) !important;
+	background-color: var(--color-error-bg) !important;
 }
 
 /* Dư nhân lực → viền trái xanh lá, hover nhạt */
@@ -930,15 +999,15 @@
 	border-left: 3px solid var(--p) !important;
 }
 .dv-tr-surplus:hover td {
-	background: var(--color-primary-pale) !important;
+	background-color: var(--color-primary-pale) !important;
 }
 .dv-tr-surplus:hover .dv-td-sticky {
-	background: var(--color-primary-pale) !important;
+	background-color: var(--color-primary-pale) !important;
 }
 
 /* Footer tổng cộng */
 .dv-tfoot td {
-	background: var(--color-gray-100) !important;
+	background-color: var(--color-gray-100) !important;
 	font-weight: 600 !important;
 	font-size: var(--fs-sm);
 	color: var(--txt);
@@ -980,6 +1049,9 @@
 		height: 100dvh !important;
 		transform: translateX(-100%);
 		transition: transform 0.25s ease;
+	}
+	/* Bóng chỉ khi drawer mở — lúc đóng, bóng tràn vào mép trái màn hình */
+	.dv-aside.dv-aside-open {
 		box-shadow: 4px 0 24px rgba(13, 24, 32, 0.15);
 	}
 
@@ -1023,6 +1095,10 @@
 }
 
 @media (max-width: 560px) {
+	/* .pg-hdr chuyển sang cột ở 560px — giữ căn trái thay vì căn giữa */
+	.dv-hero-card .pg-hdr {
+		align-items: stretch;
+	}
 	.dv-tbl-wrap {
 		border-radius: 8px;
 	}

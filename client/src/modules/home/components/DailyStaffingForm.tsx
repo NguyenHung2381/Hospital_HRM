@@ -72,7 +72,7 @@ export default function DailyStaffingForm({
 				/>
 
 				{/* Người bệnh */}
-				<div className='msec'>
+				<div className='msec msec--nb'>
 					<p className='msec-title'>Số người bệnh theo cấp độ</p>
 					<div className='cap-hint-row'>
 						<span className='cap-hint cap-hint-red'>
@@ -125,7 +125,7 @@ export default function DailyStaffingForm({
 				</div>
 
 				{/* Nhân lực */}
-				<div className='msec'>
+				<div className='msec msec--nl'>
 					<p className='msec-title'>Nhân lực ĐD - Hộ sinh - KTV</p>
 					<div className='mrow3'>
 						<NumberInput

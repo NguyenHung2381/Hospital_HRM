@@ -457,8 +457,10 @@
 	color: var(--acc);
 	font-weight: 700;
 }
+/* Vòng hồng vẽ BÊN TRONG ô (inset): bóng ngoài bị ô bên phải / hàng dưới
+   (nền trắng, vẽ sau) đè mất mép phải và mép dưới */
 .cal-today.cal-active {
-	box-shadow: 0 0 0 2px var(--sur), 0 0 0 3.5px var(--acc);
+	box-shadow: inset 0 0 0 2px var(--acc), inset 0 0 0 4px var(--sur);
 }
 .cal-active {
 	background: var(--p) !important;
@@ -578,6 +580,23 @@
 .empty-sub {
 	font-size: var(--fs-sm);
 	color: var(--mut);
+	max-width: 420px;
+	text-align: center;
+	line-height: 1.5;
+}
+.empty-title {
+	text-align: center;
+}
+.empty-action {
+	margin-top: 6px;
+}
+/* Đứng riêng trên nền trang (không nằm trong bảng/thẻ có sẵn) */
+.empty--card {
+	flex: none;
+	background: var(--sur);
+	border: 1px solid var(--bdr);
+	border-radius: var(--r);
+	padding: 56px 20px;
 }
 
 /* ── Lock Banner ── */
@@ -680,6 +699,46 @@
 	font-weight: 600;
 	line-height: 1.1;
 	letter-spacing: -0.01em;
+	color: var(--a-fg, var(--txt));
+}
+/* Thẻ số liệu theo nhóm (tokens --grp-*): icon nền màu nhóm, số màu nhóm,
+   vạch màu bên trái — nb người bệnh/KLCV · nl nhân lực · kc định mức */
+.stat {
+	box-shadow: inset 3px 0 0 var(--a-bar, transparent);
+}
+.stat .stat-icon {
+	background: var(--a-bg, var(--color-gray-100));
+	color: var(--a-fg, var(--color-gray-500));
+}
+.a-nb {
+	--a-fg: var(--grp-nb-fg);
+	--a-bg: var(--grp-nb-bg);
+	--a-bar: var(--grp-nb-bar);
+}
+.a-nl {
+	--a-fg: var(--grp-nl-fg);
+	--a-bg: var(--grp-nl-bg);
+	--a-bar: var(--grp-nl-bar);
+}
+.a-kc {
+	--a-fg: var(--grp-kc-fg);
+	--a-bg: var(--grp-kc-bg);
+	--a-bar: var(--grp-kc-bar);
+}
+.a-surplus {
+	--a-fg: var(--pd);
+	--a-bg: var(--color-primary-pale);
+	--a-bar: var(--p);
+}
+.a-deficit {
+	--a-fg: var(--color-error-dark);
+	--a-bg: var(--color-error-bg);
+	--a-bar: var(--color-error);
+}
+.a-balanced {
+	--a-fg: var(--grp-dp-fg);
+	--a-bg: var(--grp-dp-bg);
+	--a-bar: var(--grp-dp-bar);
 }
 .stat-lbl {
 	font-size: var(--fs-sm);
@@ -713,8 +772,44 @@
 	letter-spacing: -0.01em;
 }
 .dcard-title svg {
-	color: var(--mut);
+	color: var(--g-fg, var(--mut));
 	flex-shrink: 0;
+}
+/* Thẻ chi tiết theo nhóm: vạch màu trên đỉnh + icon tiêu đề màu nhóm */
+.dcard--nb,
+.dcard--nl,
+.dcard--kc {
+	box-shadow: inset 0 3px 0 var(--g-bar);
+}
+.dcard--nb {
+	--g-fg: var(--grp-nb-fg);
+	--g-bar: var(--grp-nb-bar);
+	--g-bg: var(--grp-nb-bg);
+}
+.dcard--nl {
+	--g-fg: var(--grp-nl-fg);
+	--g-bar: var(--grp-nl-bar);
+	--g-bg: var(--grp-nl-bg);
+}
+.dcard--kc {
+	--g-fg: var(--grp-kc-fg);
+	--g-bar: var(--grp-kc-bar);
+	--g-bg: var(--grp-kc-bg);
+}
+.dcard--nb .nb-total-val {
+	color: var(--grp-nb-fg);
+}
+/* Ô nhân lực / kết quả khuyến cáo: nền nhạt màu nhóm */
+.dcard--nl .nl-box,
+.dcard--kc .kc-result {
+	background: color-mix(in srgb, var(--g-bg) 45%, var(--sur));
+	border-color: color-mix(in srgb, var(--g-bar) 22%, var(--sur));
+}
+.dcard--nl .nl-total .nl-num {
+	color: var(--grp-nl-fg);
+}
+.dcard--kc .kc-result-val {
+	color: var(--grp-kc-fg);
 }
 .dcard-formula {
 	font-size: var(--fs-xs);
@@ -965,8 +1060,9 @@
 /* TT03 Preview (in form)        */
 /* ============================= */
 .tt03-preview {
-	background: var(--color-gray-50);
-	border: 1px solid var(--bdr);
+	/* Kết quả định mức → màu nhóm kc (hổ phách) */
+	background: var(--sur);
+	border: 1px solid color-mix(in srgb, var(--grp-kc-bar) 35%, var(--sur));
 	border-radius: var(--rs);
 	overflow: hidden;
 }
@@ -975,11 +1071,11 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 8px 12px;
-	background: var(--color-primary-pale);
-	border-bottom: 1px solid var(--bdr);
+	background: var(--grp-kc-bg);
+	border-bottom: 1px solid color-mix(in srgb, var(--grp-kc-bar) 35%, var(--sur));
 	font-size: var(--fs-xs);
 	font-weight: 700;
-	color: var(--txt);
+	color: var(--grp-kc-fg);
 }
 .tt03-preview-loading {
 	font-size: var(--fs-xs);
@@ -1053,7 +1149,7 @@
 .tt03-preview-kc {
 	font-size: var(--fs-h3);
 	font-weight: 700;
-	color: var(--p);
+	color: var(--grp-kc-fg);
 	letter-spacing: -0.02em;
 }
 .tt03-preview-dp {

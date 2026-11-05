@@ -78,6 +78,30 @@
 	--green: var(--color-success);
 	--gray-l: var(--color-gray-100);
 
+	/* Nhóm trường số liệu — một màu cho mỗi loại thông tin, dùng chung cho
+	   bảng, thẻ, form nhập để mắt nhận ra nhóm trước khi đọc nhãn:
+	     nb = người bệnh / khối lượng công việc (cầu)  → xanh dương
+	     nl = nhân lực ĐD-HS-KTV (cung)                → xanh lá
+	     kc = định mức TT03 / khuyến cáo               → hổ phách
+	     dp = điều phối                                 → xanh thép
+	   *-fg: chữ/số (≥4.5:1 trên nền trắng và nền -bg) · *-bg: nền tiêu đề nhóm
+	   *-tint: phủ mờ lên ô dữ liệu (rgba để chồng được lên sọc/hover) */
+	--grp-nb-fg: #1b5fb4;
+	--grp-nb-bar: #2b78d4;
+	--grp-nb-bg: #e4eefb;
+	--grp-nb-tint: rgba(43, 120, 212, 0.05);
+	--grp-nl-fg: #066b32;
+	--grp-nl-bar: #08853f;
+	--grp-nl-bg: #e0f2e7;
+	--grp-nl-tint: rgba(8, 133, 63, 0.05);
+	--grp-kc-fg: #8a5700;
+	--grp-kc-bar: #d99a1e;
+	--grp-kc-bg: #fbefd5;
+	--grp-kc-tint: rgba(217, 154, 30, 0.08);
+	--grp-dp-fg: #3d5a80;
+	--grp-dp-bar: #5b7aa3;
+	--grp-dp-bg: #e8eef6;
+
 	/* Layout */
 	--nav-w: 232px;
 	/* Sidebar: xanh rừng đậm, phẳng — chữ trắng đạt ~10:1, nền đủ trầm để

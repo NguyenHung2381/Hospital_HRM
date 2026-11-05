@@ -1,4 +1,5 @@
-import { ClipboardList, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 import type { ApiClsRecord, ApiReport } from '@/types/apiType';
 import type { KhoaClsRecord } from '@/types/clsType';
 import { formatDateToVN } from '@/utils/dateUtils';
@@ -98,37 +99,27 @@ export default function ClsTabPanel({
 			)}
 
 			{loadingReport ? (
-				<div
-					style={{
-						textAlign: 'center',
-						padding: '60px',
-						color: 'var(--mut)',
-						fontSize: 'var(--fs-md)',
-					}}
-				>
-					Đang tải dữ liệu...
-				</div>
+				<EmptyState
+					card
+					loading
+					title='Đang tải dữ liệu...'
+				/>
 			) : !report ? (
-				<div style={{ textAlign: 'center', padding: '60px' }}>
-					<ClipboardList size={36} strokeWidth={1.5} style={{ color: 'var(--color-gray-400)', marginBottom: 8 }} />
-					<p
-						style={{
-							color: 'var(--mut)',
-							fontSize: 'var(--fs-md)',
-							marginBottom: 16,
-						}}
-					>
-						Chưa có báo cáo cho ngày {formatDateToVN(selDate)}
-					</p>
-					{onOpenCreateReport && (
-						<button
-							className='btn-primary'
-							onClick={onOpenCreateReport}
-						>
-							<Plus size={15} /> Tạo báo cáo ngày này
-						</button>
-					)}
-				</div>
+				<EmptyState
+					card
+					title={`Chưa có báo cáo cho ngày ${formatDateToVN(selDate)}`}
+					sub='Tạo báo cáo để nhập số liệu của Hệ Cận lâm sàng.'
+					action={
+						onOpenCreateReport && (
+							<button
+								className='btn-primary'
+								onClick={onOpenCreateReport}
+							>
+								<Plus size={15} /> Tạo báo cáo ngày này
+							</button>
+						)
+					}
+				/>
 			) : (
 				<div
 					className='dv-tbl-wrap'

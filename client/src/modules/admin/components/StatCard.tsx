@@ -1,12 +1,5 @@
 import type { ReactNode } from 'react';
 
-const SEMANTIC_TONES = new Set([
-	'var(--color-error)',
-	'var(--color-error-dark)',
-	'var(--color-warning)',
-	'var(--red)',
-]);
-
 interface StatCardProps {
 	label: string;
 	value: string | number;
@@ -26,9 +19,9 @@ export default function StatCard({
 	bgColor,
 	className = 'dept-stat-card',
 }: StatCardProps) {
-	// Chỉ giữ màu khi mang ý nghĩa cảnh báo (đỏ / vàng); còn lại dùng màu chữ
-	// trung tính để các ô số liệu không bị "loè loẹt".
-	const tone = SEMANTIC_TONES.has(textColor) ? textColor : 'var(--txt)';
+	// Màu số = màu nhóm thông tin (tokens --grp-*) hoặc màu cảnh báo do nơi
+	// gọi truyền vào — CSS dùng thêm làm vạch nhấn trên đỉnh thẻ.
+	const tone = textColor;
 	const style = {
 		'--dc': tone,
 		'--db': bgColor,

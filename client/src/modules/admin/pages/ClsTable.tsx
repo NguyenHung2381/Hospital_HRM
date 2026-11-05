@@ -243,9 +243,9 @@ export default function ClsTable({
 								<td className={cellCls(applicable, 'toolPlastic')}>
 									{n(r.tonCho.toolPlastic)}
 								</td>
-								<td className='dv-td dv-td-c'>{n(r.nlTong)}</td>
-								<td className='dv-td dv-td-c'>{n(r.nghiTruc)}</td>
-								<td className='dv-td dv-td-c'>{n(r.nghiTren2)}</td>
+								<td className='dv-td dv-td-c dv-td-nl'>{n(r.nlTong)}</td>
+								<td className='dv-td dv-td-c dv-td-nl'>{n(r.nghiTruc)}</td>
+								<td className='dv-td dv-td-c dv-td-nl'>{n(r.nghiTren2)}</td>
 								<td className='dv-td dv-td-c dv-td-nl dv-td-bold'>
 									{n(r.diLam)}
 								</td>
@@ -308,9 +308,9 @@ export default function ClsTable({
 							∑ Tổng ({clsRows.length} khoa)
 						</td>
 						<td colSpan={17} />
-						<td className='dv-td-c'>{clsStats.totalNL}</td>
-						<td className='dv-td-c'>{clsStats.totalNghiTruc}</td>
-						<td className='dv-td-c'>{clsStats.totalNghiDai}</td>
+						<td className='dv-td-c dv-td-nl'>{clsStats.totalNL}</td>
+						<td className='dv-td-c dv-td-nl'>{clsStats.totalNghiTruc}</td>
+						<td className='dv-td-c dv-td-nl'>{clsStats.totalNghiDai}</td>
 						<td className='dv-td-c dv-td-bold dv-td-nl'>
 							{clsStats.totalDiLam}
 						</td>

@@ -113,6 +113,7 @@ svg.lucide {
 .btn-danger,
 .btn-ghost {
 	display: inline-flex;
+	text-decoration: none;
 	align-items: center;
 	justify-content: center;
 	gap: 6px;
@@ -378,6 +379,69 @@ svg.lucide {
 	font-size: var(--fs-sm);
 	color: var(--mut);
 	margin: 0;
+}
+
+/* Khối nhập theo nhóm (tokens --grp-*): nền nhạt + vạch trái màu nhóm,
+   tiêu đề có chấm màu, ô nhập focus theo màu nhóm — người nhập biết ngay
+   mình đang ở phần Người bệnh hay Nhân lực */
+.msec--nb,
+.msec--nl,
+.msec--kc {
+	background: color-mix(in srgb, var(--g-bg) 40%, var(--sur));
+	border: 1px solid color-mix(in srgb, var(--g-bar) 20%, var(--sur));
+	border-left: 3px solid var(--g-bar);
+	border-radius: var(--r);
+	padding: 12px 14px 14px;
+}
+.msec--nb {
+	--g-fg: var(--grp-nb-fg);
+	--g-bar: var(--grp-nb-bar);
+	--g-bg: var(--grp-nb-bg);
+}
+.msec--nl {
+	--g-fg: var(--grp-nl-fg);
+	--g-bar: var(--grp-nl-bar);
+	--g-bg: var(--grp-nl-bg);
+}
+.msec--kc {
+	--g-fg: var(--grp-kc-fg);
+	--g-bar: var(--grp-kc-bar);
+	--g-bg: var(--grp-kc-bg);
+}
+.msec--nb > .msec-title,
+.msec--nl > .msec-title,
+.msec--kc > .msec-title {
+	color: var(--g-fg);
+}
+.msec--nb > .msec-title::before,
+.msec--nl > .msec-title::before,
+.msec--kc > .msec-title::before {
+	content: '';
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--g-bar);
+	flex-shrink: 0;
+}
+.msec--nb .fi-input,
+.msec--nl .fi-input,
+.msec--kc .fi-input {
+	background-color: var(--sur);
+}
+.msec--nb .fi-input:focus,
+.msec--nl .fi-input:focus,
+.msec--kc .fi-input:focus {
+	border-color: var(--g-bar);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--g-bar) 20%, transparent);
+}
+.msec--nb .auto-preview,
+.msec--nl .auto-preview {
+	background: var(--sur);
+	border-color: color-mix(in srgb, var(--g-bar) 25%, var(--sur));
+}
+.msec--nb .auto-val,
+.msec--nl .auto-val {
+	color: var(--g-fg);
 }
 
 /* ── Grid rows ── */

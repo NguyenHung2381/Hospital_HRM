@@ -179,10 +179,10 @@ export default function WardTable({
 								<td className='dv-td dv-td-c dv-td-nb dv-td-bold'>
 									{n(r.tongNB)}
 								</td>
-								<td className='dv-td dv-td-c'>{n(r.nbKhamPT)}</td>
-								<td className='dv-td dv-td-c'>{n(r.nlTong)}</td>
-								<td className='dv-td dv-td-c'>{n(r.nghiTruc)}</td>
-								<td className='dv-td dv-td-c'>{n(r.nghiTren2)}</td>
+								<td className='dv-td dv-td-c dv-td-nb'>{n(r.nbKhamPT)}</td>
+								<td className='dv-td dv-td-c dv-td-nl'>{n(r.nlTong)}</td>
+								<td className='dv-td dv-td-c dv-td-nl'>{n(r.nghiTruc)}</td>
+								<td className='dv-td dv-td-c dv-td-nl'>{n(r.nghiTren2)}</td>
 								<td className='dv-td dv-td-c dv-td-nl dv-td-bold'>
 									{n(r.diLam)}
 								</td>
@@ -248,14 +248,14 @@ export default function WardTable({
 						∑ Tổng ({filtered.length} khoa)
 					</td>
 					<td className='dv-td-c' />
-					<td className='dv-td-c'>{stats.totalCSC1}</td>
-					<td className='dv-td-c'>{stats.totalCSC2}</td>
-					<td className='dv-td-c'>{stats.totalCSC3}</td>
-					<td className='dv-td-c dv-td-bold'>{stats.totalNB}</td>
-					<td className='dv-td-c'>{stats.totalNBKham}</td>
-					<td className='dv-td-c'>{stats.totalNL}</td>
-					<td className='dv-td-c'>{stats.totalNghiTruc}</td>
-					<td className='dv-td-c'>{stats.totalNghiDai}</td>
+					<td className='dv-td-c dv-td-nb'>{stats.totalCSC1}</td>
+					<td className='dv-td-c dv-td-nb'>{stats.totalCSC2}</td>
+					<td className='dv-td-c dv-td-nb'>{stats.totalCSC3}</td>
+					<td className='dv-td-c dv-td-bold dv-td-nb'>{stats.totalNB}</td>
+					<td className='dv-td-c dv-td-nb'>{stats.totalNBKham}</td>
+					<td className='dv-td-c dv-td-nl'>{stats.totalNL}</td>
+					<td className='dv-td-c dv-td-nl'>{stats.totalNghiTruc}</td>
+					<td className='dv-td-c dv-td-nl'>{stats.totalNghiDai}</td>
 					<td className='dv-td-c dv-td-bold dv-td-nl'>{stats.totalDiLam}</td>
 					<td className='dv-td-c dv-td-kc'>{stats.totalTT03.toFixed(1)}</td>
 					<td className='dv-td-c dv-td-kc'>

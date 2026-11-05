@@ -33,25 +33,25 @@ export function DailyStatsOverview({
 				icon={<BedDouble size={20} />}
 				label='Tổng người bệnh'
 				value={computed ? fmt(computed.tongNB, 0) : '—'}
-				accent='blue'
+				accent='nb'
 			/>
 			<StatCard
 				icon={<Stethoscope size={20} />}
 				label='NB khám / PT'
 				value={fmt(active.nbKhamPT ?? 0, 0)}
-				accent='purple'
+				accent='nb'
 			/>
 			<StatCard
 				icon={<Users size={20} />}
 				label='Tổng nhân lực'
 				value={fmt(active.nl.tong ?? 0, 0)}
-				accent='teal'
+				accent='nl'
 			/>
 			<StatCard
 				icon={<UserCheck size={20} />}
 				label='Đi làm'
 				value={computed ? fmt(computed.diLam, 0) : '—'}
-				accent='green'
+				accent='nl'
 			/>
 			<StatCard
 				icon={
@@ -92,7 +92,7 @@ export function PatientStatsCard({
 	computed: ComputedStats | null;
 }) {
 	return (
-		<section className='dcard'>
+		<section className='dcard dcard--nb'>
 			<h2 className='dcard-title'>
 					<BedDouble size={15} /> Người bệnh theo cấp độ
 				</h2>
@@ -153,7 +153,7 @@ export function StaffingDetailCard({
 	computed: ComputedStats | null;
 }) {
 	return (
-		<section className='dcard'>
+		<section className='dcard dcard--nl'>
 			<h2 className='dcard-title'>
 					<Users size={15} /> Nhân lực ĐD – Hộ sinh – KTV
 				</h2>
@@ -229,7 +229,7 @@ export function FormulaPreviewCard({
 	})();
 
 	return (
-		<section className='dcard dcard-formula'>
+		<section className='dcard dcard-formula dcard--kc'>
 			<h2 className='dcard-title'>
 					<ClipboardList size={15} /> Nhân lực khuyến cáo theo TT 03
 				</h2>

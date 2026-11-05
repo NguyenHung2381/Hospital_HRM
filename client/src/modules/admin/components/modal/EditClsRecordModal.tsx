@@ -121,7 +121,7 @@ export default function EditClsRecordModal({
 			<div className='mform'>
 				{error && <p className='login-error'>{error}</p>}
 
-				<div className='msec'>
+				<div className='msec msec--nb'>
 					<p className='msec-title'>Khối lượng công việc đã thực hiện</p>
 					{chunk3(clsFields).map((row, i) => (
 						<div
@@ -140,7 +140,7 @@ export default function EditClsRecordModal({
 					))}
 				</div>
 
-				<div className='msec'>
+				<div className='msec msec--nb'>
 					<p className='msec-title'>Số lượng tồn / chờ</p>
 					{chunk3(clsFields.filter((f) => f.apiTonChoKey !== null)).map((row, i) => (
 						<div
@@ -159,7 +159,7 @@ export default function EditClsRecordModal({
 					))}
 				</div>
 
-				<div className='msec'>
+				<div className='msec msec--nl'>
 					<p className='msec-title'>Nhân lực</p>
 					<div className='mrow3'>
 						<NumberInput

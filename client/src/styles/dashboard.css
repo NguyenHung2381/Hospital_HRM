@@ -543,6 +543,11 @@
 	flex-direction: column;
 	min-width: 0;
 }
+/* Cột họ tên cạnh avatar: không để bảng bóp tên xuống còn một chữ mỗi dòng */
+.td-user .td-stack {
+	min-width: 8em;
+	text-wrap: balance;
+}
 .td-sub {
 	font-size: var(--fs-xs);
 	color: var(--mut);

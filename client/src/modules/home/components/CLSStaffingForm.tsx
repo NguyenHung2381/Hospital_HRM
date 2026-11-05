@@ -83,7 +83,7 @@ export default function CLSStaffingForm({
 				/>
 
 				{/* Khối lượng công việc đã thực hiện */}
-				<div className='msec'>
+				<div className='msec msec--nb'>
 					<p className='msec-title'>Khối lượng công việc đã thực hiện</p>
 					<NumberGrid
 						rows={chunk3(
@@ -97,7 +97,7 @@ export default function CLSStaffingForm({
 				</div>
 
 				{/* Số lượng tồn / chờ */}
-				<div className='msec'>
+				<div className='msec msec--nb'>
 					<p className='msec-title'>Số lượng tồn / chờ</p>
 					<NumberGrid
 						rows={chunk3(
@@ -113,7 +113,7 @@ export default function CLSStaffingForm({
 				</div>
 
 				{/* Nhân lực */}
-				<div className='msec'>
+				<div className='msec msec--nl'>
 					<p className='msec-title'>Nhân lực</p>
 					<div className='mrow3'>
 						<NumberInput

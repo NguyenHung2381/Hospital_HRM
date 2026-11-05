@@ -1,4 +1,6 @@
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, ClipboardList, LayoutDashboard } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import EmptyState from '@/components/ui/EmptyState';
 import { formatDateToVN, getTodayDateString } from '@/utils/dateUtils';
 import {
 	aggregateDashboardStats,
@@ -21,36 +23,33 @@ export default function DashboardPage() {
 
 	if (loading) {
 		return (
-			<div
-				className='pg'
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					minHeight: 300,
-				}}
-			>
-				<p style={{ color: 'var(--color-gray-500)', fontSize: 'var(--fs-md)' }}>
-					Đang tải dữ liệu...
-				</p>
+			<div className='pg'>
+				<EmptyState
+					card
+					loading
+					title='Đang tải dữ liệu...'
+				/>
 			</div>
 		);
 	}
 
 	if (!allReports.length) {
 		return (
-			<div
-				className='pg'
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					minHeight: 300,
-				}}
-			>
-				<p style={{ color: 'var(--color-gray-500)', fontSize: 'var(--fs-md)' }}>
-					Chưa có dữ liệu báo cáo.
-				</p>
+			<div className='pg'>
+				<EmptyState
+					card
+					icon={LayoutDashboard}
+					title='Chưa có dữ liệu báo cáo'
+					sub='Tổng quan sẽ hiển thị khi có ít nhất một báo cáo ngày được nhập.'
+					action={
+						<Link
+							className='btn-primary'
+							to='/dashboard/data'
+						>
+							<ClipboardList size={15} /> Đến trang nhập số liệu
+						</Link>
+					}
+				/>
 			</div>
 		);
 	}

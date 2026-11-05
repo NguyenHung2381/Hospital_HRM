@@ -161,19 +161,19 @@ export default function CLSStaffingBoard({
 								icon={<ChartColumn size={20} />}
 								label='Tổng khối lượng CV'
 								value={String(stats.tongKhoiLuong)}
-								accent='blue'
+								accent='nb'
 							/>
 							<StatCard
 								icon={<Users size={20} />}
 								label='Tổng nhân lực'
 								value={String(active.nl.tong ?? '—')}
-								accent='teal'
+								accent='nl'
 							/>
 							<StatCard
 								icon={<UserCheck size={20} />}
 								label='Đi làm'
 								value={String(stats.diLam)}
-								accent='green'
+								accent='nl'
 							/>
 							<StatCard
 								icon={<Percent size={20} />}
@@ -181,7 +181,7 @@ export default function CLSStaffingBoard({
 								value={
 									stats.tyLe !== null ? `${(stats.tyLe * 100).toFixed(1)}%` : '—'
 								}
-								accent='purple'
+								accent='kc'
 							/>
 							<StatCard
 								icon={
@@ -212,7 +212,7 @@ export default function CLSStaffingBoard({
 						</div>
 
 						<div className='detail-grid'>
-							<section className='dcard'>
+							<section className='dcard dcard--nb'>
 								<h2 className='dcard-title'>
 									<ChartColumn size={15} /> Khối lượng công việc đã thực hiện</h2>
 								<div className='cap-row'>
@@ -228,7 +228,7 @@ export default function CLSStaffingBoard({
 								</div>
 							</section>
 
-							<section className='dcard'>
+							<section className='dcard dcard--nb'>
 								<h2 className='dcard-title'>
 									<Hourglass size={15} /> Số lượng tồn / chờ
 								</h2>
@@ -249,7 +249,7 @@ export default function CLSStaffingBoard({
 								</div>
 							</section>
 
-							<section className='dcard'>
+							<section className='dcard dcard--nl'>
 								<h2 className='dcard-title'>
 									<Users size={15} /> Nhân lực
 								</h2>
