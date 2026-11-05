@@ -46,6 +46,12 @@ const canEditDepartments = [
 	requireDashboardRole,
 	requireRolePermission('manage_departments', 'edit_dept_info'),
 ];
+// Sửa cấu hình định mức của khoa (TT03 / khuyến nghị) từ màn chấm công: cần
+// quyền "Sửa thông tin khoa" trong ma trận Phân quyền (không bắt buộc vai trò
+// dashboard — Admin cấp edit_dept_info cho vai trò khoa nếu muốn); controller
+// kiểm tra thêm quyền theo khoa (can_edit). Trước đây chỉ cần can_edit, nên
+// lách được điều kiện edit_dept_info của /departments/:id/recommended-config.
+const canEditDeptConfig = requireRolePermission('manage_departments', 'edit_dept_info');
 
 router.get('/', (req, res) => {
 	res.send('OK');
@@ -289,7 +295,7 @@ router.delete('/reports/:id/cls-records/:recordId', clsRecords.removeRecord);
 // PUT    /api/tt03/config/:deptId                – cập nhật cấu hình TT03 (upsert)
 router.get('/tt03/config', tt03.getConfig);
 router.get('/tt03/config/:deptId', tt03.getConfigByDept);
-router.put('/tt03/config/:deptId', tt03.updateConfig);
+router.put('/tt03/config/:deptId', canEditDeptConfig, tt03.updateConfig);
 
 // Cấu hình Nhân lực Khuyến nghị (toàn bộ / theo deptId — dùng cho màn TT03)
 // GET    /api/tt03/recommended-config            – toàn bộ cấu hình khuyến nghị
@@ -297,7 +303,7 @@ router.put('/tt03/config/:deptId', tt03.updateConfig);
 // PUT    /api/tt03/recommended-config/:deptId    – cập nhật cấu hình khuyến nghị (upsert)
 router.get('/tt03/recommended-config', tt03.getRecommendedConfig);
 router.get('/tt03/recommended-config/:deptId', tt03.getRecommendedConfigByDept);
-router.put('/tt03/recommended-config/:deptId', tt03.updateRecommendedConfig);
+router.put('/tt03/recommended-config/:deptId', canEditDeptConfig, tt03.updateRecommendedConfig);
 
 // Tính toán & Báo cáo
 // POST   /api/tt03/calculate                     – tính thử cả 2 công thức (không lưu)

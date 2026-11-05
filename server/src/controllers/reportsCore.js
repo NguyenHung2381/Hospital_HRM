@@ -11,6 +11,7 @@ const {
 } = require('../services/deptAccess');
 const appEmitter = require('../events/appEmitter');
 const { isAdmin, isDashboardRole } = require('../middleware/auth');
+const { isReportDateLocked, lockedResponse } = require('../services/reportLock');
 
 // Cột + JOIN dùng chung cho bản ghi khoa (getById, getByDepartment)
 const RECORD_SELECT = `
@@ -223,6 +224,9 @@ async function create(req, res, next) {
 		const pool = await getPool();
 		const access = await loadUserDeptAccess(pool, req.user);
 
+		// Ngày đã chốt sổ: chỉ người có phạm vi toàn viện được tạo báo cáo/nhập bù
+		if (isReportDateLocked(report_date, access, req.user)) return lockedResponse(res);
+
 		if (Array.isArray(records) && records.length) {
 			const denied = records.find(
 				(r) => !canAccessDept(access, r.id_department, 'can_edit'),
@@ -341,7 +345,7 @@ async function remove(req, res, next) {
 				SELECT COUNT(*) AS cnt FROM Staff_Coordination_Records WHERE id_report = @id_report
 			`),
 			pool.request().input('id_report', sql.Int, req.params.id).query(`
-				SELECT created_by FROM Daily_Reports WHERE id_report = @id_report
+				SELECT created_by, report_date FROM Daily_Reports WHERE id_report = @id_report
 			`),
 		]);
 		if (!reportRes.recordset.length)
@@ -350,6 +354,7 @@ async function remove(req, res, next) {
 				.json({ success: false, message: 'Không tìm thấy báo cáo' });
 
 		const access = await loadUserDeptAccess(pool, req.user);
+		if (isReportDateLocked(reportRes.recordset[0].report_date, access, req.user)) return lockedResponse(res);
 		const deptIds = deptRes.recordset
 			.map((r) => r.id_department)
 			.filter((id) => id != null);

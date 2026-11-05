@@ -10,6 +10,7 @@ const {
 	canReadDept,
 } = require('../services/deptAccess');
 const appEmitter = require('../events/appEmitter');
+const { isReportDateLocked, lockedResponse } = require('../services/reportLock');
 
 // ── Helper: tính recommended_staff (khuyến cáo cố định hệ CLS) ──────────
 async function resolveRecommended(pool, record) {
@@ -117,12 +118,13 @@ async function addRecord(req, res, next) {
 			.request()
 			.input('id_report', sql.Int, id)
 			.query(
-				`SELECT id_report FROM Daily_Reports WHERE id_report = @id_report`,
+				`SELECT id_report, report_date FROM Daily_Reports WHERE id_report = @id_report`,
 			);
 		if (!check.recordset.length)
 			return res
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy báo cáo' });
+		if (isReportDateLocked(check.recordset[0].report_date, access, req.user)) return lockedResponse(res);
 
 		const dup = await pool
 			.request()
@@ -252,7 +254,13 @@ async function updateRecord(req, res, next) {
 		const deptRes = await pool
 			.request()
 			.input('id', sql.Int, recordId)
-			.query(`SELECT id_department FROM Report_CLS_Records WHERE id = @id`);
+			.input('id_report', sql.Int, id)
+			.query(
+				`SELECT rcr.id_department, dr.report_date
+				 FROM Report_CLS_Records rcr
+				 JOIN Daily_Reports dr ON dr.id_report = rcr.id_report
+				 WHERE rcr.id = @id AND rcr.id_report = @id_report`,
+			);
 
 		if (!deptRes.recordset.length)
 			return res
@@ -268,6 +276,7 @@ async function updateRecord(req, res, next) {
 				message: 'Bạn không có quyền sửa dữ liệu của khoa này',
 			});
 		}
+		if (isReportDateLocked(deptRes.recordset[0].report_date, access, req.user)) return lockedResponse(res);
 
 		const recommended = await resolveRecommended(pool, { ...r, id_department });
 
@@ -384,7 +393,13 @@ async function removeRecord(req, res, next) {
 		const deptRes = await pool
 			.request()
 			.input('id', sql.Int, recordId)
-			.query(`SELECT id_department FROM Report_CLS_Records WHERE id = @id`);
+			.input('id_report', sql.Int, id)
+			.query(
+				`SELECT rcr.id_department, dr.report_date
+				 FROM Report_CLS_Records rcr
+				 JOIN Daily_Reports dr ON dr.id_report = rcr.id_report
+				 WHERE rcr.id = @id AND rcr.id_report = @id_report`,
+			);
 		if (!deptRes.recordset.length)
 			return res
 				.status(404)
@@ -399,6 +414,7 @@ async function removeRecord(req, res, next) {
 				message: 'Bạn không có quyền xoá dữ liệu của khoa này',
 			});
 		}
+		if (isReportDateLocked(deptRes.recordset[0].report_date, access, req.user)) return lockedResponse(res);
 
 		const result = await pool
 			.request()

@@ -19,7 +19,7 @@ const { recordLoginFailure, recordLoginSuccess } = require('../middleware/loginR
 const {
 	lockedMinutesLeft,
 	recordFailedAttempt,
-	resetFailedAttempts,
+	claimLoginSuccess,
 	isRepeatedWrongPassword,
 } = require('../services/accountLockout');
 const {
@@ -160,11 +160,23 @@ async function login(req, res, next) {
 			});
 		}
 
-		await recordLoginSuccess(req);
+		const needs2fa = !!(found.totp_enabled && found.totp_secret);
+		// Thiết bị lạ: kiểm tra lại khoá ngay lúc quyết định (chống race nhiều
+		// request song song cùng đọc trạng thái cũ) — đã bị khoá thì trả phản hồi
+		// chung như sai mật khẩu.
+		// Tài khoản 2FA: KHÔNG xoá bộ đếm ở bước mật khẩu — bộ đếm này tích luỹ
+		// các lần sai mã OTP; xoá ở đây thì kẻ biết mật khẩu cứ 4 lần sai OTP lại
+		// đăng nhập lại để về 0 và dò mã vô hạn. Bộ đếm chỉ được xoá khi OTP đúng
+		// (verify2FALogin).
 		// Đăng nhập đúng trên thiết bị quen không xoá bộ đếm/khoá của thiết bị
 		// lạ — nếu không, kẻ tấn công được làm lại từ đầu mỗi khi chủ tài khoản
 		// đăng nhập. Bộ đếm của thiết bị quen được reset trong trustDevice().
-		if (!trustedDevice) await resetFailedAttempts(pool, found);
+		if (!trustedDevice && !(await claimLoginSuccess(pool, found, { reset: !needs2fa }))) {
+			await recordLoginFailure(req);
+			audit(req, 'auth.login_blocked_locked', { attempted_username: username.slice(0, 50) });
+			return res.status(401).json({ success: false, message: INVALID_LOGIN_MESSAGE });
+		}
+		await recordLoginSuccess(req);
 
 		// Mật khẩu cũ còn lưu plaintext / cost thấp → hash lại ngay
 		if (needsRehash(found.password)) {
@@ -178,7 +190,7 @@ async function login(req, res, next) {
 
 		// Đã bật 2FA: dừng ở đây, KHÔNG phát phiên — chỉ trả pre-auth token ngắn
 		// hạn để client gọi tiếp /auth/2fa/verify kèm mã OTP.
-		if (found.totp_enabled && found.totp_secret) {
+		if (needs2fa) {
 			return res.json({
 				success: true,
 				data: { requires_2fa: true, pre_auth_token: signPreAuthToken(found) },
@@ -261,7 +273,15 @@ async function verify2FALogin(req, res, next) {
 			.input('step', sql.BigInt, timeStep)
 			.input('secret', sql.NVarChar(255), resealed)
 			.query(`UPDATE Users SET totp_last_step = @step, totp_secret = @secret WHERE id_user = @id`);
-		if (!trustedDevice) await resetFailedAttempts(pool, found);
+		// Kiểm tra khoá lần cuối (nguyên tử) rồi mới xoá bộ đếm và cấp phiên —
+		// các lần sai OTP song song có thể vừa khoá tài khoản sau lần đọc ở trên.
+		if (!trustedDevice && !(await claimLoginSuccess(pool, found, { reset: true }))) {
+			const cur = await pool
+				.request()
+				.input('id', sql.Int, found.id_user)
+				.query(`SELECT locked_until FROM Users WHERE id_user = @id`);
+			return lockedResponse(res, Math.max(1, lockedMinutesLeft(cur.recordset[0])));
+		}
 
 		await completeLogin(req, res, found, { two_factor: true });
 	} catch (err) {

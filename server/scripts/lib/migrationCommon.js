@@ -12,13 +12,24 @@ const { Client } = require('pg');
 // columns: đổi tên cột SQL Server → PostgreSQL (mặc định: viết thường).
 // pgOnly: cột chỉ có ở PostgreSQL (SQL Server cũ không có) + giá trị gán khi
 // chuyển — jsonb_populate_recordset để NULL cho cột thiếu chứ không lấy DEFAULT.
+//
+// Users.must_change_password: SQL Server cũ không lưu mật khẩu do ai đặt — bản
+// cũ cho quản trị đặt mật khẩu khi tạo tài khoản và resetPassword trả mật khẩu
+// tạm cho người reset, không bắt đổi. Coi mọi mật khẩu chuyển sang là "do quản
+// trị cấp" → bắt đổi ở lần đăng nhập tới (requirePasswordChanged), để người
+// từng biết mật khẩu đó (vd quản trị) không dùng tiếp tài khoản được.
+// password_changed_at để NULL: không áp hạn 72 giờ của mật khẩu tạm (không khoá
+// người lâu chưa đăng nhập). Muốn giữ nguyên hành vi cũ (không bắt đổi):
+// MIGRATE_KEEP_PASSWORDS=true.
+const FORCE_PASSWORD_CHANGE = process.env.MIGRATE_KEEP_PASSWORDS !== 'true';
+
 const TABLES = [
 	{ src: 'Roles', dst: 'roles' },
 	{ src: 'Permissions', dst: 'permissions' },
 	{ src: 'Departments', dst: 'departments' },
 	{ src: 'Role_Permissions', dst: 'role_permissions' },
 	{ src: 'Role_Department_Access', dst: 'role_department_access', columns: { id_deparment: 'id_department' } },
-	{ src: 'Users', dst: 'users', pgOnly: { must_change_password: false, password_changed_at: null } },
+	{ src: 'Users', dst: 'users', pgOnly: { must_change_password: FORCE_PASSWORD_CHANGE, password_changed_at: null } },
 	{ src: 'User_Department_Access', dst: 'user_department_access' },
 	{ src: 'User_Dept_Permissions', dst: 'user_dept_permissions' },
 	{ src: 'Dept_TT03_Config', dst: 'dept_tt03_config' },

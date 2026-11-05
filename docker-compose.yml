@@ -53,8 +53,10 @@ services:
     environment:
       VITE_API_PROXY: http://backend:3000
       VITE_USE_POLLING: "true"
+    # Mặc định chỉ loopback. Cần mở từ máy khác trong LAN thì đặt
+    # DEV_WEB_BIND=0.0.0.0 trong .env ở thư mục gốc.
     ports:
-      - "${DEV_WEB_PORT:-5174}:5173"
+      - "${DEV_WEB_BIND:-127.0.0.1}:${DEV_WEB_PORT:-5174}:5173"
     volumes:
       - ./client:/app/client
       - /app/client/node_modules

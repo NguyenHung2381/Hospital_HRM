@@ -124,6 +124,8 @@ npm run setup -- --import-mssql=HRM_HOSPITAL
 
 Thêm `--yes` để không hỏi xác nhận xoá dữ liệu cũ.
 
+Khi import từ SQL Server, mọi tài khoản bị **bắt đổi mật khẩu ở lần đăng nhập tới**. Lý do: bản cũ không lưu mật khẩu do ai đặt, nên mật khẩu do quản trị cấp hoặc reset không phân biệt được với mật khẩu người dùng tự đặt. Muốn giữ hành vi cũ (không bắt đổi), đặt `MIGRATE_KEEP_PASSWORDS=true` trước khi chạy.
+
 **File `.bak` được khôi phục ở đâu** (tự chọn, ép bằng `--bak-via=local` / `--bak-via=docker`):
 
 | Máy chạy setup | Cách khôi phục |

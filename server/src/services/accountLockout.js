@@ -69,15 +69,27 @@ async function recordFailedAttempt(pool, req, user, reason) {
 	return minutes;
 }
 
-async function resetFailedAttempts(pool, user) {
-	if (!user.failed_login_count && !user.locked_until) return;
-	await pool
+// Chốt quyết định "cho đăng nhập" dựa trên trạng thái khoá MỚI NHẤT trong DB,
+// không phải bản đọc lúc đầu request: nhiều request song song cùng đọc
+// locked_until cũ trước khi lần sai thứ 5 kịp ghi khoá, nên lần đoán đúng
+// trong loạt đó vẫn được cấp phiên. Câu UPDATE có điều kiện là nguyên tử với
+// recordFailedAttempt (cùng khoá dòng) → đã bị khoá thì trả false.
+// reset=true: đồng thời xoá bộ đếm/khoá (đăng nhập hoàn tất).
+// reset=false: chỉ kiểm tra (bước mật khẩu của tài khoản 2FA — KHÔNG được xoá
+// bộ đếm, vì bộ đếm đó đang tích luỹ các lần sai mã OTP).
+async function claimLoginSuccess(pool, user, { reset }) {
+	const result = await pool
 		.request()
 		.input('id', sql.Int, user.id_user)
 		.query(
-			`UPDATE Users SET failed_login_count = 0, locked_until = NULL, lockout_level = 0
-			 WHERE id_user = @id`,
+			reset
+				? `UPDATE Users SET failed_login_count = 0, locked_until = NULL, lockout_level = 0
+				   WHERE id_user = @id AND (locked_until IS NULL OR locked_until <= now())
+				   RETURNING id_user`
+				: `SELECT id_user FROM Users
+				   WHERE id_user = @id AND (locked_until IS NULL OR locked_until <= now())`,
 		);
+	return result.recordset.length > 0;
 }
 
 // ── Bỏ qua mật khẩu sai lặp lại ─────────────────────────────────
@@ -112,6 +124,6 @@ module.exports = {
 	MAX_FAILED_LOGIN_ATTEMPTS,
 	lockedMinutesLeft,
 	recordFailedAttempt,
-	resetFailedAttempts,
+	claimLoginSuccess,
 	isRepeatedWrongPassword,
 };

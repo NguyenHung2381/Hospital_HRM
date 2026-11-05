@@ -19,8 +19,15 @@ export default defineConfig({
 		// đủ dùng để mở dev server từ máy khác trong LAN qua http://<ip-may>:5173.
 		// Chạy trong Docker (docker-compose.yml): API ở container `api`, và
 		// bind mount không phát fs-events nên phải polling mới thấy file đổi.
+		// xfwd: GHI THÊM IP thật của client vào cuối X-Forwarded-For. Backend tin
+		// đúng 1 hop (TRUST_PROXY=1) nên lấy giá trị cuối — nếu proxy chỉ chuyển
+		// nguyên header client gửi, client tự đặt X-Forwarded-For giả là đổi
+		// được IP và lách giới hạn đăng nhập/2FA theo IP.
 		proxy: {
-			'/api': process.env.VITE_API_PROXY || 'http://localhost:3000',
+			'/api': {
+				target: process.env.VITE_API_PROXY || 'http://localhost:3000',
+				xfwd: true,
+			},
 		},
 		watch:
 			process.env.VITE_USE_POLLING === 'true'

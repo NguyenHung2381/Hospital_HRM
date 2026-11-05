@@ -2,6 +2,7 @@ const { getPool, sql } = require('../config/db');
 const { resolveBothRecommended } = require('../services/reportRecommendedHelper');
 const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
 const appEmitter = require('../events/appEmitter');
+const { isReportDateLocked, lockedResponse } = require('../services/reportLock');
 
 // POST /api/reports/:id/records
 async function addRecord(req, res, next) {
@@ -27,12 +28,13 @@ async function addRecord(req, res, next) {
 			.request()
 			.input('id_report', sql.Int, id)
 			.query(
-				`SELECT id_report FROM Daily_Reports WHERE id_report = @id_report`,
+				`SELECT id_report, report_date FROM Daily_Reports WHERE id_report = @id_report`,
 			);
 		if (!check.recordset.length)
 			return res
 				.status(404)
 				.json({ success: false, message: 'Không tìm thấy báo cáo' });
+		if (isReportDateLocked(check.recordset[0].report_date, access, req.user)) return lockedResponse(res);
 
 		const dup = await pool
 			.request()
@@ -123,11 +125,17 @@ async function updateRecord(req, res, next) {
 		const r = req.body;
 		const pool = await getPool();
 
+		// Lấy kèm ngày báo cáo (và buộc record thuộc đúng báo cáo :id) để kiểm
+		// tra chốt sổ ở server
 		const deptRes = await pool
 			.request()
 			.input('id', sql.Int, recordId)
+			.input('id_report', sql.Int, id)
 			.query(
-				`SELECT id_department FROM report_department_records WHERE id = @id`,
+				`SELECT rdr.id_department, dr.report_date
+				 FROM report_department_records rdr
+				 JOIN Daily_Reports dr ON dr.id_report = rdr.id_report
+				 WHERE rdr.id = @id AND rdr.id_report = @id_report`,
 			);
 
 		if (!deptRes.recordset.length)
@@ -144,6 +152,7 @@ async function updateRecord(req, res, next) {
 				message: 'Bạn không có quyền sửa dữ liệu của khoa này',
 			});
 		}
+		if (isReportDateLocked(deptRes.recordset[0].report_date, access, req.user)) return lockedResponse(res);
 
 		const { recommended, recommendedCalc } = await resolveBothRecommended(
 			pool,
@@ -216,8 +225,12 @@ async function removeRecord(req, res, next) {
 		const deptRes = await pool
 			.request()
 			.input('id', sql.Int, recordId)
+			.input('id_report', sql.Int, id)
 			.query(
-				`SELECT id_department FROM report_department_records WHERE id = @id`,
+				`SELECT rdr.id_department, dr.report_date
+				 FROM report_department_records rdr
+				 JOIN Daily_Reports dr ON dr.id_report = rdr.id_report
+				 WHERE rdr.id = @id AND rdr.id_report = @id_report`,
 			);
 		if (!deptRes.recordset.length)
 			return res
@@ -231,6 +244,7 @@ async function removeRecord(req, res, next) {
 				message: 'Bạn không có quyền xoá dữ liệu của khoa này',
 			});
 		}
+		if (isReportDateLocked(deptRes.recordset[0].report_date, access, req.user)) return lockedResponse(res);
 
 		const result = await pool
 			.request()

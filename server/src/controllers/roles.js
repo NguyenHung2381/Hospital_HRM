@@ -3,6 +3,18 @@ const appEmitter = require('../events/appEmitter');
 const { isAdmin, invalidateUserCache } = require('../middleware/auth');
 const { isReservedRoleName } = require('../services/accountGuard');
 const { invalidateRolePermissionCache } = require('../services/rolePermissions');
+const { checkRoleAccessType, checkRoleDataPermissions } = require('../services/delegationGuard');
+
+// Mã quyền đang bật của 1 vai trò (db: pool hoặc transaction)
+async function grantedCodes(db, id_role) {
+	const r = await db.request().input('id_role', sql.Int, id_role).query(`
+		SELECT p.code_permission
+		FROM Role_Permissions rp
+		INNER JOIN Permissions p ON p.id_permission = rp.id_permission
+		WHERE rp.id_role = @id_role AND rp.is_granted = true
+	`);
+	return r.recordset.map((row) => row.code_permission);
+}
 
 const DEPARTMENT_ACCESS_TYPES = ['all', 'assigned', 'own'];
 
@@ -79,6 +91,8 @@ async function create(req, res, next) {
 				.json({ success: false, message: 'Loại truy cập khoa không hợp lệ' });
 
 		const pool = await getPool();
+		const accessDenied = await checkRoleAccessType(pool, req.user, department_access_type);
+		if (accessDenied) return res.status(403).json({ success: false, message: accessDenied });
 		const result = await pool
 			.request()
 			.input('name_role', sql.NVarChar(100), name)
@@ -121,7 +135,9 @@ async function update(req, res, next) {
 		const check = await pool
 			.request()
 			.input('id_role', sql.Int, req.params.id)
-			.query(`SELECT id_role, name_role, is_system FROM Roles WHERE id_role = @id_role`);
+			.query(
+				`SELECT id_role, name_role, is_system, department_access_type FROM Roles WHERE id_role = @id_role`,
+			);
 		if (!check.recordset.length)
 			return res
 				.status(404)
@@ -131,6 +147,13 @@ async function update(req, res, next) {
 				success: false,
 				message: 'Không thể sửa vai trò hệ thống',
 			});
+		// Đổi sang phạm vi toàn viện = mọi tài khoản của vai trò có quyền trên
+		// mọi khoa → chỉ người cũng có phạm vi toàn viện
+		const nextAccess = department_access_type ?? 'own';
+		if (nextAccess !== check.recordset[0].department_access_type) {
+			const accessDenied = await checkRoleAccessType(pool, req.user, nextAccess);
+			if (accessDenied) return res.status(403).json({ success: false, message: accessDenied });
+		}
 		// Sửa vai trò dashboard (loại truy cập khoa...) = tự cấp thêm quyền cho
 		// mọi tài khoản dashboard, kể cả chính mình → chỉ Quản trị hệ thống.
 		if (isReservedRoleName(check.recordset[0].name_role) && !isAdmin(req.user))
@@ -214,6 +237,7 @@ async function updatePermissions(req, res, next) {
 				message: 'Chỉ Quản trị hệ thống mới được sửa quyền của vai trò quản trị',
 			});
 
+		const before = new Set(await grantedCodes(pool, req.params.id));
 		const transaction = new sql.Transaction(pool);
 		await transaction.begin();
 		try {
@@ -231,6 +255,16 @@ async function updatePermissions(req, res, next) {
 						INSERT INTO Role_Permissions (id_role, id_permission, is_granted)
 						VALUES (@id_role, @id_permission, @is_granted)
 					`);
+			}
+			// Chỉ được bật thêm quyền thao tác dữ liệu (nhập/xoá/xuất) mà vai trò
+			// của chính mình đang có
+			const newlyGranted = (await grantedCodes(transaction, req.params.id)).filter(
+				(c) => !before.has(c),
+			);
+			const dataDenied = await checkRoleDataPermissions(pool, req.user, newlyGranted);
+			if (dataDenied) {
+				await transaction.rollback();
+				return res.status(403).json({ success: false, message: dataDenied });
 			}
 			await transaction.commit();
 			invalidateRolePermissionCache();

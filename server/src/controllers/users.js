@@ -8,6 +8,7 @@ const {
 	assertCanAssignRole,
 	findUserWithRole,
 } = require('../services/accountGuard');
+const { snapshotUserRights, checkGainedRights } = require('../services/delegationGuard');
 
 // GET /api/users
 async function getAll(req, res, next) {
@@ -98,24 +99,46 @@ async function create(req, res, next) {
 		if (roleDenied)
 			return res.status(403).json({ success: false, message: roleDenied });
 		const hashedPassword = await hashPassword(password);
-		const result = await pool
-			.request()
-			.input('full_name', sql.NVarChar(150), full_name)
-			.input('username', sql.NVarChar(50), username)
-			.input('password', sql.NVarChar(255), hashedPassword)
-			.input('user_code', sql.NVarChar(10), user_code ?? null)
-			.input('id_department', sql.Int, id_department ?? null)
-			.input('position', sql.NVarChar(100), position ?? null)
-			.input('id_role', sql.Int, id_role)
-			.input('status', sql.NVarChar(10), status ?? 'active').query(`
-				-- Mật khẩu do quản trị đặt → người dùng phải đổi ở lần đăng nhập đầu
-				INSERT INTO Users (full_name, username, password, user_code, id_department, position, id_role, status,
-					must_change_password, password_changed_at)
-				VALUES (@full_name, @username, @password, @user_code, @id_department, @position, @id_role, @status,
-					true, now())
-				RETURNING id_user, full_name, username, user_code, id_department, position,
-					id_role, status, created_at
-			`);
+		// Ghi trong transaction để tính quyền khoa THỰC TẾ của tài khoản mới (vai
+		// trò + khoa công tác) trước khi commit — không cho tạo tài khoản có quyền
+		// vượt quá quyền của người tạo (xem services/delegationGuard.js)
+		const transaction = new sql.Transaction(pool);
+		await transaction.begin();
+		let result;
+		try {
+			result = await transaction
+				.request()
+				.input('full_name', sql.NVarChar(150), full_name)
+				.input('username', sql.NVarChar(50), username)
+				.input('password', sql.NVarChar(255), hashedPassword)
+				.input('user_code', sql.NVarChar(10), user_code ?? null)
+				.input('id_department', sql.Int, id_department ?? null)
+				.input('position', sql.NVarChar(100), position ?? null)
+				.input('id_role', sql.Int, id_role)
+				.input('status', sql.NVarChar(10), status ?? 'active').query(`
+					-- Mật khẩu do quản trị đặt → người dùng phải đổi ở lần đăng nhập đầu
+					INSERT INTO Users (full_name, username, password, user_code, id_department, position, id_role, status,
+						must_change_password, password_changed_at)
+					VALUES (@full_name, @username, @password, @user_code, @id_department, @position, @id_role, @status,
+						true, now())
+					RETURNING id_user, full_name, username, user_code, id_department, position,
+						id_role, status, created_at
+				`);
+			const exceeded = await checkGainedRights(
+				pool,
+				req.user,
+				new Set(),
+				await snapshotUserRights(transaction, result.recordset[0].id_user),
+			);
+			if (exceeded) {
+				await transaction.rollback();
+				return res.status(403).json({ success: false, message: exceeded });
+			}
+			await transaction.commit();
+		} catch (err) {
+			await transaction.rollback();
+			throw err;
+		}
 		appEmitter.emit('changed', {
 			resource: 'users',
 			action: 'created',
@@ -161,24 +184,46 @@ async function update(req, res, next) {
 		if (!denied && !(isSelf && sameRole))
 			denied = await assertCanAssignRole(pool, req.user, id_role);
 		if (denied) return res.status(403).json({ success: false, message: denied });
-		const result = await pool
-			.request()
-			.input('id', sql.Int, req.params.id)
-			.input('full_name', sql.NVarChar(150), full_name)
-			.input('user_code', sql.NVarChar(10), user_code ?? null)
-			.input('id_department', sql.Int, id_department ?? null)
-			.input('position', sql.NVarChar(100), position ?? null)
-			.input('id_role', sql.Int, id_role)
-			.input('status', sql.NVarChar(10), status ?? 'active').query(`
-				UPDATE Users
-				SET full_name = @full_name, user_code = @user_code,
-					id_department = @id_department, position = @position,
-					id_role = @id_role, status = @status,
-					updated_at = now()
-				WHERE id_user = @id
-				RETURNING id_user, full_name, username, user_code, id_department, position,
-					id_role, status, updated_at
-			`);
+		const before = await snapshotUserRights(pool, req.params.id);
+		const transaction = new sql.Transaction(pool);
+		await transaction.begin();
+		let result;
+		try {
+			result = await transaction
+				.request()
+				.input('id', sql.Int, req.params.id)
+				.input('full_name', sql.NVarChar(150), full_name)
+				.input('user_code', sql.NVarChar(10), user_code ?? null)
+				.input('id_department', sql.Int, id_department ?? null)
+				.input('position', sql.NVarChar(100), position ?? null)
+				.input('id_role', sql.Int, id_role)
+				.input('status', sql.NVarChar(10), status ?? 'active').query(`
+					UPDATE Users
+					SET full_name = @full_name, user_code = @user_code,
+						id_department = @id_department, position = @position,
+						id_role = @id_role, status = @status,
+						updated_at = now()
+					WHERE id_user = @id
+					RETURNING id_user, full_name, username, user_code, id_department, position,
+						id_role, status, updated_at
+				`);
+			// Đổi vai trò / khoa công tác / mở khoá: không được làm tài khoản có thêm
+			// quyền khoa mà người sửa không có
+			const exceeded = await checkGainedRights(
+				pool,
+				req.user,
+				before,
+				await snapshotUserRights(transaction, req.params.id),
+			);
+			if (exceeded) {
+				await transaction.rollback();
+				return res.status(403).json({ success: false, message: exceeded });
+			}
+			await transaction.commit();
+		} catch (err) {
+			await transaction.rollback();
+			throw err;
+		}
 		invalidateUserCache(req.params.id);
 		// Khoá tài khoản → đăng xuất khỏi mọi thiết bị ngay
 		if ((status ?? 'active') !== 'active')

@@ -2,6 +2,11 @@ const { getPool, sql } = require('../config/db');
 const appEmitter = require('../events/appEmitter');
 const { assertCanManageUser, findUserWithRole } = require('../services/accountGuard');
 const { loadUserDeptAccess, canAccessDept } = require('../services/deptAccess');
+const {
+	snapshotUserRights,
+	checkGainedRights,
+	checkPermissionFlags,
+} = require('../services/delegationGuard');
 
 // Phân khoa / quyền khoa = cấp quyền đọc-ghi dữ liệu khoa → chỉ cho tài khoản
 // có vai trò thấp hơn người thao tác (không tự cấp cho chính mình). Trả về
@@ -136,6 +141,7 @@ async function setAssignedDepartments(req, res, next) {
 				.json({ success: false, message: 'department_ids phải là mảng' });
 		const pool = await getPool();
 		if (await denyIfCannotManage(pool, req, res)) return;
+		const before = await snapshotUserRights(pool, req.params.id);
 		const transaction = new sql.Transaction(pool);
 		await transaction.begin();
 		try {
@@ -151,6 +157,18 @@ async function setAssignedDepartments(req, res, next) {
 					.query(
 						`INSERT INTO User_Department_Access (id_user, id_department) VALUES (@id_user, @id_department)`,
 					);
+			}
+			// Khoa được phân mặc định có quyền sửa/xuất → chỉ phân khoa mà chính
+			// người thao tác có các quyền đó
+			const exceeded = await checkGainedRights(
+				pool,
+				req.user,
+				before,
+				await snapshotUserRights(transaction, req.params.id),
+			);
+			if (exceeded) {
+				await transaction.rollback();
+				return res.status(403).json({ success: false, message: exceeded });
 			}
 			await transaction.commit();
 			appEmitter.emit('changed', {
@@ -219,6 +237,9 @@ async function setDeptPermissions(req, res, next) {
 				.json({ success: false, message: 'permissions phải là mảng' });
 		const pool = await getPool();
 		if (await denyIfCannotManage(pool, req, res)) return;
+		const flagDenied = await checkPermissionFlags(pool, req.user, req.params.id, permissions);
+		if (flagDenied) return res.status(403).json({ success: false, message: flagDenied });
+		const before = await snapshotUserRights(pool, req.params.id);
 		const transaction = new sql.Transaction(pool);
 		await transaction.begin();
 		try {
@@ -237,6 +258,18 @@ async function setDeptPermissions(req, res, next) {
 						INSERT INTO User_Dept_Permissions (id_user, id_department, can_edit, can_delete, can_export)
 						VALUES (@id_user, @id_department, @can_edit, @can_delete, @can_export)
 					`);
+			}
+			// Tính trên quyền thực tế sau khi ghi (gửi [] = xoá các dòng hạn chế,
+			// quyền mặc định của khoa được phân quay lại)
+			const exceeded = await checkGainedRights(
+				pool,
+				req.user,
+				before,
+				await snapshotUserRights(transaction, req.params.id),
+			);
+			if (exceeded) {
+				await transaction.rollback();
+				return res.status(403).json({ success: false, message: exceeded });
 			}
 			await transaction.commit();
 			appEmitter.emit('changed', {
