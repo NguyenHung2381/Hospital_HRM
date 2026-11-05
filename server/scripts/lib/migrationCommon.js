@@ -1,6 +1,7 @@
 // Dùng chung cho migrate-from-mssql.js và verify-migration.js: danh sách bảng,
 // đọc SQL Server qua sqlcmd, kết nối PostgreSQL.
 const { execFileSync } = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -37,9 +38,15 @@ const TABLES = [
 // MSSQL_USER trống = Windows Authentication (-E). Mật khẩu truyền qua biến môi
 // trường SQLCMDPASSWORD (không đặt trên dòng lệnh → không lộ trong danh sách tiến trình).
 // format mặc định -y 0: không cắt cột (JSON dài), tự bỏ dòng tiêu đề.
+//
+// MSSQL_DOCKER_CONTAINER: SQL Server chạy trong container (setup.js dựng tạm để
+// khôi phục file .bak khi máy không cài SQL Server) → chạy sqlcmd bên trong
+// container bằng "docker exec" (MSSQL_DOCKER_SQLCMD: đường dẫn sqlcmd trong image).
+const dockerContainer = () => process.env.MSSQL_DOCKER_CONTAINER || '';
+
 function sqlcmdInvocation(database = process.env.MSSQL_DATABASE || 'HRM_HOSPITAL', format = ['-y', '0']) {
 	const args = [
-		'-S', process.env.MSSQL_SERVER || 'localhost\\SQLEXPRESS',
+		'-S', process.env.MSSQL_SERVER || (dockerContainer() ? 'localhost' : 'localhost\\SQLEXPRESS'),
 		'-d', database,
 		'-C', // tin chứng chỉ tự ký (chỉ đọc dữ liệu trên máy/mạng nội bộ)
 		'-b', // lỗi SQL → mã thoát khác 0
@@ -59,6 +66,7 @@ function sqlcmdInvocation(database = process.env.MSSQL_DATABASE || 'HRM_HOSPITAL
 // Ghi kết quả ra FILE (-o) chứ không đọc stdout: ra stdout, sqlcmd đổi chuỗi
 // theo codepage của console (vd cp1252) bất kể -f 65001 → tiếng Việt thành '?'.
 function runSqlcmd(query, invocation) {
+	if (dockerContainer()) return runSqlcmdInDocker(query, invocation);
 	const { args, env } = invocation;
 	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hrm-mssql-'));
 	const file = path.join(dir, 'out.txt');
@@ -75,6 +83,50 @@ function runSqlcmd(query, invocation) {
 		throw new Error(`sqlcmd lỗi: ${detail || err.stderr?.toString() || err.message}`);
 	} finally {
 		fs.rmSync(dir, { recursive: true, force: true });
+	}
+}
+
+// Như trên nhưng sqlcmd chạy trong container: ghi file UTF-8 trong container rồi
+// "cat" ra (byte thô qua docker exec, không qua codepage console). "-e SQLCMDPASSWORD"
+// không kèm giá trị → docker lấy từ biến môi trường, mật khẩu không lên dòng lệnh.
+function runSqlcmdInDocker(query, invocation) {
+	const { args, env } = invocation;
+	const container = dockerContainer();
+	const sqlcmd = process.env.MSSQL_DOCKER_SQLCMD || '/opt/mssql-tools18/bin/sqlcmd';
+	const file = `/tmp/hrm-mssql-${crypto.randomUUID()}.txt`;
+	const readOut = () => {
+		try {
+			return execFileSync('docker', ['exec', container, 'sh', '-c', 'cat "$1" 2>/dev/null; rm -f "$1"', 'sh', file], {
+				stdio: ['ignore', 'pipe', 'ignore'],
+				windowsHide: true,
+				maxBuffer: 512 * 1024 * 1024,
+			})
+				.toString('utf8')
+				.replace(/^﻿/, '');
+		} catch {
+			return '';
+		}
+	};
+	try {
+		execFileSync('docker', ['exec', '-e', 'SQLCMDPASSWORD', container, sqlcmd, ...args, '-o', file, '-Q', `SET NOCOUNT ON; ${query}`], {
+			stdio: ['ignore', 'ignore', 'pipe'],
+			windowsHide: true,
+			env,
+		});
+	} catch (err) {
+		const detail = readOut().trim();
+		throw new Error(`sqlcmd lỗi: ${detail || err.stderr?.toString() || err.message}`);
+	}
+	return readOut();
+}
+
+// Kiểm tra kết nối được SQL Server (chờ đăng nhập tối đa `seconds` giây).
+function mssqlPing(seconds = 5) {
+	try {
+		runSqlcmd('SELECT 1', sqlcmdInvocation('master', ['-l', String(seconds)]));
+		return true;
+	} catch {
+		return false;
 	}
 }
 
@@ -103,27 +155,10 @@ function mssqlExec(query, database = 'master') {
 
 // Chạy 1 câu ... FOR JSON và trả về mảng object.
 function mssqlJson(query) {
-	const { args, env } = sqlcmdInvocation();
-	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hrm-mssql-'));
-	const file = path.join(dir, 'out.json');
-	let out;
-	try {
-		execFileSync('sqlcmd', [...args, '-o', file, '-Q', `SET NOCOUNT ON; ${query}`], {
-			stdio: ['ignore', 'ignore', 'pipe'],
-			windowsHide: true,
-			env,
-		});
-		out = fs.readFileSync(file, 'utf8');
-	} catch (err) {
-		// -b: lỗi SQL → mã thoát khác 0, thông báo lỗi nằm trong file output
-		const detail = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim() : '';
-		throw new Error(`sqlcmd lỗi: ${detail || err.stderr?.toString() || err.message}`);
-	} finally {
-		fs.rmSync(dir, { recursive: true, force: true });
-	}
+	const out = runSqlcmd(query, sqlcmdInvocation());
 	// Kết quả FOR JSON là 1 chuỗi '[...]' (không có dòng nào → rỗng). sqlcmd có
 	// thể ngắt chuỗi JSON dài thành nhiều dòng → nối lại.
-	const lines = out.replace(/^﻿/, '').split(/\r?\n/);
+	const lines = out.split(/\r?\n/);
 	const start = lines.findIndex((l) => l.startsWith('['));
 	if (start === -1) {
 		if (lines.every((l) => !l.trim() || l.startsWith('JSON_F52E2B61') || /^-+$/.test(l.trim()))) return [];
@@ -189,4 +224,4 @@ function pgClient(applicationName, extra = {}) {
 	});
 }
 
-module.exports = { TABLES, mssqlJson, mssqlTable, mssqlExec, readTable, pgClient };
+module.exports = { TABLES, mssqlJson, mssqlTable, mssqlExec, mssqlPing, readTable, pgClient };

@@ -24,20 +24,37 @@
 //   --docker             build + chạy bằng Docker sau khi cài DB
 //                        (dev: docker-compose.yml, --prod: docker-compose.prod.yml)
 //   --fresh              cài mới, không hỏi
-//   --import-bak=<file>  nhập dữ liệu từ file backup SQL Server (.bak), không hỏi
+//   --import-bak=<file>  nhập dữ liệu từ file backup SQL Server (.bak), không hỏi.
+//                        Đưa thư mục thay vì file → lấy file .bak mới nhất trong đó.
+//   --bak-via=docker|local  cách khôi phục .bak (mặc định tự chọn: SQL Server trên
+//                        máy này nếu có, không thì SQL Server tạm trong Docker)
 //   --import-mssql[=<db>] nhập từ database SQL Server đang chạy (mặc định HRM_HOSPITAL)
 //   --yes                đồng ý xoá dữ liệu PostgreSQL đang có khi nhập lại (không hỏi)
 //   --skip-db            chỉ tạo file env, không đụng tới PostgreSQL
 //   --admin-user=<tên>   tên đăng nhập admin đầu tiên (mặc định: admin)
+//   --pg-user=<tên>      superuser PostgreSQL dùng để cài (mặc định: postgres)
 //
-// Nhập từ SQL Server cần sqlcmd; MSSQL_SERVER (mặc định localhost\SQLEXPRESS),
+// Mật khẩu: script hỏi mật khẩu superuser PostgreSQL (gõ hiện dấu *, sai thì
+// cho nhập lại tối đa 3 lần). File env chưa có DB_PASSWORD → hỏi mật khẩu cho
+// role hrm_app (Enter = sinh ngẫu nhiên).
+//
+// Khôi phục .bak cần SQL Server. Máy không cài SQL Server (vd máy chủ mới chỉ có
+// PostgreSQL) → script chạy SQL Server Express (bản mới nhất) tạm trong Docker
+// (mcr.microsoft.com/mssql/server, cần Docker Desktop ≥ 2 GB RAM), chép file
+// .bak vào, chuyển dữ liệu rồi xoá container. SQL Server trên máy báo không đọc
+// được file / file từ bản SQL Server mới hơn → tự thử lại bằng Docker.
+//
+// Nhập từ SQL Server đang chạy cần sqlcmd; MSSQL_SERVER (mặc định localhost\SQLEXPRESS),
 // MSSQL_USER / MSSQL_PASSWORD (trống = Windows Authentication).
 //
 // Biến môi trường (không bắt buộc):
-//   PG_SUPER_USER        superuser PostgreSQL (mặc định: postgres)
-//   PG_SUPER_PASSWORD    mật khẩu superuser — không đặt thì script hỏi (nhập ẩn)
+//   PG_SUPER_USER        superuser PostgreSQL (mặc định: postgres; --pg-user ưu tiên hơn)
+//   PG_SUPER_PASSWORD    mật khẩu superuser — không đặt thì script hỏi
 //   SETUP_DB_HOST        host PostgreSQL nhìn từ máy chạy script (mặc định lấy
 //                        DB_HOST; host.docker.internal → localhost)
+//   MSSQL_DOCKER_IMAGE   image SQL Server dùng khôi phục .bak
+//                        (mặc định mcr.microsoft.com/mssql/server:2025-latest;
+//                        backup từ SQL Server quá cũ → đổi sang :2022-latest)
 // ============================================================================
 
 const fs = require('fs');
@@ -67,10 +84,38 @@ if (BAK_ARG === '') {
 	console.error('❌ --import-bak cần đường dẫn file: --import-bak=D:\\Backup\\HRM.bak');
 	process.exit(1);
 }
+const BAK_VIA = argValue('--bak-via');
+if (BAK_VIA !== null && !['docker', 'local'].includes(BAK_VIA)) {
+	console.error('❌ --bak-via chỉ nhận docker hoặc local');
+	process.exit(1);
+}
 const ADMIN_USER = (args.find((a) => a.startsWith('--admin-user=')) || '--admin-user=admin').split('=')[1];
+const PG_USER_ARG = argValue('--pg-user');
 
 const OWNER_ROLE = 'hrm_owner';
 const ADMIN_ROLE_NAME = 'Quản trị hệ thống';
+const MSSQL_IMAGE = process.env.MSSQL_DOCKER_IMAGE || 'mcr.microsoft.com/mssql/server:2025-latest';
+
+// Dọn dẹp (database / container SQL Server tạm) — chạy cả khi fail() thoát giữa chừng
+// hoặc người dùng bấm Ctrl+C.
+const cleanups = [];
+function runCleanups() {
+	while (cleanups.length) {
+		try {
+			cleanups.pop()();
+		} catch {
+			// dọn dẹp lỗi thì bỏ qua — đã báo trong từng hàm
+		}
+	}
+}
+process.on('exit', runCleanups);
+process.on('SIGINT', () => {
+	console.log('\nĐã huỷ.');
+	process.exit(130);
+});
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const timestamp = () => new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15);
 
 const step = (n, msg) => console.log(`\n[${n}] ${msg}`);
 const ok = (msg) => console.log(`    ✅ ${msg}`);
@@ -123,7 +168,28 @@ function isLegacyEnv(env) {
 
 const randomSecret = (bytes) => crypto.randomBytes(bytes).toString('hex');
 
-function prepareEnvFile() {
+// Hỏi mật khẩu cho role ứng dụng (hrm_app). Enter bỏ trống / không có terminal → null (sinh ngẫu nhiên).
+async function askAppPassword(user) {
+	if (!process.stdin.isTTY) return null;
+	info(`Đặt mật khẩu PostgreSQL cho role ${user} (app dùng để kết nối DB) — Enter để tự sinh ngẫu nhiên`);
+	for (;;) {
+		const first = await askPassword(`    Mật khẩu ${user}: `);
+		if (!first) return null;
+		if (first.length < 12) {
+			warn('Mật khẩu tối thiểu 12 ký tự.');
+			continue;
+		}
+		// Ghi vào file env trong dấu nháy đơn → không dùng được nháy đơn bên trong
+		if (/['\r\n]/.test(first)) {
+			warn("Mật khẩu không được chứa dấu nháy đơn (').");
+			continue;
+		}
+		if ((await askPassword('    Nhập lại để xác nhận: ')) === first) return first;
+		warn('Hai lần nhập không khớp — nhập lại.');
+	}
+}
+
+async function prepareEnvFile() {
 	const envName = PROD ? '.env.production' : '.env';
 	const envPath = path.join(SERVER_DIR, envName);
 	const template = fs.readFileSync(path.join(SERVER_DIR, `${envName}.example`), 'utf8');
@@ -162,8 +228,11 @@ function prepareEnvFile() {
 		ok('Đã sinh JWT_SECRET mới');
 	} else ok('JWT_SECRET đã có');
 	if (!env.DB_PASSWORD) {
-		text = setEnv(text, 'DB_PASSWORD', randomSecret(24));
-		ok('Đã sinh mật khẩu DB cho hrm_app (DB_PASSWORD)');
+		const appUser = env.DB_USER || 'hrm_app';
+		const chosen = await askAppPassword(appUser);
+		// Nháy đơn: dotenv và docker compose (env_file) đọc nguyên văn, không hiểu # hay $ bên trong
+		text = setEnv(text, 'DB_PASSWORD', chosen ? `'${chosen}'` : randomSecret(24));
+		ok(chosen ? `Đã lưu mật khẩu ${appUser} vừa nhập (DB_PASSWORD)` : `Đã sinh mật khẩu DB cho ${appUser} (DB_PASSWORD)`);
 	}
 
 	fs.writeFileSync(envPath, text);
@@ -179,17 +248,63 @@ function prepareEnvFile() {
 
 // ── PostgreSQL ──────────────────────────────────────────────────────────────
 
-function askHidden(question) {
-	return new Promise((resolve) => {
-		const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
-		rl._writeToOutput = (s) => {
-			if (s.startsWith(question)) rl.output.write(question);
-		};
-		rl.question(question, (answer) => {
-			rl.close();
-			process.stdout.write('\n');
-			resolve(answer);
+// Nhập mật khẩu: mỗi ký tự hiện 1 dấu * (để biết bàn phím đang nhận), Backspace
+// xoá được, dán (Ctrl+V / chuột phải) được. Không có terminal thật (vd Git Bash
+// mintty không qua winpty) → đọc cả dòng bình thường, chữ sẽ hiện ra màn hình.
+function askPassword(question) {
+	const stdin = process.stdin;
+	if (!stdin.isTTY || typeof stdin.setRawMode !== 'function') {
+		warn('Terminal không hỗ trợ nhập ẩn — mật khẩu sẽ hiện khi gõ.');
+		return new Promise((resolve) => {
+			const rl = readline.createInterface({ input: stdin, output: process.stdout });
+			rl.question(question, (answer) => {
+				rl.close();
+				resolve(answer);
+			});
 		});
+	}
+	return new Promise((resolve) => {
+		process.stdout.write(question);
+		let chars = [];
+		const wasRaw = stdin.isRaw;
+		const finish = () => {
+			stdin.removeListener('data', onData);
+			stdin.setRawMode(wasRaw);
+			stdin.pause();
+			process.stdout.write('\n');
+		};
+		const onData = (chunk) => {
+			for (const ch of String(chunk)) {
+				if (ch === '\r' || ch === '\n') {
+					finish();
+					return resolve(chars.join(''));
+				}
+				if (ch === '\u0003') {
+					// Ctrl+C
+					finish();
+					process.emit('SIGINT');
+					return;
+				}
+				if (ch === '\u001b') return; // phím mũi tên, F1... → bỏ cả chuỗi điều khiển
+				if (ch === '\b' || ch === '\u007f') {
+					if (chars.length) {
+						chars.pop();
+						process.stdout.write('\b \b');
+					}
+				} else if (ch === '\u0015') {
+					// Ctrl+U: xoá hết
+					process.stdout.write('\b \b'.repeat(chars.length));
+					chars = [];
+				} else if (ch >= ' ') {
+					chars.push(ch);
+					process.stdout.write('*');
+				}
+			}
+		};
+		stdin.setEncoding('utf8');
+		stdin.setRawMode(true);
+		stdin.resume();
+		stdin.on('data', onData);
 	});
 }
 
@@ -246,11 +361,12 @@ async function chooseDataMode(counts) {
 		const server = process.env.MSSQL_SERVER || 'localhost\\SQLEXPRESS';
 		console.log('    Chọn kiểu cài đặt:');
 		console.log('      1) Cài mới hoàn toàn — nạp sẵn vai trò, quyền, khoa phòng (hệ số) + tạo tài khoản admin');
-		console.log(`      2) Nhập dữ liệu từ file backup SQL Server (.bak) — khôi phục tạm trên ${server}`);
+		console.log('      2) Nhập dữ liệu từ file backup SQL Server cũ (.bak) — máy này không cần cài SQL Server');
 		console.log(`      3) Nhập dữ liệu từ database SQL Server đang chạy trên ${server}`);
 		const pick = (await ask('    Chọn [1]: ')) || '1';
 		if (pick === '2') {
-			const bak = await ask('    Đường dẫn file .bak: ');
+			info('Gõ hoặc kéo thả file .bak vào đây. Đưa thư mục → chọn trong các file .bak của thư mục đó.');
+			const bak = await ask('    Đường dẫn file .bak / thư mục: ');
 			if (!bak) fail('Chưa nhập đường dẫn file .bak.');
 			choice = { mode: 'bak', bak };
 		} else if (pick === '3') {
@@ -311,35 +427,100 @@ async function ensureAdmin(db) {
 
 const mssqlLiteral = (s) => `N'${String(s).replace(/'/g, "''")}'`;
 const mssqlIdent = (s) => `[${String(s).replace(/]/g, ']]')}]`;
+const BAK_DIR_IN_CONTAINER = '/var/opt/mssql/backup';
 
-// Khôi phục file .bak thành database tạm HRM_IMPORT_<thời gian> trên SQL Server
-// (MSSQL_SERVER, mặc định localhost\SQLEXPRESS). Trả về tên database tạm.
-function restoreBak(file) {
+const formatSize = (bytes) =>
+	bytes >= 1024 ** 3 ? `${(bytes / 1024 ** 3).toFixed(1)} GB` : `${Math.max(1, Math.round(bytes / 1024 ** 2))} MB`;
+
+const hasLocalSqlcmd = () => !spawnSync('sqlcmd', ['-?'], { stdio: 'ignore', windowsHide: true }).error;
+const dockerReady = () => docker(['info'], 'ignore');
+
+// Đường dẫn gõ / kéo thả vào terminal: bỏ dấu nháy và "& '...'" (PowerShell thêm khi
+// kéo thả). npm chạy script ở thư mục gốc repo → đường dẫn tương đối tính theo nơi gõ lệnh.
+function cleanPath(input) {
+	const s = input.trim().replace(/^&\s*/, '').replace(/^["']|["']$/g, '');
+	return path.resolve(process.env.INIT_CWD || process.cwd(), s);
+}
+
+// File → giữ nguyên. Thư mục → liệt kê các file .bak (mới nhất trước) cho chọn;
+// không hỏi được (--import-bak, không có terminal) → lấy file mới nhất.
+async function resolveBakFile(input) {
+	const p = cleanPath(input);
+	let stat = null;
+	try {
+		stat = fs.statSync(p);
+	} catch {
+		// Không thấy: có thể file nằm trong thư mục chỉ dịch vụ SQL Server đọc được
+	}
+	if (!stat?.isDirectory()) return p;
+
+	const list = fs
+		.readdirSync(p, { withFileTypes: true })
+		.filter((d) => d.isFile() && /\.bak$/i.test(d.name))
+		.map((d) => {
+			const full = path.join(p, d.name);
+			const st = fs.statSync(full);
+			return { full, name: d.name, size: st.size, mtime: st.mtime };
+		})
+		.sort((a, b) => b.mtime - a.mtime);
+	if (!list.length) fail(`Thư mục ${p} không có file .bak nào.`);
+	if (list.length === 1 || BAK_ARG || !process.stdin.isTTY) {
+		info(`Lấy file .bak mới nhất trong thư mục: ${list[0].name}`);
+		return list[0].full;
+	}
+	const shown = list.slice(0, 20);
+	console.log(`    Thư mục có ${list.length} file .bak (mới nhất trước):`);
+	shown.forEach((f, i) =>
+		console.log(`      ${i + 1}) ${f.name}  —  ${formatSize(f.size)}, ${f.mtime.toLocaleString('vi-VN')}`),
+	);
+	const pick = Number((await ask('    Chọn file [1]: ')) || '1');
+	if (!Number.isInteger(pick) || pick < 1 || pick > shown.length) fail(`Lựa chọn không hợp lệ: ${pick}`);
+	return shown[pick - 1].full;
+}
+
+// Gắn loại lỗi để quyết định có thử lại bằng Docker không.
+function bakError(prefix, err) {
+	const e = new Error(`${prefix}: ${err.message}`);
+	if (/Operating system error 5|Access is denied/i.test(err.message)) e.kind = 'access';
+	else if (/Operating system error (2|3)\b/i.test(err.message)) e.kind = 'missing';
+	else if (/version/i.test(err.message) && /backed up/i.test(err.message)) {
+		e.kind = 'version';
+		// "...backed up on a server running version 16.00... this server, which is running version 15.00..."
+		const v = err.message.match(/running version (\d+)[\s\S]*running version (\d+)/i);
+		e.newer = v ? Number(v[1]) > Number(v[2]) : true;
+	} else if (/incorrectly formed|not a valid|media family|damaged|terminating abnormally/i.test(err.message))
+		e.kind = 'corrupt';
+	return e;
+}
+
+function explainBakError(err, bak, inDocker) {
+	const why = {
+		missing: `Không có file ${bak} trên máy chạy SQL Server.`,
+		access: inDocker
+			? 'SQL Server trong container không đọc được file.'
+			: 'Dịch vụ SQL Server không đọc được file. Mở Docker Desktop rồi chạy lại với --bak-via=docker,\n' +
+				'     hoặc chép file .bak vào thư mục Backup của SQL Server (vd ...\\MSSQL\\Backup) /\n' +
+				'     cấp quyền đọc cho NT Service\\MSSQL$SQLEXPRESS.',
+		version: !err.newer
+			? `File được tạo từ SQL Server quá cũ so với ${inDocker ? `image ${MSSQL_IMAGE}` : 'máy này'} — ` +
+				'đặt MSSQL_DOCKER_IMAGE=mcr.microsoft.com/mssql/server:2022-latest rồi chạy lại với --bak-via=docker.'
+			: inDocker
+				? `File được tạo từ SQL Server mới hơn image ${MSSQL_IMAGE} — đặt MSSQL_DOCKER_IMAGE sang bản mới hơn rồi chạy lại.`
+				: 'File được tạo từ SQL Server mới hơn máy này — mở Docker Desktop rồi chạy lại với --bak-via=docker.',
+		corrupt: 'File không phải backup SQL Server hợp lệ hoặc bị hỏng khi chép — chép lại file từ máy cũ.',
+	}[err.kind];
+	return why ? `${err.message}\n   → ${why}` : err.message;
+}
+
+// Khôi phục file .bak (đường dẫn nhìn từ SQL Server) thành database tạm
+// HRM_IMPORT_<thời gian>. Trả về tên database tạm; lỗi → throw (kèm err.kind).
+function restoreBak(disk, { inDocker }) {
 	const { mssqlTable, mssqlExec } = require('./lib/migrationCommon');
-	// npm chạy script ở thư mục gốc repo → đường dẫn tương đối tính theo nơi gõ lệnh
-	const bak = path.resolve(process.env.INIT_CWD || process.cwd(), file.replace(/^["']|["']$/g, ''));
-	info(`File: ${bak}`);
-	// File do dịch vụ SQL Server đọc, không phải tài khoản đang chạy script — thư mục
-	// Backup của SQL Server thường không mở được với user thường nhưng SQL Server vẫn đọc được.
-	if (!fs.existsSync(bak)) info('Tài khoản hiện tại không thấy file — để SQL Server tự đọc');
-
-	const explain = (err) => {
-		let msg = err.message;
-		if (/Operating system error (2|3)\b/i.test(msg))
-			msg += `\n   → Không có file ${bak} trên máy chạy SQL Server.`;
-		if (/Operating system error 5|Access is denied/i.test(msg))
-			msg += '\n   → Dịch vụ SQL Server không đọc được file. Chép file .bak vào thư mục Backup của SQL Server' +
-				'\n     (vd ...\\MSSQL\\Backup) hoặc cấp quyền đọc cho NT Service\\MSSQL$SQLEXPRESS rồi chạy lại.';
-		if (/version/i.test(msg) && /backed up/i.test(msg))
-			msg += '\n   → File được tạo từ SQL Server mới hơn máy này — cần cài SQL Server cùng hoặc mới hơn.';
-		return msg;
-	};
-
 	let headers;
 	try {
-		headers = mssqlTable(`RESTORE HEADERONLY FROM DISK = ${mssqlLiteral(bak)}`);
+		headers = mssqlTable(`RESTORE HEADERONLY FROM DISK = ${mssqlLiteral(disk)}`);
 	} catch (err) {
-		fail(`Không đọc được file backup: ${explain(err)}`);
+		throw bakError('Không đọc được file backup', err);
 	}
 	// BackupType 1 = full database; 1 file có thể chứa nhiều bản → lấy bản mới nhất
 	const full = headers.filter((h) => h.BackupType === '1');
@@ -348,27 +529,29 @@ function restoreBak(file) {
 	info(`Bản backup: database ${last.DatabaseName}, lúc ${last.BackupFinishDate}`);
 
 	const position = Number(last.Position);
-	const files = mssqlTable(`RESTORE FILELISTONLY FROM DISK = ${mssqlLiteral(bak)} WITH FILE = ${position}`);
+	const files = mssqlTable(`RESTORE FILELISTONLY FROM DISK = ${mssqlLiteral(disk)} WITH FILE = ${position}`);
 	const [dirs] = mssqlTable(`SELECT
 		CAST(SERVERPROPERTY('InstanceDefaultDataPath') AS nvarchar(400)) AS data_dir,
 		CAST(SERVERPROPERTY('InstanceDefaultLogPath') AS nvarchar(400)) AS log_dir`);
-	const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15);
-	const tempDb = `HRM_IMPORT_${stamp}`;
+	const tempDb = `HRM_IMPORT_${timestamp()}`;
+	const join = inDocker ? path.posix.join : path.win32.join;
 	const moves = files.map((f, i) => {
 		const ext = f.Type === 'L' ? '.ldf' : f.Type === 'D' ? (i === 0 ? '.mdf' : '.ndf') : '';
 		const dir = f.Type === 'L' ? dirs.log_dir : dirs.data_dir;
-		return `MOVE ${mssqlLiteral(f.LogicalName)} TO ${mssqlLiteral(path.win32.join(dir, `${tempDb}_${i}${ext}`))}`;
+		return `MOVE ${mssqlLiteral(f.LogicalName)} TO ${mssqlLiteral(join(dir, `${tempDb}_${i}${ext}`))}`;
 	});
 	info(`Đang khôi phục vào database tạm ${tempDb}...`);
 	try {
 		mssqlExec(
-			`RESTORE DATABASE ${mssqlIdent(tempDb)} FROM DISK = ${mssqlLiteral(bak)}
+			`RESTORE DATABASE ${mssqlIdent(tempDb)} FROM DISK = ${mssqlLiteral(disk)}
 			 WITH FILE = ${position}, ${moves.join(', ')}, RECOVERY`,
 		);
 	} catch (err) {
-		dropTempDb(tempDb);
-		fail(`Khôi phục .bak thất bại: ${explain(err)}`);
+		if (!inDocker) dropTempDb(tempDb); // container thì xoá cả container sau
+		throw bakError('Khôi phục .bak thất bại', err);
 	}
+	// Trong Docker: xoá container là xoá luôn database tạm
+	if (!inDocker) cleanups.push(() => dropTempDb(tempDb));
 	ok(`Đã khôi phục vào ${tempDb}`);
 	return tempDb;
 }
@@ -389,13 +572,131 @@ function dropTempDb(name) {
 	}
 }
 
+// SQL Server Express tạm trong Docker — chỉ để đọc file .bak, không mở cổng ra
+// ngoài (sqlcmd chạy bên trong container), mật khẩu sa ngẫu nhiên truyền qua biến
+// môi trường. Xoá container (kèm dữ liệu) khi xong hoặc khi script dừng giữa chừng.
+async function startMssqlContainer() {
+	if (!dockerReady()) fail('Docker chưa chạy — mở Docker Desktop rồi chạy lại.');
+	const name = `hrm-bak-import-${timestamp().replace('_', '-')}`;
+	// Đủ 4 loại ký tự theo chính sách mật khẩu của SQL Server
+	const saPassword = `Hrm#${randomSecret(12)}Aa1`;
+
+	if (!docker(['image', 'inspect', MSSQL_IMAGE], 'ignore')) {
+		info(`Tải image ${MSSQL_IMAGE} (~650 MB, chỉ lần đầu)...`);
+		if (!docker(['pull', MSSQL_IMAGE])) fail('Không tải được image SQL Server — kiểm tra mạng Internet / Docker Desktop.');
+	}
+	info('Khởi động SQL Server tạm trong Docker...');
+	const started = spawnSync(
+		'docker',
+		['run', '-d', '--name', name, '-e', 'ACCEPT_EULA=Y', '-e', 'MSSQL_PID=Express', '-e', 'MSSQL_SA_PASSWORD', MSSQL_IMAGE],
+		{ cwd: ROOT_DIR, env: { ...process.env, MSSQL_SA_PASSWORD: saPassword }, encoding: 'utf8', windowsHide: true },
+	);
+	if (started.status !== 0) fail(`Không chạy được container SQL Server: ${(started.stderr || '').trim()}`);
+	cleanups.push(() => {
+		spawnSync('docker', ['rm', '-f', '-v', name], { stdio: 'ignore', windowsHide: true });
+		info(`Đã xoá container SQL Server tạm ${name}`);
+	});
+
+	const running = () =>
+		(spawnSync('docker', ['inspect', '-f', '{{.State.Running}}', name], { encoding: 'utf8', windowsHide: true }).stdout || '').trim() ===
+		'true';
+	const { mssqlPing } = require('./lib/migrationCommon');
+	const deadline = Date.now() + 180_000;
+	let sqlcmd = null;
+	for (;;) {
+		if (!running()) {
+			warn('SQL Server trong container đã dừng. Log gần nhất:');
+			docker(['logs', '--tail', '20', name]);
+			fail('Không chạy được SQL Server trong Docker (thường do Docker Desktop cấp < 2 GB RAM — Settings → Resources).');
+		}
+		// Image mới: mssql-tools18; image cũ: mssql-tools
+		sqlcmd ??= ['/opt/mssql-tools18/bin/sqlcmd', '/opt/mssql-tools/bin/sqlcmd'].find((p) =>
+			docker(['exec', name, 'test', '-x', p], 'ignore'),
+		);
+		if (sqlcmd) {
+			Object.assign(process.env, {
+				MSSQL_DOCKER_CONTAINER: name,
+				MSSQL_DOCKER_SQLCMD: sqlcmd,
+				MSSQL_SERVER: 'localhost',
+				MSSQL_USER: 'sa',
+				MSSQL_PASSWORD: saPassword,
+			});
+			if (mssqlPing(2)) break;
+		}
+		if (Date.now() > deadline)
+			fail(sqlcmd ? 'SQL Server trong container chưa sẵn sàng sau 3 phút.' : `Image ${MSSQL_IMAGE} không có sqlcmd.`);
+		await sleep(3000);
+	}
+	ok(`SQL Server tạm đã sẵn sàng (container ${name})`);
+	return name;
+}
+
+// Chép file .bak vào container (đọc bằng tài khoản Windows đang chạy script).
+function copyBakIntoContainer(name, bak) {
+	if (!fs.existsSync(bak)) fail(`Không thấy file ${bak} (hoặc tài khoản Windows hiện tại không có quyền đọc).`);
+	const dest = `${BAK_DIR_IN_CONTAINER}/import.bak`;
+	docker(['exec', '-u', '0', name, 'mkdir', '-p', BAK_DIR_IN_CONTAINER], 'ignore');
+	info(`Chép ${path.basename(bak)} (${formatSize(fs.statSync(bak).size)}) vào container...`);
+	if (!docker(['cp', bak, `${name}:${dest}`], 'ignore')) fail('Không chép được file .bak vào container.');
+	// docker cp giữ chủ sở hữu root → cho user mssql trong container đọc được
+	docker(['exec', '-u', '0', name, 'chmod', '-R', 'a+rX', BAK_DIR_IN_CONTAINER], 'ignore');
+	return dest;
+}
+
+// Khôi phục .bak: SQL Server trên máy này (nếu có) hoặc SQL Server tạm trong Docker.
+async function restoreBakFile(input) {
+	const bak = await resolveBakFile(input);
+	info(`File: ${bak}`);
+
+	let via = BAK_VIA;
+	if (!via) {
+		if (hasLocalSqlcmd() && require('./lib/migrationCommon').mssqlPing(5)) via = 'local';
+		else if (dockerReady()) {
+			via = 'docker';
+			info('Máy này không có SQL Server → dùng SQL Server tạm trong Docker');
+		} else
+			fail(
+				'Cần SQL Server để đọc file .bak, máy này không có. Chọn 1 trong 2:\n' +
+					'   • Cài Docker Desktop và mở lên (khuyến nghị) — script tự chạy SQL Server tạm trong container rồi xoá.\n' +
+					'   • Cài SQL Server Express + sqlcmd. SQL Server ở máy khác / SQL login: đặt MSSQL_SERVER, MSSQL_USER, MSSQL_PASSWORD.',
+			);
+	}
+
+	if (via === 'local') {
+		if (!hasLocalSqlcmd()) fail('Không tìm thấy sqlcmd — cài SQL Server / sqlcmd, hoặc dùng --bak-via=docker.');
+		info(`Khôi phục trên SQL Server ${process.env.MSSQL_SERVER || 'localhost\\SQLEXPRESS'}`);
+		// File do dịch vụ SQL Server đọc, không phải tài khoản đang chạy script — thư mục
+		// Backup của SQL Server thường không mở được với user thường nhưng SQL Server vẫn đọc được.
+		if (!fs.existsSync(bak)) info('Tài khoản hiện tại không thấy file — để SQL Server tự đọc');
+		try {
+			return restoreBak(bak, { inDocker: false });
+		} catch (err) {
+			const retry =
+				!BAK_VIA && (err.kind === 'access' || (err.kind === 'version' && err.newer)) && fs.existsSync(bak) && dockerReady();
+			if (!retry) fail(explainBakError(err, bak, false));
+			warn(err.kind === 'access' ? 'SQL Server trên máy không đọc được file.' : 'File từ bản SQL Server mới hơn máy này.');
+			warn('Thử lại bằng SQL Server tạm trong Docker...');
+		}
+	}
+
+	const container = await startMssqlContainer();
+	const disk = copyBakIntoContainer(container, bak);
+	try {
+		return restoreBak(disk, { inDocker: true });
+	} catch (err) {
+		fail(explainBakError(err, bak, true));
+	}
+}
+
 // Chuyển dữ liệu bằng 2 script có sẵn (migrate-from-mssql.js --truncate rồi
 // verify-migration.js), ghi PostgreSQL bằng superuser vừa nhập.
-function importFromSqlServer(choice, pg) {
-	if (spawnSync('sqlcmd', ['-?'], { stdio: 'ignore', windowsHide: true }).error)
-		fail('Không tìm thấy sqlcmd — cài SQL Server Management Studio / sqlcmd rồi chạy lại.');
-
-	const database = choice.mode === 'bak' ? restoreBak(choice.bak) : choice.database;
+async function importFromSqlServer(choice, pg) {
+	let database;
+	if (choice.mode === 'bak') database = await restoreBakFile(choice.bak);
+	else {
+		if (!hasLocalSqlcmd()) fail('Không tìm thấy sqlcmd — cài SQL Server Management Studio / sqlcmd rồi chạy lại.');
+		database = choice.database;
+	}
 	const childEnv = {
 		...process.env,
 		MSSQL_DATABASE: database,
@@ -413,7 +714,6 @@ function importFromSqlServer(choice, pg) {
 			stdio: 'inherit',
 		}).status === 0;
 
-	// fail() thoát tiến trình ngay (không chạy finally) → xoá database tạm trước.
 	let error = null;
 	info(`Chuyển dữ liệu từ SQL Server ${database} (xoá dữ liệu PostgreSQL cũ trước khi nạp)...`);
 	if (!run('migrate-from-mssql.js', ['--truncate'])) {
@@ -422,7 +722,7 @@ function importFromSqlServer(choice, pg) {
 		info('Đối chiếu từng ô dữ liệu giữa 2 database...');
 		if (!run('verify-migration.js')) error = 'Dữ liệu sau khi chuyển chưa khớp hoàn toàn — xem chi tiết ở trên.';
 	}
-	if (choice.mode === 'bak') dropTempDb(database);
+	runCleanups(); // xoá database / container tạm ngay, không đợi hết script
 	if (error) fail(error);
 	ok('Đã nhập dữ liệu và đối chiếu khớp');
 }
@@ -437,23 +737,45 @@ async function setupDatabase(env) {
 	const ssl = env.DB_SSL === 'true' ? { rejectUnauthorized: env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' } : false;
 
 	step(2, `Kết nối PostgreSQL ${host}:${port}`);
-	const superUser = process.env.PG_SUPER_USER || 'postgres';
-	const superPassword =
-		process.env.PG_SUPER_PASSWORD ?? (await askHidden(`    Mật khẩu superuser "${superUser}": `));
+	const superUser = PG_USER_ARG || process.env.PG_SUPER_USER || 'postgres';
+	let superPassword = process.env.PG_SUPER_PASSWORD;
+	// Mật khẩu lấy từ biến môi trường mà sai → báo lỗi luôn, không hỏi lại
+	const canRetry = superPassword === undefined && process.stdin.isTTY;
 	const connect = async (database, user = superUser, password = superPassword) => {
 		const c = new Client({ host, port, database, user, password, ssl, application_name: 'hrm-setup' });
 		await c.connect();
 		return c;
 	};
 
+	const MAX_TRIES = 3;
 	let admin;
-	try {
-		admin = await connect('postgres');
-	} catch (err) {
-		fail(
-			`Không kết nối được PostgreSQL bằng "${superUser}": ${err.message}\n` +
-				'   Kiểm tra service PostgreSQL đang chạy, DB_HOST/DB_PORT, mật khẩu superuser.',
-		);
+	for (let attempt = 1; !admin; attempt++) {
+		if (superPassword === undefined) {
+			if (!process.stdin.isTTY)
+				fail('Không có terminal để nhập mật khẩu PostgreSQL — đặt biến PG_SUPER_PASSWORD rồi chạy lại.');
+			superPassword = await askPassword(`    Mật khẩu superuser "${superUser}" (đặt lúc cài PostgreSQL): `);
+		}
+		try {
+			admin = await connect('postgres');
+		} catch (err) {
+			// 28P01: sai mật khẩu; SASL: mật khẩu rỗng với scram-sha-256
+			const badPassword = err.code === '28P01' || /SASL|password must be/i.test(err.message);
+			if (badPassword && canRetry && attempt < MAX_TRIES) {
+				warn(`Sai mật khẩu "${superUser}" (lần ${attempt}/${MAX_TRIES}) — nhập lại.`);
+				superPassword = undefined;
+				continue;
+			}
+			let hint = '   Kiểm tra service PostgreSQL đang chạy, DB_HOST/DB_PORT, mật khẩu superuser.';
+			if (badPassword)
+				hint =
+					`   Sai mật khẩu "${superUser}" — là mật khẩu đặt lúc cài PostgreSQL. Superuser tên khác: thêm --pg-user=<tên>.\n` +
+					'   Quên mật khẩu: xem server/db/README.md, mục "Quên mật khẩu superuser postgres".';
+			else if (err.code === '28000' || /role .* does not exist/i.test(err.message))
+				hint = `   Không có role "${superUser}" — thêm --pg-user=<tên superuser> (hoặc đặt PG_SUPER_USER).`;
+			else if (err.code === 'ECONNREFUSED')
+				hint = `   PostgreSQL không nhận kết nối ở ${host}:${port} — service chưa chạy (Get-Service postgresql*) hoặc sai DB_HOST/DB_PORT.`;
+			fail(`Không kết nối được PostgreSQL bằng "${superUser}": ${err.message}\n${hint}`);
+		}
 	}
 	const { rows: ver } = await admin.query(`SELECT current_setting('server_version_num')::int AS v`);
 	if (ver[0].v < 150000) fail('Cần PostgreSQL >= 15 (khuyến nghị 17 hoặc 18) để dùng collation ICU tiếng Việt.');
@@ -541,7 +863,7 @@ async function setupDatabase(env) {
 		} else info(`Danh mục đã có (${counts.roles} vai trò, ${counts.departments} khoa phòng) — giữ nguyên`);
 	} else if (choice.mode === 'bak' || choice.mode === 'mssql') {
 		await db.query('RESET ROLE');
-		importFromSqlServer(choice, { host, port, dbName, superUser, superPassword, ssl: env.DB_SSL });
+		await importFromSqlServer(choice, { host, port, dbName, superUser, superPassword, ssl: env.DB_SSL });
 		await db.query(`SET ROLE ${OWNER_ROLE}`);
 	} else {
 		info(`Database đã có dữ liệu (${counts.users} tài khoản, ${counts.departments} khoa phòng) — giữ nguyên.`);
@@ -630,7 +952,7 @@ async function main() {
 	if (major < 22) fail(`Cần Node.js >= 22 (đang dùng ${process.versions.node}).`);
 
 	console.log(`🏥 Hospital HRM — cài đặt (${PROD ? 'production' : 'dev'}${DOCKER ? ', Docker' : ''})`);
-	const { env, envName } = prepareEnvFile();
+	const { env, envName } = await prepareEnvFile();
 
 	let secrets = {};
 	if (SKIP_DB) console.log('\n--skip-db: bỏ qua bước PostgreSQL');

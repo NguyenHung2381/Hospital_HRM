@@ -96,15 +96,15 @@ npm run setup
 Lệnh này làm lần lượt (chạy lại nhiều lần được, bước nào xong thì bỏ qua):
 
 1. `npm install` cho root, `client/`, `server/`.
-2. Tạo `server/.env` từ `server/.env.example` (đặt `NODE_ENV=development`), sinh `JWT_SECRET` và mật khẩu DB của `hrm_app` nếu còn trống. File `.env` còn cấu hình SQL Server cũ → sao lưu thành `.env.bak-<thời gian>` rồi tạo lại (giữ `JWT_SECRET`, `CORS_ORIGIN`...).
-3. Hỏi mật khẩu superuser `postgres` (nhập ẩn), tạo role `hrm_owner`, `hrm_app`, database `hrm_hospital`, cấp quyền — giống `000_roles_database.sql`.
+2. Tạo `server/.env` từ `server/.env.example` (đặt `NODE_ENV=development`), sinh `JWT_SECRET` nếu còn trống. `DB_PASSWORD` còn trống → hỏi mật khẩu cho role `hrm_app` (≥ 12 ký tự, nhập 2 lần; **Enter = tự sinh ngẫu nhiên**). File `.env` còn cấu hình SQL Server cũ → sao lưu thành `.env.bak-<thời gian>` rồi tạo lại (giữ `JWT_SECRET`, `CORS_ORIGIN`...).
+3. Hỏi mật khẩu superuser `postgres` — mật khẩu đặt lúc cài PostgreSQL; gõ hiện `*`, dán được, sai thì cho nhập lại (tối đa 3 lần). Quên mật khẩu: xem [server/db/README.md](server/db/README.md#quên-mật-khẩu-superuser-postgres). Tạo role `hrm_owner`, `hrm_app`, database `hrm_hospital`, cấp quyền — giống `000_roles_database.sql`.
 4. Tạo bảng (`001_init.sql`, chỉ khi DB còn trống) và view/hàm (`002_views_functions.sql`).
 5. **Dữ liệu** — DB còn trống thì hỏi chọn kiểu cài đặt:
 
    | Chọn | Việc |
    |---|---|
    | 1) Cài mới hoàn toàn | Nạp danh mục từ `010_seed_data.sql`: 5 vai trò, 10 quyền + quyền theo vai trò, 47 khoa phòng (số giường, hệ số), cấu hình TT03 và nhân lực khuyến nghị. Không có tài khoản/báo cáo nào. |
-   | 2) Nhập từ file `.bak` | Khôi phục file vào database tạm `HRM_IMPORT_<thời gian>` trên SQL Server máy này → chuyển toàn bộ dữ liệu sang PostgreSQL → đối chiếu từng ô → xoá database tạm. |
+   | 2) Nhập từ file `.bak` | Gõ / kéo thả đường dẫn file `.bak` từ SQL Server cũ (đưa thư mục → chọn trong các file `.bak` của thư mục đó). Khôi phục vào database tạm `HRM_IMPORT_<thời gian>` → chuyển toàn bộ dữ liệu sang PostgreSQL → đối chiếu từng ô → xoá database tạm. **Máy không cần cài SQL Server**: không có thì script tự chạy SQL Server tạm trong Docker (xem dưới). |
    | 3) Nhập từ SQL Server đang chạy | Như 2 nhưng đọc thẳng database có sẵn (mặc định `HRM_HOSPITAL`). |
 
    DB đã có dữ liệu → giữ nguyên, không hỏi. Nhập lại vào DB đã có dữ liệu sẽ **xoá toàn bộ** dữ liệu PostgreSQL rồi nạp lại (phải gõ `yes` xác nhận).
@@ -118,10 +118,20 @@ Chọn sẵn kiểu cài đặt, không hỏi (dùng được với `setup`, `se
 ```bash
 npm run setup -- --fresh
 npm run setup -- --import-bak=D:\Backup\HRM_HOSPITAL.bak
+npm run setup -- --import-bak=D:\Backup                 # thư mục → lấy file .bak mới nhất
 npm run setup -- --import-mssql=HRM_HOSPITAL
 ```
 
-Thêm `--yes` để không hỏi xác nhận xoá dữ liệu cũ. Nhập từ SQL Server cần `sqlcmd` (có sẵn khi cài SQL Server / SSMS); SQL Server khác `localhost\SQLEXPRESS` hoặc dùng SQL login thì đặt `MSSQL_SERVER`, `MSSQL_USER`, `MSSQL_PASSWORD` trước khi chạy. Lỗi *"Access is denied"* khi khôi phục `.bak`: dịch vụ SQL Server không đọc được file → chép file vào thư mục `...\MSSQL\Backup` của SQL Server rồi chạy lại.
+Thêm `--yes` để không hỏi xác nhận xoá dữ liệu cũ.
+
+**File `.bak` được khôi phục ở đâu** (tự chọn, ép bằng `--bak-via=local` / `--bak-via=docker`):
+
+| Máy chạy setup | Cách khôi phục |
+|---|---|
+| Có SQL Server + `sqlcmd` (mặc định `localhost\SQLEXPRESS`) | Khôi phục trên SQL Server đó. Báo *"Access is denied"* (dịch vụ SQL Server không đọc được file) hoặc file từ bản SQL Server mới hơn → tự thử lại bằng Docker. |
+| Không có SQL Server (vd máy chủ mới chỉ có PostgreSQL) | Chạy SQL Server Express tạm trong Docker (`mcr.microsoft.com/mssql/server:2025-latest`, lần đầu tải ~650 MB), chép file `.bak` vào, chuyển dữ liệu rồi **xoá container** (kể cả khi lỗi / Ctrl+C). Cần Docker Desktop đang chạy, cấp ≥ 2 GB RAM. Không mở cổng, mật khẩu `sa` ngẫu nhiên. |
+
+Backup từ SQL Server quá cũ mà image 2025 không nhận → `$env:MSSQL_DOCKER_IMAGE = 'mcr.microsoft.com/mssql/server:2022-latest'` rồi chạy lại. Nhập từ SQL Server đang chạy (lựa chọn 3) cần `sqlcmd` (có sẵn khi cài SQL Server / SSMS); SQL Server khác `localhost\SQLEXPRESS` hoặc dùng SQL login thì đặt `MSSQL_SERVER`, `MSSQL_USER`, `MSSQL_PASSWORD` trước khi chạy.
 
 Danh mục cài mới lấy từ DB đang dùng. Sửa danh mục (thêm khoa, đổi hệ số...) rồi muốn bản cài mới có luôn → xuất lại: `cd server && npm run db:export-seed` (đọc SQL Server `HRM_HOSPITAL`), commit file `server/db/postgres/010_seed_data.sql`.
 
@@ -140,10 +150,11 @@ Tuỳ chọn khác (thêm sau `--`):
 | | |
 |---|---|
 | `npm run setup -- --admin-user=quantri` | Đổi tên đăng nhập admin đầu tiên |
+| `npm run setup -- --pg-user=<tên>` | Superuser PostgreSQL không phải `postgres` |
 | `npm run setup:db` | Bỏ qua `npm install`, chỉ làm bước 2–6 (thêm `-- --prod`, `-- --docker` nếu cần) |
 | `npm run setup:db -- --skip-db` | Chỉ tạo/điền file env |
 
-Không muốn nhập mật khẩu (vd chạy tự động): đặt `PG_SUPER_PASSWORD` (và `PG_SUPER_USER` nếu không phải `postgres`) trong phiên terminal trước khi chạy.
+Không muốn nhập mật khẩu (vd chạy tự động): đặt `PG_SUPER_PASSWORD` (và `PG_SUPER_USER` nếu không phải `postgres`) trong phiên terminal trước khi chạy; mật khẩu `hrm_app` thì điền sẵn `DB_PASSWORD` trong file env (không điền → tự sinh). Git Bash (mintty) không nhập ẩn được — mật khẩu sẽ hiện khi gõ, nên chạy setup trong PowerShell / Windows Terminal.
 
 Hoặc làm thủ công từng bước như dưới.
 

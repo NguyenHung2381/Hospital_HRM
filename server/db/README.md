@@ -51,6 +51,18 @@
    psql -U hrm_owner -d hrm_hospital -v ON_ERROR_STOP=1 -f 004_auth_rate_limits.sql
    ```
 
+### Quên mật khẩu superuser `postgres`
+
+`npm run setup` cần mật khẩu này (cho nhập lại 3 lần). Quên thì đặt lại
+(PowerShell **Run as Administrator**, thư mục `data` tìm như bước 2):
+
+1. Sao lưu `<data>\pg_hba.conf`, sửa **chỉ** 2 dòng `host all all 127.0.0.1/32`
+   và `host all all ::1/128`: đổi `scram-sha-256` thành `trust`.
+2. `Restart-Service postgresql-x64-18` (tên theo phiên bản đã cài).
+3. `psql -U postgres -h localhost -c "\password postgres"` → nhập mật khẩu mới.
+4. Chép lại file `pg_hba.conf` đã sao lưu, `Restart-Service` lần nữa. **Đừng
+   quên bước này** — để `trust` thì ai trên máy cũng vào DB không cần mật khẩu.
+
 ### Backend chạy trong Docker, PostgreSQL trên host
 
 Container backend (`docker-compose.prod.yml`) gọi DB qua `host.docker.internal`,
