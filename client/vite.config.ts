@@ -29,9 +29,16 @@ export default defineConfig({
 				xfwd: true,
 			},
 		},
+		// Polling tốn CPU theo (số file × tần suất): quét mỗi 1s (thay vì 300ms)
+		// và bỏ qua thư mục build/tooling không cần theo dõi.
 		watch:
 			process.env.VITE_USE_POLLING === 'true'
-				? { usePolling: true, interval: 300 }
+				? {
+						usePolling: true,
+						interval: 1000,
+						binaryInterval: 3000,
+						ignored: ['**/dist/**', '**/docker/**', '**/.vite/**'],
+					}
 				: undefined,
 	},
 });

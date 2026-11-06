@@ -30,6 +30,9 @@ services:
       # PostgreSQL cài trên máy host: "localhost" trong server/.env trỏ vào
       # chính container. DB_PORT vẫn lấy từ server/.env.
       DB_HOST: host.docker.internal
+      # Giới hạn heap V8 dưới mức memory limit để GC dọn sớm thay vì phình tới khi bị OOM-kill
+      # (384MB: còn chỗ cho exceljs khi xuất báo cáo lớn)
+      NODE_OPTIONS: --max-old-space-size=384
     extra_hosts:
       - "host.docker.internal:host-gateway"
     # Chỉ loopback — để gọi API trực tiếp (Postman...) khi debug
@@ -43,6 +46,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: "1.0"
           memory: 512m
 
   frontend:
@@ -53,6 +57,7 @@ services:
     environment:
       VITE_API_PROXY: http://backend:3000
       VITE_USE_POLLING: "true"
+      NODE_OPTIONS: --max-old-space-size=512
     # Mặc định chỉ loopback. Cần mở từ máy khác trong LAN thì đặt
     # DEV_WEB_BIND=0.0.0.0 trong .env ở thư mục gốc.
     ports:
@@ -65,4 +70,6 @@ services:
     deploy:
       resources:
         limits:
+          # Chặn Vite chiếm hết 16 nhân khi transform/pre-bundle lần đầu
+          cpus: "2.0"
           memory: 768m

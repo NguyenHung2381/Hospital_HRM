@@ -19,8 +19,11 @@ COPY server/package.json server/package-lock.json ./server/
 WORKDIR /app/server
 RUN npm ci --no-audit --no-fund && npm cache clean --force
 EXPOSE 3000
-# -L (polling): bind mount qua Docker Desktop không phát fs-events
-CMD ["node", "node_modules/nodemon/bin/nodemon.js", "-L", "src/index.js"]
+# -L (polling): bind mount qua Docker Desktop không phát fs-events.
+# Polling tốn CPU theo (số file × tần suất) — mặc định chokidar 100ms và nodemon
+# quét cả thư mục server (logs/, scripts/, db/...) → ~7% CPU lúc rảnh. Chỉ theo
+# dõi src/, file .js/.json, quét mỗi 1s: đủ nhanh cho hot reload.
+CMD ["node", "node_modules/nodemon/bin/nodemon.js", "-L", "-P", "1000", "--watch", "src", "--ext", "js,json", "src/index.js"]
 
 # ─── Prod
 FROM node:22-alpine AS prod
