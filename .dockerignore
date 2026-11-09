@@ -12,3 +12,7 @@
 .claude
 server/scripts/setAccountPasswords.js
 server/uploads
+# File backup database (.bak, pg_dump) — nặng và chứa dữ liệu thật, không gửi vào build context
+**/*.bak
+**/*.dump
+backup

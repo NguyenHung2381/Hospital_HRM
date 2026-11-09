@@ -2,11 +2,11 @@
 # Chạy tự động bởi entrypoint của image nginx (mọi file /docker-entrypoint.d/*.sh)
 # TRƯỚC khi nginx khởi động — giống Hospital_RMS. Sinh $OUT từ biến
 # TRUSTED_PROXIES: danh sách IP/CIDR của reverse proxy HTTPS đứng trước
-# (https://dieuduong.bvnghean.vn → :8080), phân cách bằng dấu cách hoặc phẩy.
+# (https://dieuduong.bvnghean.vn → :8081), phân cách bằng dấu cách hoặc phẩy.
 #
 # Chỉ request đi tới TỪ các địa chỉ này mới được tin header X-Forwarded-For
 # (IP thật người dùng) và X-Forwarded-Proto (https). Request từ nơi khác (vd
-# máy trong LAN gọi thẳng cổng 8080) thì header tự khai bị bỏ qua — không giả
+# máy trong LAN gọi thẳng cổng 8081) thì header tự khai bị bỏ qua — không giả
 # được IP để lách rate-limit / khoá đăng nhập. Thiếu bước này thì sau proxy
 # mọi người dùng mang chung 1 IP (IP proxy) → 1 người nhập sai là cả viện bị chặn.
 #

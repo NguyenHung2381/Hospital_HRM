@@ -12,6 +12,8 @@
 | `postgres/900_reset_sequences.sql` | Đẩy sequence IDENTITY lên MAX(id) — `db:migrate-data` đã tự làm; dùng khi nạp dữ liệu bằng cách khác |
 | `../scripts/migrate-from-mssql.js`, `../scripts/verify-migration.js` | Chuyển dữ liệu và đối chiếu từng ô — xem [Chuyển dữ liệu](#chuyển-dữ-liệu-từ-sql-server) |
 
+> Thêm file migration mới (`005_...sql`, ...): **phải idempotent** (`IF NOT EXISTS`, `CREATE OR REPLACE`...). Tự deploy ([deploy/deploy.sh](../../deploy/deploy.sh)) chạy lại mọi file trong `postgres/` bằng `hrm_owner` mỗi khi thư mục này thay đổi — trừ `000`, `001`, `010`, `900`. `npm run setup` hiện chỉ chạy `002`–`004`: thêm file mới thì bổ sung vào `setupDatabase()` trong `server/scripts/setup.js`.
+
 ## Cài PostgreSQL trực tiếp trên máy chủ (Windows, không Docker)
 
 1. Cài **PostgreSQL 17 hoặc 18** (đã kiểm tra cả hai) bằng bộ cài EDB

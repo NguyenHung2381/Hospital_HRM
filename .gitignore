@@ -63,3 +63,8 @@ desktop.ini
 
 # Chứa mật khẩu thật dạng plaintext (chạy 1 lần rồi xoá) — không commit
 server/scripts/setAccountPasswords.js
+
+# Backup database (file .bak của SQL Server, pg_dump) — chứa dữ liệu thật, không commit
+*.bak
+*.dump
+backup/

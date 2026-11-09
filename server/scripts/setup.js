@@ -912,7 +912,7 @@ function webUrl() {
 	const rootEnvPath = path.join(ROOT_DIR, '.env');
 	const rootEnv = fs.existsSync(rootEnvPath) ? parseEnv(fs.readFileSync(rootEnvPath, 'utf8')) : {};
 	return PROD
-		? `http://localhost:${rootEnv.WEB_PORT || 8080}`
+		? `http://localhost:${rootEnv.WEB_PORT || 8081}`
 		: `http://localhost:${rootEnv.DEV_WEB_PORT || 5174}`;
 }
 

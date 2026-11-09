@@ -142,7 +142,7 @@ Chạy bằng Docker thay vì `npm run dev` — thêm bước 8: build image + `
 | Lệnh | Việc |
 |---|---|
 | `npm run setup:docker` | Dev bằng Docker: `server/.env` + `docker-compose.yml` → `http://localhost:5174` |
-| `npm run setup:prod` | Production: `server/.env.production` + `docker-compose.prod.yml` → `http://localhost:8080` |
+| `npm run setup:prod` | Production: `server/.env.production` + `docker-compose.prod.yml` → `http://localhost:8081` |
 | `npm run docker:dev` / `npm run docker:prod` | Chỉ build + chạy lại container (vd sau khi `git pull`) |
 
 Hai lệnh `setup:*` chỉ `npm install` trong `server/` (script cài DB cần `pg`, `bcrypt` trên máy); client được build trong image. Cần Docker Desktop đang chạy, và PostgreSQL phải nhận kết nối từ mạng Docker — xem [server/db/README.md](server/db/README.md#backend-chạy-trong-docker-postgresql-trên-host).
@@ -222,7 +222,7 @@ Dự án tách thành 2 môi trường độc lập. Mỗi môi trường có fi
 | Stage Dockerfile | `dev` (nodemon + Vite dev server) | `prod` (Node + nginx, build tĩnh) |
 | File cấu hình server | `server/.env` | `server/.env.production` (không có → dùng `server/.env`) |
 | `NODE_ENV` | `development` — trả chi tiết lỗi DB về client | `production` — ẩn chi tiết lỗi, cảnh báo nếu DB ở máy khác mà `DB_SSL≠true`, hoặc `DB_USER` là `postgres`/`hrm_owner` |
-| Giao diện | `http://localhost:5173` (npm) / `http://localhost:5174` (Docker) | `https://dieuduong.bvnghean.vn` → máy chủ `:8080` |
+| Giao diện | `http://localhost:5173` (npm) / `http://localhost:5174` (Docker) | `https://dieuduong.bvnghean.vn` → máy chủ `:8081` |
 | API | `http://localhost:3000` (npm) / `http://127.0.0.1:3002` (Docker) | Không mở ra ngoài, chỉ nginx gọi qua mạng nội bộ |
 | Source code | Mount từ máy host, sửa là chạy lại | Đóng vào image lúc build, phải build lại khi cập nhật |
 | Cookie phiên | `COOKIE_SECURE=false` (HTTP) | `COOKIE_SECURE=true` (bắt buộc HTTPS) |
@@ -269,7 +269,7 @@ Gồm 2 container:
 - `frontend`: nginx phục vụ giao diện đã build, reverse-proxy `/api`, header bảo mật, rate-limit, lấy IP thật của người dùng qua proxy tin cậy. Đây là container duy nhất mở cổng ra ngoài.
 - `backend`: Node, không mở cổng ra ngoài, read-only, không chạy bằng root. Có healthcheck `/health`; `frontend` chỉ khởi động khi `backend` đã healthy.
 
-Luồng truy cập: `https://dieuduong.bvnghean.vn` → reverse proxy HTTPS → máy chủ `:8080` → `frontend` (nginx) → `backend:3000` → PostgreSQL trên host.
+Luồng truy cập: `https://dieuduong.bvnghean.vn` → reverse proxy HTTPS → máy chủ `:8081` → `frontend` (nginx) → `backend:3000` → PostgreSQL trên host.
 
 #### Triển khai lần đầu
 
@@ -296,6 +296,41 @@ git pull
 docker compose -f docker-compose.prod.yml up -d --build      # build lại image, thay container; volume log giữ nguyên
 ```
 
+Hoặc chạy `bash deploy/deploy.sh --force`: làm như trên, kèm migration DB và tự quay về bản cũ nếu lỗi (xem mục dưới).
+
+#### Tự động deploy khi push lên `main` (Linux)
+
+Máy chủ tự hỏi GitHub mỗi phút (systemd timer), có commit mới thì chạy [deploy/deploy.sh](deploy/deploy.sh). Chỉ cần máy chủ đi ra được Internet: không mở cổng vào, không cấp quyền gì cho GitHub, không dùng self-hosted runner (repo public mà dùng runner thì pull request của người lạ có thể chạy code trên máy chủ).
+
+Mỗi lần deploy:
+
+1. `git merge --ff-only origin/main`. Sửa file đã commit trực tiếp trên máy chủ → dừng, báo lỗi (file env, `backup/` đã được ignore nên không sao).
+2. Commit có đổi `server/db/postgres/` → `pg_dump` vào `backup/predeploy_*.dump` (giữ 10 bản), rồi chạy lại các file migration bằng role `hrm_owner`. Bỏ qua `000`, `001`, `010`, `900`; **mọi file migration khác phải idempotent** vì sẽ được chạy lại.
+3. Tag image đang chạy thành `:previous`, build + thay container, chờ healthcheck, gọi thử trang web.
+4. Lỗi → trả về image `:previous` và code cũ trong vài giây; commit lỗi được ghi nhớ, không build lại mỗi phút. Push commit sửa lỗi là deploy tiếp. Migration DB đã chạy thì không tự hoàn tác (có backup ở bước 2).
+
+Cài đặt (1 lần, trên máy chủ, sau khi `npm run setup:prod` chạy được):
+
+```bash
+# 1. Mật khẩu hrm_owner (in ra lúc setup) cho migration — mở editor, thêm 1 dòng:
+#      localhost:5432:hrm_hospital:hrm_owner:<mật khẩu hrm_owner>
+#    Quên mật khẩu: sudo -u postgres psql -c "\password hrm_owner"
+nano ~/.pgpass && chmod 600 ~/.pgpass
+
+# 2. Bật timer (chạy dưới tên user sở hữu thư mục dự án)
+sudo bash deploy/install-autodeploy.sh                 # --interval=5min để đổi chu kỳ
+```
+
+| Việc | Lệnh |
+|---|---|
+| Xem log deploy | `journalctl -u hrm-deploy -f` |
+| Deploy ngay, không chờ | `sudo systemctl start hrm-deploy` |
+| Deploy lại commit từng lỗi | `bash deploy/deploy.sh --force` |
+| Tạm dừng / bật lại | `sudo systemctl stop hrm-deploy.timer` / `sudo systemctl start hrm-deploy.timer` |
+| Gỡ | `sudo bash deploy/install-autodeploy.sh --uninstall` |
+
+Repo chuyển sang private: máy chủ cần deploy key (khoá SSH chỉ đọc) để `git fetch` không phải nhập mật khẩu — `ssh-keygen -t ed25519`, dán khoá công khai vào GitHub → Settings → Deploy keys, rồi `git remote set-url origin git@github.com:NguyenHung2381/Hospital_HRM.git`.
+
 #### Lệnh thường dùng
 
 ```bash
@@ -310,13 +345,13 @@ docker compose -f docker-compose.prod.yml exec backend ls logs       # xem danh 
 
 | Biến | Mặc định | Ý nghĩa |
 |------|----------|---------|
-| `WEB_PORT` | `8080` | Cổng nhận traffic từ proxy HTTPS |
-| `WEB_BIND` | `0.0.0.0` | Proxy HTTPS ở cùng máy → `127.0.0.1` (LAN không gọi thẳng HTTP được). Proxy ở máy khác → giữ mặc định và dùng firewall chỉ mở `8080` cho IP proxy |
+| `WEB_PORT` | `8081` | Cổng nhận traffic từ proxy HTTPS |
+| `WEB_BIND` | `0.0.0.0` | Proxy HTTPS ở cùng máy → `127.0.0.1` (LAN không gọi thẳng HTTP được). Proxy ở máy khác → giữ mặc định và dùng firewall chỉ mở `8081` cho IP proxy |
 | `TRUSTED_PROXIES` | `127.0.0.1 + 172.16.0.0/12` | IP/CIDR của proxy HTTPS. Proxy ở máy khác **bắt buộc** khai, nếu không mọi người dùng chung 1 IP → rate-limit đăng nhập chặn cả viện |
 
 #### Lưu ý
 
-- `COOKIE_SECURE=true` thì cookie chỉ gửi qua HTTPS. Thử nhanh bằng `http://localhost:8080` (không qua proxy) thì tạm đặt `false`, nếu không sẽ không đăng nhập được.
+- `COOKIE_SECURE=true` thì cookie chỉ gửi qua HTTPS. Thử nhanh bằng `http://localhost:8081` (không qua proxy) thì tạm đặt `false`, nếu không sẽ không đăng nhập được.
 - `NODE_ENV`, `HOST`, `PORT`, `TRUST_PROXY` đã cố định trong `docker-compose.prod.yml`, đặt trong `.env.production` cũng không có tác dụng.
 - Không đổi `name: hospital_hrm` trong `docker-compose.prod.yml`: tên volume log thật (`hospital_hrm_api-logs`) phụ thuộc vào nó.
 - Server **không** tự tạo/sửa bảng: role `hrm_app` không có quyền DDL. Schema tạo trước bằng `server/db/postgres/*.sql` (role `hrm_owner`); lúc khởi động server chỉ kiểm tra đủ bảng, thiếu thì dừng và báo file cần chạy.

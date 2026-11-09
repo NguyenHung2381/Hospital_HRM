@@ -1,14 +1,14 @@
 # Hospital HRM — PRODUCTION bằng Docker
 #   docker compose -f docker-compose.prod.yml up -d --build
-# https://dieuduong.bvnghean.vn (reverse proxy HTTPS) → máy chủ :${WEB_PORT:-8080}
-# → nginx (container frontend). Thử nhanh không qua proxy: http://localhost:8080
+# https://dieuduong.bvnghean.vn (reverse proxy HTTPS) → máy chủ :${WEB_PORT:-8081}
+# → nginx (container frontend). Thử nhanh không qua proxy: http://localhost:8081
 # (khi đó đặt COOKIE_SECURE=false, nếu không sẽ không đăng nhập được).
 #
 # Biến của compose đặt trong file .env cạnh file này (không commit):
 #   WEB_BIND         mặc định 0.0.0.0. Proxy HTTPS ở CÙNG máy → 127.0.0.1 để máy
-#                    khác trong LAN không gọi thẳng HTTP 8080; proxy ở máy khác
-#                    → giữ mặc định và chặn 8080 bằng firewall, chỉ mở cho IP proxy.
-#   WEB_PORT         mặc định 8080
+#                    khác trong LAN không gọi thẳng HTTP 8081; proxy ở máy khác
+#                    → giữ mặc định và chặn 8081 bằng firewall, chỉ mở cho IP proxy.
+#   WEB_PORT         mặc định 8081
 #   TRUSTED_PROXIES  IP/CIDR của proxy HTTPS (xem client/docker/40-trusted-proxies.sh)
 #
 # Database: PostgreSQL cài trực tiếp trên máy host (không nằm trong compose).
@@ -82,7 +82,7 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:80"
+      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8081}:80"
     # nginx chạy user 101 + cap_drop ALL vẫn bind được cổng 80
     sysctls:
       net.ipv4.ip_unprivileged_port_start: 0
