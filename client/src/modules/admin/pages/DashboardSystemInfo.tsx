@@ -5,7 +5,7 @@ export default function DashboardSystemInfo() {
 			{[
 				['Đơn vị', 'Bệnh viện Hữu nghị Đa khoa Nghệ An'],
 				['Chuẩn tính toán', 'TT 03/2023/TT-BYT'],
-				['Phiên bản', '1.1.0'],
+				['Phiên bản', __APP_VERSION__],
 			].map(([k, v]) => (
 				<div key={k}>
 					<dt>{k}</dt>

@@ -1,11 +1,18 @@
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'fs';
 import path from 'path';
 import { defineConfig } from 'vite';
+
+// Phiên bản hiển thị trên giao diện lấy từ package.json — chỉ cần sửa một chỗ.
+const { version } = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf8'));
 
 // https://vite.dev/config/
 export default defineConfig({
 	plugins: [react()],
 	base: '/',
+	define: {
+		__APP_VERSION__: JSON.stringify(version),
+	},
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, 'src'),
