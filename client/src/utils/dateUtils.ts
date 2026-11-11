@@ -66,11 +66,19 @@ export const diffDays = (from: string, to: string): number => {
 	);
 };
 
+/**
+ * Múi giờ hiển thị mốc thời gian (created_at/updated_at...). Server trả ISO UTC;
+ * không ghim múi giờ thì toLocaleString lấy theo máy người xem — máy trạm để
+ * múi giờ UTC (hoặc trình duyệt chống fingerprint ép UTC) sẽ thấy lệch 7 tiếng.
+ */
+export const APP_TIME_ZONE = 'Asia/Ho_Chi_Minh';
+
 export const fmtUpdatedAt = (iso: string | null | undefined): string => {
 	if (!iso) return '—';
 	const d = new Date(iso);
 	if (isNaN(d.getTime())) return '—';
 	return d.toLocaleString('vi-VN', {
+		timeZone: APP_TIME_ZONE,
 		day: '2-digit',
 		month: '2-digit',
 		year: 'numeric',

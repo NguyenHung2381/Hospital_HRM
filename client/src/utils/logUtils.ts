@@ -1,10 +1,12 @@
 // Helper hiển thị cho trang Nhật ký hệ thống & danh sách phiên đăng nhập
+import { APP_TIME_ZONE } from '@/utils/dateUtils';
 
 export function formatDateTime(iso: string | null | undefined): string {
 	if (!iso) return '—';
 	const d = new Date(iso);
 	if (Number.isNaN(d.getTime())) return '—';
 	return d.toLocaleString('vi-VN', {
+		timeZone: APP_TIME_ZONE,
 		day: '2-digit',
 		month: '2-digit',
 		year: 'numeric',

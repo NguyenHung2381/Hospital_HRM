@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { APP_TIME_ZONE } from '@/utils/dateUtils';
 
 interface SessionItem {
 	id: string;
@@ -31,7 +32,7 @@ function describeDevice(ua: string | null): string {
 }
 
 function fmt(iso: string | null): string {
-	return iso ? new Date(iso).toLocaleString('vi-VN') : '—';
+	return iso ? new Date(iso).toLocaleString('vi-VN', { timeZone: APP_TIME_ZONE }) : '—';
 }
 
 /** Danh sách thiết bị đang đăng nhập + đăng xuất từ xa. */
